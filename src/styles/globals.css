@@ -1,0 +1,471 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  /* Font Families */
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* Colors */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chat-accent: hsl(var(--chat-accent));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  /* Border Radius */
+  --rounded-lg: var(--radius);
+  --rounded-md: calc(var(--radius) - 2px);
+  --rounded-sm: calc(var(--radius) - 4px);
+
+  /* Font Weights */
+  --font-weight-450: 450;
+
+  /* Animations */
+  --animation-accordion-down: accordion-down 0.2s ease-out;
+  --animation-accordion-up: accordion-up 0.2s ease-out;
+}
+
+/* Keyframes for animations */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 13%; /* #212121 */
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 16%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 16%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 14.5%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.5%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 14.5%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 16%;
+    --ring: 0 0% 83.9%;
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 8%; /* #151515 */
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 83.9%;
+
+    --chat-input-bg: 0 0% 16%; /* #292929 */
+    --user-message-bg: 0 0% 17%; /* #2C2C2C */
+    
+    /* Scrollbar colors */
+    --scrollbar-thumb: 0 0% 25%;
+    --scrollbar-track: 0 0% 15%;
+
+    /* Inline code background - #1A1A1ADB */
+    --inline-code-bg: 0 0% 10% / 0.86;
+    
+    /* Chat accent color for code blocks */
+    --chat-accent: 0 0% 17%; /* #2C2C2C */
+
+    /* Chart colors */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+  
+  /* Dark mode support - if you ever want to add light mode */
+  .dark {
+    /* Your current colors are already dark, so this maintains them */
+    --background: 0 0% 13%;
+    --foreground: 0 0% 98%;
+    /* Add other dark mode overrides here if needed */
+  }
+  
+  /* Prevent page scrolling while allowing component scrolling */
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* Custom scrollbar styling */
+@layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--scrollbar-thumb)) transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--scrollbar-thumb));
+    border-radius: 20px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--scrollbar-thumb) / 0.8);
+  }
+  
+  /* Hide scrollbar but keep scrolling functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+}
+
+
+@layer components {
+  /* Custom prose colors for dark theme */
+  .prose {
+    --tw-prose-body: #f0f0f0;
+    --tw-prose-headings: #ffffff;
+    --tw-prose-lead: #d4d4d4;
+    --tw-prose-links: #63b3ed; /* blue-400 */
+    --tw-prose-bold: #ffffff;
+    --tw-prose-counters: #d4d4d4;
+    --tw-prose-bullets: #6b7280;
+    --tw-prose-hr: #4b5563;
+    --tw-prose-quotes: #f3f4f6;
+    --tw-prose-quote-borders: #4b5563;
+    --tw-prose-captions: #9ca3af;
+    --tw-prose-code: #ffffff;
+    --tw-prose-pre-code: #e5e7eb;
+    --tw-prose-pre-bg: #282828;
+    --tw-prose-th-borders: #4b5563;
+    --tw-prose-td-borders: #374151;
+    
+    /* We don't need these since we're always in dark mode, but keeping them for completeness */
+    --tw-prose-invert-body: #f0f0f0;
+    --tw-prose-invert-headings: #ffffff;
+    --tw-prose-invert-lead: #d4d4d4;
+    --tw-prose-invert-links: #63b3ed; /* blue-400 */
+    --tw-prose-invert-bold: #ffffff;
+    --tw-prose-invert-counters: #d4d4d4;
+    --tw-prose-invert-bullets: #6b7280;
+    --tw-prose-invert-hr: #4b5563;
+    --tw-prose-invert-quotes: #f3f4f6;
+    --tw-prose-invert-quote-borders: #4b5563;
+    --tw-prose-invert-captions: #9ca3af;
+    --tw-prose-invert-code: #ffffff;
+    --tw-prose-invert-pre-code: #e5e7eb;
+    --tw-prose-invert-pre-bg: #282828;
+    --tw-prose-invert-th-borders: #4b5563;
+    --tw-prose-invert-td-borders: #374151;
+    
+    @apply font-sans text-base;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--tw-prose-body);
+  }
+  
+  /* Paragraph */
+  .prose :where(p):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+  }
+  
+  /* Strong */
+  .prose :where(strong):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 600;
+  }
+  
+  /* Inline Code - Updated to match Theo's style */
+  .prose :where(code):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    @apply text-white bg-[#1A1A1ADB] text-[14px] font-normal rounded px-[5px] py-[2px] mx-[2px];
+    font-family: BerkeleyMono, monospace;
+  }
+  
+  /* Make sure code inside pre doesn't get the inline styling */
+  .prose :where(pre code):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    @apply bg-transparent p-0 text-inherit;
+  }
+  
+  /* Blockquote */
+  .prose :where(blockquote):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 500;
+    font-style: italic;
+    border-inline-start-width: .25rem;
+    border-inline-start-color: hsl(var(--border));
+    quotes: "\201C" "\201D" "\2018" "\2019";
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-inline-start: 1em;
+  }
+  
+  /* Ordered Lists */
+  .prose :where(ol):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    list-style-type: decimal;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-inline-start: 1.625em;
+  }
+  
+  /* Ordered List Items */
+  .prose :where(ol>li):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    padding-inline-start: .375em;
+  }
+  
+  /* Unordered Lists */
+  .prose :where(ul):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    list-style-type: disc;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-inline-start: 1.625em;
+  }
+  
+  /* Unordered List Items */
+  .prose :where(ul>li):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    padding-inline-start: .375em;
+  }
+  
+  /* List Items (general) */
+  .prose :where(li):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    margin-top: .5em;
+    margin-bottom: .5em;
+  }
+  
+  /* Horizontal Rule */
+  .prose :where(hr):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    border-color: hsl(var(--border));
+    border-top-width: 1px;
+    margin-top: 3em;
+    margin-bottom: 3em;
+  }
+  
+  /* Links */
+  .prose :where(a):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    @apply text-blue-400 hover:text-blue-300;
+    text-decoration: underline;
+    font-weight: 500;
+  }
+  
+  /* Headings */
+  .prose :where(h1):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 800;
+    font-size: 2.25em;
+    margin-top: 0;
+    margin-bottom: .8888889em;
+    line-height: 1.1111111;
+  }
+  
+  .prose :where(h2):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 700;
+    font-size: 1.5em;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    line-height: 1.3333333;
+  }
+  
+  .prose :where(h2+*):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    margin-top: 0;
+  }
+  
+  .prose :where(h3):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 600;
+    font-size: 1.25em;
+    margin-top: 1.6em;
+    margin-bottom: .6em;
+    line-height: 1.6;
+  }
+  
+  .prose :where(h3+*):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    margin-top: 0;
+  }
+  
+  .prose :where(h4):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: .5em;
+    line-height: 1.5;
+  }
+  
+  .prose :where(h4+*):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    margin-top: 0;
+  }
+  
+  /* Tables */
+  .prose table {
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: block;
+  }
+  
+  .prose :where(table):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    width: 100%;
+    table-layout: auto;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: .875em;
+    line-height: 1.7142857;
+  }
+  
+  /* Table Headers */
+  .prose :where(thead):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    border-bottom-width: 1px;
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  .prose :where(thead th:first-child):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    padding-inline-start: 0;
+  }
+  
+  .prose :where(thead th):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    font-weight: 600;
+    vertical-align: bottom;
+    padding-inline-end: .5714286em;
+    padding-bottom: .5714286em;
+    padding-inline-start: .5714286em;
+  }
+  
+  /* Table Body */
+  .prose :where(tbody tr):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    border-bottom-width: 1px;
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  .prose :where(tbody td:first-child,tfoot td:first-child):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    padding-inline-start: 0;
+  }
+  
+  .prose :where(tbody td,tfoot td):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    padding-top: .5714286em;
+    padding-inline-end: .5714286em;
+    padding-bottom: .5714286em;
+    padding-inline-start: .5714286em;
+  }
+  
+  .prose :where(th,td):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    text-align: start;
+  }
+  
+  .prose :where(tbody td):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    vertical-align: baseline;
+  }
+  
+  /* Code block outer container */
+  .code-block-outer {
+    @apply my-4;
+  }
+  
+  /* Shiki Code Blocks */
+  .shiki {
+    @apply !bg-chat-accent overflow-x-auto;
+    font-family: BerkeleyMono, monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  
+  .shiki code {
+    @apply bg-transparent p-0 border-0;
+    counter-reset: line;
+  }
+  
+  .shiki .line {
+    @apply min-h-[1.5rem];
+    padding-left: 1rem; /* Add left padding to each line */
+  }
+  
+  /* Remove margins from pre in prose context */
+  .prose pre {
+    @apply my-0;
+  }
+  
+  /* Adjust code block padding */
+  .prose pre > div {
+    @apply p-0;
+  }
+  
+  /* Code block wrapper */
+  .code-block-wrapper {
+    @apply overflow-hidden bg-chat-accent text-sm font-[450] text-secondary-foreground;
+  }
+  
+  /* Add transition for copy button */
+  .ease-snappy {
+    transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+}

@@ -1,0 +1,75 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General Coding Guidelines for AI Chat Platform
+
+These guidelines outline the principles and practices for developing the AI Chat Platform, emphasizing speed, efficiency, and maintainability, drawing inspiration from Theo's T3 Chat architecture. ALWAYS follow these guidelines below:
+
+## 1. Core Philosophy: Speed and Responsiveness
+- Prioritize instant UI response and a native-feeling experience. Every decision should be evaluated by its impact on performance.
+- Minimize anything that introduces perceived latency, including unnecessary animations or complex render-blocking operations.
+
+## 2. CONVEX for User Experience
+- The UI should primarily interact with a CONVEX database (reactive DB with websocket sync engine) for instant changes to any who subscribed to the query of chat data (threads, messages). This is crucial for snappy interactions like sending messages, loading threads, and scrolling.
+- Leverage CONVEX'ES reactivity (e.g., `useQuery`) to ensure the UI updates automatically and instantly when data changes.
+
+## 3. Client-Side Routing
+- ANY navigation should be using React Router. This avoids page reloads and provides seamless transitions between different parts of the app (e.g., switching threads).
+- We use a Next.js catch-all route (`app/[[...params]]/page.tsx`) to render the client-side router, allowing Next.js to be used for its build system and API routes without traditional server-side navigation.
+
+## 4. Resource Management & Efficiency
+- Prioritize efficient use of resources (memory, CPU, bandwidth).
+- Ensure proper cleanup of event listeners, timers, and subscriptions in React components and server actions to prevent memory leaks.
+- Use efficient data structures and algorithms, especially for handling potentially large chat histories.
+- Release resources and close database connections promptly where applicable.
+
+## 5. Performance
+- Optimize for quick initial page load times.
+- Ensure instant thread switching and low-latency chat streaming.
+- Minimize blocking operations in server actions and API routes; favor asynchronous and non-blocking patterns.
+- Batch or debounce expensive operations if applicable.
+- Implement techniques like Markdown chunking (using `marked.lexer` and `React.memo`) for efficient rendering of streaming AI responses, avoiding full message re-renders as new tokens arrive.
+
+## 6. Code Quality & Maintainability
+- Write clear, self-documenting code with meaningful names and TypeScript types.
+- Keep functions, components, and modules small and focused.
+- Use modular, reusable components (especially for UI with ShadCN/UI and Tailwind).
+- Avoid code duplication; use utility functions and shared modules.
+- Document complex logic, edge cases, and role-based access flows.
+- Handle errors gracefully and provide helpful error messages to users and logs.
+- Follow the user’s requirements carefully & to the letter.
+- First think step-by-step - describe your plan for what to build, written out in great detail.
+- Confirm, then write code!
+- Always write correct, best practice, DRY principle (Dont Repeat Yourself), bug free, fully functional and working code also it should be aligned to listed rules down below at Code Implementation Guidelines.
+- Fully implement all requested functionality.
+- Leave NO todo’s, placeholders or missing pieces.
+- Ensure code is complete! Verify thoroughly finalised.
+- Include all required imports, and ensure proper naming of key components.
+- If you think there might not be a correct answer, you say so.
+- If you do not know the answer, say so, instead of guessing.
+- Always follow the best practices
+
+## 7. Code Styling
+- Follow SOLID principles
+- Use tabs for indentation
+- Use single quotes for strings (except to avoid escaping)
+- Omit semicolons (unless required for disambiguation)
+- Eliminate unused variables
+- Add space after keywords
+- Add space before function declaration parentheses
+- Space infix operators
+- Add space after commas
+- Keep else statements on the same line as closing curly braces
+- Use curly braces for multi-line if statements
+- Always handle error parameters in callbacks
+- Use trailing commas in multiline object/array literals
+
+## 8. HOW YOU SHOULD ANSWER TO ME - VERY CRITICAL, VERY IMPORTANT:
+- NEVER DO ANYTHING I DID NOT ASK FOR
+- IF I ASKED QUESTION DO NOT EDIT CODE, I WANT TO CHAT WITH YOU
+- IF I SAID DO {THIS}, THEN YOU ONLY DO {THIS}, NEVER DO ANYTHING ELSE IF YOU ARE NOT ASKED
+- ALWAYS BEFORE IMPLEMENTING ANYTHING PROPOSE WHAT YOU WOULD DO IN WORDS AND ALWAYS ASK FOR PERMISSION
+- ALWAYS READ THE FILES I GAVE YOU, IF I MENTION ANY FILES - YOU SHOULD READ THEM FIRST USING THE READ FILE TOOL
+- 
