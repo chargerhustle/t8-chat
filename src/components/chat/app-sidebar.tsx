@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, memo } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useThreadData } from "@/hooks/use-thread-data";
 import {
@@ -139,6 +139,9 @@ export function AppSidebar() {
 
   // Use Convex hook for reactive thread data
   const threads = useThreadData();
+  
+  // Get current user data
+  const currentUser = useQuery(api.auth.getCurrentUser);
 
   // Convex mutations
   const deleteThreadMutation = useMutation(api.threads.deleteThread);
@@ -331,17 +334,35 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Avatar className="h-6 w-6 mr-2">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback>U</AvatarFallback>
+        <div data-sidebar="footer" className="flex flex-col gap-2 m-0 p-2 pt-0">
+          <Link
+            to="/settings"
+            aria-label="Go to settings"
+            role="button"
+            className="flex select-none flex-row items-center justify-between gap-3 rounded-lg px-3 py-3 hover:bg-sidebar-accent focus:bg-sidebar-accent focus:outline-2"
+            data-discover="true"
+          >
+            <div className="flex w-full min-w-0 flex-row items-center gap-3">
+              <Avatar className="h-8 w-8 rounded-full ring-1 ring-muted-foreground/20">
+                <AvatarImage 
+                  src={currentUser?.image || ""} 
+                  alt={currentUser?.name || "User"} 
+                />
+                <AvatarFallback className="text-sm">
+                  {currentUser?.name?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
               </Avatar>
-              <span>User Account</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+              <div className="flex min-w-0 flex-col text-foreground">
+                <span className="truncate text-sm font-medium">
+                  {currentUser?.name || "User"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Free
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
       </SidebarFooter>
 
       <SidebarRail />
