@@ -1,26 +1,28 @@
-"use client"
+"use client";
 
-import { CopyButton } from "@/components/copy-button"
-import { cn } from "@/lib/utils"
+import { CopyButton } from "@/components/copy-button";
+import { cn } from "@/lib/utils";
 
 interface MessageToolbarProps {
-  messageContent: string
-  align?: "left" | "right"
-  className?: string
+  messageContent: string;
+  align?: "left" | "right";
+  className?: string;
 }
 
-export function MessageToolbar({ 
-  messageContent, 
-  align = "left", 
-  className 
+export function MessageToolbar({
+  messageContent,
+  align = "left",
+  className,
 }: MessageToolbarProps) {
   return (
-    <div className={cn(
-      "flex items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-      align === "right" ? "justify-end" : "justify-start",
-      className
-    )}>
-      <CopyButton 
+    <div
+      className={cn(
+        "flex items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+        align === "right" ? "justify-end" : "justify-start",
+        className
+      )}
+    >
+      <CopyButton
         text={messageContent}
         size="md"
         variant="ghost"
@@ -28,5 +30,5 @@ export function MessageToolbar({
       />
       {/* Future buttons can be added here */}
     </div>
-  )
-} 
+  );
+}

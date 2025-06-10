@@ -2,7 +2,6 @@ import { internalApiMutation } from "../helpers";
 import { v } from "convex/values";
 import { MutationCtx } from "../_generated/server";
 
-
 /**
  * Update thread metadata
  */
@@ -10,12 +9,14 @@ export const updateThread = internalApiMutation({
   args: {
     threadId: v.string(),
     title: v.optional(v.string()),
-    generationStatus: v.optional(v.union(
-      v.literal("pending"),
-      v.literal("generating"),
-      v.literal("completed"),
-      v.literal("failed")
-    )),
+    generationStatus: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("generating"),
+        v.literal("completed"),
+        v.literal("failed")
+      )
+    ),
     userId: v.id("users"),
   },
   handler: async (ctx: MutationCtx, args) => {
@@ -47,8 +48,11 @@ export const updateThread = internalApiMutation({
 
     await ctx.db.patch(thread._id, updates);
 
-    console.log("[THREADS] Updated thread", { threadId: args.threadId, updates });
+    console.log("[THREADS] Updated thread", {
+      threadId: args.threadId,
+      updates,
+    });
 
     return { success: true };
   },
-}); 
+});

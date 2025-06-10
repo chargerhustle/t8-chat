@@ -124,7 +124,7 @@ const ThreadItem = memo(
         </Link>
       </SidebarMenuButton>
     </li>
-  ),
+  )
 );
 
 ThreadItem.displayName = "ThreadItem";
@@ -139,7 +139,7 @@ export function AppSidebar() {
 
   // Use Convex hook for reactive thread data
   const threads = useThreadData();
-  
+
   // Get current user data
   const currentUser = useQuery(api.auth.getCurrentUser);
 
@@ -231,7 +231,7 @@ export function AppSidebar() {
         console.error("Failed to toggle pin:", error);
       }
     },
-    [togglePinMutation],
+    [togglePinMutation]
   );
 
   const handleSetThreadToDelete = useCallback((threadId: string) => {
@@ -252,8 +252,7 @@ export function AppSidebar() {
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="border-b border-chat-border mx-2 pb-3">
-        </div>
+        <div className="border-b border-chat-border mx-2 pb-3"></div>
       </SidebarHeader>
 
       <SidebarContent className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden scrollbar-hide scroll-shadow relative pb-2">
@@ -344,9 +343,9 @@ export function AppSidebar() {
           >
             <div className="flex w-full min-w-0 flex-row items-center gap-3">
               <Avatar className="h-8 w-8 rounded-full ring-1 ring-muted-foreground/20">
-                <AvatarImage 
-                  src={currentUser?.image || ""} 
-                  alt={currentUser?.name || "User"} 
+                <AvatarImage
+                  src={currentUser?.image || ""}
+                  alt={currentUser?.name || "User"}
                 />
                 <AvatarFallback className="text-sm">
                   {currentUser?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -356,9 +355,7 @@ export function AppSidebar() {
                 <span className="truncate text-sm font-medium">
                   {currentUser?.name || "User"}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  Free
-                </span>
+                <span className="text-xs text-muted-foreground">Free</span>
               </div>
             </div>
           </Link>
@@ -377,8 +374,8 @@ export function AppSidebar() {
             <AlertDialogTitle>Delete Thread</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete &quot;
-              {threads?.find((t) => t.threadId === threadToDelete)?.title}&quot;?
-              This action cannot be undone.
+              {threads?.find((t) => t.threadId === threadToDelete)?.title}
+              &quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

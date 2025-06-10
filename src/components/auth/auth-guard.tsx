@@ -32,4 +32,4 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // Show the protected content if authenticated
   return <>{children}</>;
-} 
+}

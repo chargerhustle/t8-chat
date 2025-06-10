@@ -24,12 +24,16 @@ export const updateMessage = internalApiMutation({
     if (!message) throw new Error("Message not found");
 
     // Simplified logging - only log key identifiers
-    console.log(`[CHAT] Updating ${args.messageId.slice(-8)} -> status: ${args.status || 'no change'}`);
+    console.log(
+      `[CHAT] Updating ${args.messageId.slice(-8)} -> status: ${args.status || "no change"}`
+    );
 
     // Do NOT update message if it has already been marked as done
     // (handles update race conditions)
     if (message.status === "done" || message.status === "error") {
-      console.error(`[CHAT] Message ${args.messageId.slice(-8)} already ${message.status}, skipping`);
+      console.error(
+        `[CHAT] Message ${args.messageId.slice(-8)} already ${message.status}, skipping`
+      );
       // Don't throw because it might break server side on /api/chat
       return;
     }
@@ -70,7 +74,9 @@ export const updateTitleForThread = internalApiMutation({
     // Check if this user has access to this thread
     if (thread.userId !== args.userId) throw new Error("Unauthorized");
 
-    console.log(`[CHAT] Title update: ${args.threadId.slice(-8)} -> "${args.title.slice(0, 30)}${args.title.length > 30 ? '...' : ''}"`);
+    console.log(
+      `[CHAT] Title update: ${args.threadId.slice(-8)} -> "${args.title.slice(0, 30)}${args.title.length > 30 ? "..." : ""}"`
+    );
 
     await ctx.db.patch(thread._id, {
       title: args.title,
@@ -90,7 +96,7 @@ export const getMessageByStreamId = internalApiMutation({
   handler: async (ctx: MutationCtx, args) => {
     const message = await ctx.db
       .query("messages")
-      .withIndex("by_userId_and_streamId", (q) => 
+      .withIndex("by_userId_and_streamId", (q) =>
         q.eq("userId", args.userId).eq("resumableStreamId", args.streamId)
       )
       .first();
@@ -117,4 +123,4 @@ export const getMessageByStreamId = internalApiMutation({
       status: message.status,
     };
   },
-}); 
+});

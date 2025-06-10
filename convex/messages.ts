@@ -40,13 +40,13 @@ export const getByThreadId = query({
       .collect();
 
     // Check if ANY message has attachments
-    const hasAttachments = messages.some(message => 
-      message.attachmentIds && message.attachmentIds.length > 0
+    const hasAttachments = messages.some(
+      (message) => message.attachmentIds && message.attachmentIds.length > 0
     );
 
     // Early return for text-only threads
     if (!hasAttachments) {
-      return messages.map(message => ({ ...message, attachments: [] }));
+      return messages.map((message) => ({ ...message, attachments: [] }));
     }
 
     // Fetch ALL attachments for this thread (single query)
@@ -57,16 +57,16 @@ export const getByThreadId = query({
 
     // Create fast lookup map (O(1) access)
     const attachmentMap = new Map();
-    attachments.forEach(attachment => {
+    attachments.forEach((attachment) => {
       attachmentMap.set(attachment._id, attachment);
     });
 
     // Combine messages with their attachments
-    return messages.map(message => ({
+    return messages.map((message) => ({
       ...message,
       attachments: (message.attachmentIds || [])
-        .map(id => attachmentMap.get(id))
-        .filter(Boolean)
+        .map((id) => attachmentMap.get(id))
+        .filter(Boolean),
     }));
   },
 });
@@ -82,7 +82,11 @@ export const addMessagesToThread = mutation({
       v.object({
         messageId: v.string(),
         content: v.string(),
-        role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+        role: v.union(
+          v.literal("user"),
+          v.literal("assistant"),
+          v.literal("system")
+        ),
         status: v.union(
           v.literal("waiting"),
           v.literal("thinking"),
@@ -121,7 +125,7 @@ export const addMessagesToThread = mutation({
     }
 
     // Insert all messages in parallel
-    const insertPromises = args.messages.map(message => 
+    const insertPromises = args.messages.map((message) =>
       ctx.db.insert("messages", {
         userId,
         threadId: args.threadId,
@@ -149,7 +153,6 @@ export const addMessagesToThread = mutation({
   },
 });
 
-
 export const updateMessage = mutation({
   args: {
     messageId: v.string(),
@@ -175,12 +178,16 @@ export const updateMessage = mutation({
     if (!message) throw new Error("Message not found");
 
     // Simplified logging - only log key identifiers
-    console.log(`[CHAT] Updating ${args.messageId.slice(-8)} -> status: ${args.status || 'no change'}`);
+    console.log(
+      `[CHAT] Updating ${args.messageId.slice(-8)} -> status: ${args.status || "no change"}`
+    );
 
     // Do NOT update message if it has already been marked as done
     // (handles update race conditions)
     if (message.status === "done" || message.status === "error") {
-      console.error(`[CHAT] Message ${args.messageId.slice(-8)} already ${message.status}, skipping`);
+      console.error(
+        `[CHAT] Message ${args.messageId.slice(-8)} already ${message.status}, skipping`
+      );
       // Don't throw because it might break server side on /api/chat
       return;
     }
@@ -294,4 +301,4 @@ export const setErrorMessage = mutation({
 
     return { success: true };
   },
-}); 
+});
