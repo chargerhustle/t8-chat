@@ -5,6 +5,7 @@ import { AllowedModels, ChatRequest, EffortLevel, ModelParams } from "@/types";
 import { APIErrorResponse } from "@/types/api";
 import { processDataStream } from "ai";
 import { useTempMessageStore } from "@/lib/chat/temp-message-store";
+import { buildProviderOptions } from "@/lib/chat/provider-options";
 
 /**
  * Transform attachments for API submission
@@ -182,17 +183,11 @@ async function doChatFetchRequest(input: {
       frequencyPenalty: input.modelParams.frequencyPenalty,
       stopSequences: input.modelParams.stopSequences,
       seed: input.modelParams.seed,
-      providerOptions: {
-        // Provider-specific options - each provider gets its own nested object
-        openai: {
-          ...(input.modelParams.reasoningEffort && {
-            reasoningEffort: input.modelParams.reasoningEffort,
-          }),
-          ...(input.modelParams.includeSearch && {
-            includeSearch: input.modelParams.includeSearch,
-          }),
-        },
-      },
+      providerOptions: buildProviderOptions(
+        input.model,
+        input.modelParams.reasoningEffort,
+        input.modelParams.includeSearch
+      ),
     }),
     // preferences: input.preferences ?? {},
   };

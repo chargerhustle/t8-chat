@@ -69,19 +69,19 @@ export default function HistoryPage() {
           <h2 className="text-2xl font-bold">Message History</h2>
           <div className="space-y-6">
             <p className="text-muted-foreground/80">
-              Save your history as JSON, or import someone else's. Importing
-              will NOT delete existing messages
+              Save your history as JSON, or delete it.
             </p>
             <div className="space-y-2">
               <div className="mb-2 flex h-10 items-end justify-between gap-2">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2.5 px-4"
+                    <div
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors"
                       onClick={handleSelectAll}
-                      disabled={!threads}
+                      style={{
+                        opacity: !threads ? 0.5 : 1,
+                        pointerEvents: !threads ? "none" : "auto",
+                      }}
                     >
                       <Checkbox
                         checked={selectAll}
@@ -90,7 +90,7 @@ export default function HistoryPage() {
                       <span className="hidden text-sm md:inline">
                         Select All
                       </span>
-                    </Button>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
@@ -150,18 +150,26 @@ export default function HistoryPage() {
                             style={{ minHeight: "2.5rem" }}
                             onClick={() => handleThreadSelect(thread._id)}
                           >
-                            <Checkbox
-                              checked={selectedThreads.has(thread._id)}
+                            <div
                               className="h-4 w-4 shrink-0"
-                            />
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleThreadSelect(thread._id);
+                              }}
+                            >
+                              <Checkbox
+                                checked={selectedThreads.has(thread._id)}
+                                className="h-4 w-4"
+                              />
+                            </div>
                             <span className="truncate">
                               {thread.title || "Untitled Chat"}
                             </span>
                             <span className="flex w-8 justify-center">
                               {thread.pinned && (
-                                <button data-state="closed">
+                                <div data-state="closed">
                                   <Pin className="h-4 w-4 text-primary" />
-                                </button>
+                                </div>
                               )}
                             </span>
                             <span className="w-32 select-none text-right text-xs text-muted-foreground">

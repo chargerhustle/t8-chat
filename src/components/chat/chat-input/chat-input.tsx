@@ -4,7 +4,9 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ArrowUpIcon, Paperclip, Globe, ChevronDown } from "lucide-react";
 import { ModelDropdown } from "./model-dropdown";
+import { ReasoningEffortDropdown } from "./reasoning-effort-dropdown";
 import { MODEL_CONFIGS, ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
+import { EffortLevel } from "@/types";
 
 interface UseAutoResizeTextareaProps {
   minHeight: number;
@@ -12,7 +14,12 @@ interface UseAutoResizeTextareaProps {
 }
 
 interface ChatInputProps {
-  onSubmit: (message: string, model: ModelConfig) => Promise<void>;
+  onSubmit: (
+    message: string,
+    model: ModelConfig,
+    reasoningEffort?: EffortLevel,
+    includeSearch?: boolean
+  ) => Promise<void>;
   isSubmitting: boolean;
   onInputChange?: (hasText: boolean) => void;
   value?: string;
@@ -82,6 +89,7 @@ export function ChatInput({
   const [selectedModel, setSelectedModel] = useState<ModelConfig>(
     MODEL_CONFIGS.find((m) => m.model === DEFAULT_MODEL) || MODEL_CONFIGS[0]
   );
+  const [reasoningEffort, setReasoningEffort] = useState<EffortLevel>("medium");
   const [includeSearch, setIncludeSearch] = useState(false);
   const isControlled = value !== undefined;
   const currentValue = isControlled ? value : internalValue;
@@ -93,6 +101,8 @@ export function ChatInput({
 
   // Check if current model supports search
   const modelSupportsSearch = selectedModel.features.includes("search");
+  // Check if current model supports reasoning (for models like o1, o3, etc.)
+  const modelSupportsReasoning = selectedModel.features.includes("reasoning");
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
@@ -115,7 +125,12 @@ export function ChatInput({
     onInputChange?.(false);
 
     try {
-      await onSubmit(messageToSend, selectedModel);
+      await onSubmit(
+        messageToSend,
+        selectedModel,
+        modelSupportsReasoning ? reasoningEffort : undefined,
+        includeSearch
+      );
     } catch (error) {
       console.error("Failed to send message:", error);
     }
@@ -254,6 +269,12 @@ export function ChatInput({
                           selectedModel={selectedModel}
                           onSelect={setSelectedModel}
                         />
+                        {modelSupportsReasoning && (
+                          <ReasoningEffortDropdown
+                            value={reasoningEffort}
+                            onValueChange={setReasoningEffort}
+                          />
+                        )}
                         {modelSupportsSearch && (
                           <button
                             type="button"

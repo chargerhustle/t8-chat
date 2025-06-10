@@ -30,7 +30,10 @@ const MODEL_LOOKUP = new Map(
  * Get the appropriate AI provider and model based on the model string
  * Uses graceful fallbacks to ensure the chat always works
  */
-function getModelProvider(modelString: AllowedModels) {
+function getModelProvider(
+  modelString: AllowedModels,
+  providerOptions?: Record<string, Record<string, unknown>>
+) {
   const modelConfig = MODEL_LOOKUP.get(modelString);
 
   if (!modelConfig) {
@@ -46,10 +49,14 @@ function getModelProvider(modelString: AllowedModels) {
       // Last resort: hardcoded fallback
       return openai(DEFAULT_MODEL);
     }
-    return getModelProviderFromConfig(fallbackConfig, DEFAULT_MODEL);
+    return getModelProviderFromConfig(
+      fallbackConfig,
+      DEFAULT_MODEL,
+      providerOptions
+    );
   }
 
-  return getModelProviderFromConfig(modelConfig, modelString);
+  return getModelProviderFromConfig(modelConfig, modelString, providerOptions);
 }
 
 /**
@@ -57,15 +64,24 @@ function getModelProvider(modelString: AllowedModels) {
  */
 function getModelProviderFromConfig(
   modelConfig: { provider: string; displayName?: string; description?: string },
-  modelString: string
+  modelString: string,
+  providerOptions?: Record<string, Record<string, unknown>>
 ) {
   console.log(`[CHAT] Provider: ${modelConfig.provider}/${modelString}`);
 
+  // Extract provider-specific options
+  const providerSpecificOptions = providerOptions?.[modelConfig.provider] || {};
+
+  console.log(
+    `[CHAT] Provider-specific options for ${modelConfig.provider}:`,
+    providerSpecificOptions
+  );
+
   switch (modelConfig.provider) {
     case "openai":
-      return openai(modelString);
+      return openai(modelString, providerSpecificOptions);
     case "google":
-      return google(modelString);
+      return google(modelString, providerSpecificOptions);
     default:
       console.warn(
         `[CHAT] Unknown provider: ${modelConfig.provider} for model: ${modelString}. Falling back to ${DEFAULT_MODEL}`
@@ -107,6 +123,11 @@ export async function POST(req: Request) {
     const requestData = await req.json();
     console.log(
       `[CHAT] Processing ${requestData.messages?.length || 0} messages with model: ${requestData.model}`
+    );
+    console.log("[CHAT] Request data keys:", Object.keys(requestData));
+    console.log(
+      "[CHAT] Provider options in request:",
+      requestData.providerOptions
     );
 
     // Validate required fields
@@ -210,8 +231,19 @@ export async function POST(req: Request) {
       userContext,
     });
 
-    // Get the appropriate model provider
-    const modelProvider = getModelProvider(requestData.model);
+    // Debug log provider options
+    if (requestData.providerOptions) {
+      console.log(
+        "[CHAT] Provider options:",
+        JSON.stringify(requestData.providerOptions, null, 2)
+      );
+    }
+
+    // Get the appropriate model provider with provider options
+    const modelProvider = getModelProvider(
+      requestData.model,
+      requestData.providerOptions
+    );
 
     // Create data stream using AI SDK's createDataStream
     const stream = createDataStream({

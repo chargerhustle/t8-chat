@@ -91,10 +91,7 @@ export function PromptCustomization() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-row items-center gap-2 justify-between">
-          <Button variant="outline" type="button">
-            Load Legacy Data
-          </Button>
+        <div className="flex flex-row items-center gap-2 justify-end">
           <Button type="submit" disabled>
             Save Preferences
           </Button>

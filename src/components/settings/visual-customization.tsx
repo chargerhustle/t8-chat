@@ -5,9 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 export function VisualCustomization() {
-  const [boringTheme, setBoringTheme] = useState(true);
   const [hidePersonalInfo, setHidePersonalInfo] = useState(false);
-  const [disableThematicBreaks, setDisableThematicBreaks] = useState(false);
   const [statsForNerds, setStatsForNerds] = useState(true);
 
   return (
@@ -15,28 +13,6 @@ export function VisualCustomization() {
       <h2 className="text-2xl font-bold">Visual Options</h2>
       <div className="space-y-6 py-2">
         {/* Toggle Options */}
-        <div className="flex items-center justify-between gap-x-1">
-          <div className="space-y-0.5">
-            <Label className="font-medium text-base">Boring Theme</Label>
-            <p className="text-sm text-muted-foreground">
-              If you think the pink is too much, turn this on to tone it down.
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={boringTheme}
-            data-state={boringTheme ? "checked" : "unchecked"}
-            className="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary"
-            onClick={() => setBoringTheme(!boringTheme)}
-          >
-            <span
-              data-state={boringTheme ? "checked" : "unchecked"}
-              className="pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
-            />
-          </button>
-        </div>
-
         <div className="flex items-center justify-between gap-x-1">
           <div className="space-y-0.5">
             <Label className="font-medium text-base">
@@ -56,32 +32,6 @@ export function VisualCustomization() {
           >
             <span
               data-state={hidePersonalInfo ? "checked" : "unchecked"}
-              className="pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
-            />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between gap-x-1">
-          <div className="space-y-0.5">
-            <Label className="font-medium text-base">
-              Disable Thematic Breaks
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Hides horizontal lines in chat messages. (Some browsers have
-              trouble rendering these, turn off if you have bugs with duplicated
-              lines)
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={disableThematicBreaks}
-            data-state={disableThematicBreaks ? "checked" : "unchecked"}
-            className="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary"
-            onClick={() => setDisableThematicBreaks(!disableThematicBreaks)}
-          >
-            <span
-              data-state={disableThematicBreaks ? "checked" : "unchecked"}
               className="pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
             />
           </button>

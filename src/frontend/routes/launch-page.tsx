@@ -9,12 +9,15 @@ import { createMessage } from "@/lib/chat/create-message";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
+import { ChatWelcome } from "@/components/chat/chat-welcome";
+import { EffortLevel } from "@/types";
 
 export default function LaunchChat() {
   const navigate = useNavigate();
   const createThreadMutation = useMutation(api.threads.createThread);
   const [hasInputText, setHasInputText] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const createNewThread = async () => {
     const threadId = crypto.randomUUID();
@@ -37,7 +40,12 @@ export default function LaunchChat() {
     }
   };
 
-  const handleSubmit = async (message: string, model: ModelConfig) => {
+  const handleSubmit = async (
+    message: string,
+    model: ModelConfig,
+    reasoningEffort?: EffortLevel,
+    includeSearch?: boolean
+  ) => {
     if (!message.trim()) return;
 
     const threadId = crypto.randomUUID();
@@ -54,10 +62,41 @@ export default function LaunchChat() {
       threadId,
       userContent: message,
       model: model.model, // Use the selected model from dropdown
+      modelParams: {
+        reasoningEffort,
+        includeSearch,
+      },
       attachments: [],
     }).catch((error) => {
       console.error("Failed to create thread:", error);
     });
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputValue(suggestion);
+    setHasInputText(true);
+
+    // Auto-focus the chat input
+    setTimeout(() => {
+      const textarea = document.getElementById(
+        "chat-input"
+      ) as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(
+          textarea.value.length,
+          textarea.value.length
+        );
+      }
+    }, 100);
+  };
+
+  const handleInputChange = (hasText: boolean) => {
+    setHasInputText(hasText);
+  };
+
+  const handleValueChange = (value: string) => {
+    setInputValue(value);
   };
 
   return (
@@ -67,21 +106,14 @@ export default function LaunchChat() {
       </div>
 
       <div className="absolute inset-0 custom-scrollbar">
-        <div className="flex h-full flex-col items-center justify-center p-4 pb-[141px]">
+        <div
+          role="log"
+          aria-label="Chat messages"
+          aria-live="polite"
+          className="mx-auto flex w-full max-w-3xl flex-col space-y-12 px-4 pt-safe-offset-10 pb-16"
+        >
           {!hasInputText && !isNavigating && (
-            <div className="text-center max-w-md">
-              <h1 className="text-2xl font-bold mb-2">
-                Welcome to AI Web Chat
-              </h1>
-              <p className="text-muted-foreground mb-6">
-                Start a new conversation or select an existing thread from the
-                sidebar.
-              </p>
-              <Button onClick={createNewThread} size="lg">
-                <PlusIcon className="mr-2 h-4 w-4" />
-                New Chat
-              </Button>
-            </div>
+            <ChatWelcome onSuggestionClick={handleSuggestionClick} />
           )}
         </div>
       </div>
@@ -89,7 +121,9 @@ export default function LaunchChat() {
       <ChatInput
         onSubmit={handleSubmit}
         isSubmitting={false}
-        onInputChange={setHasInputText}
+        onInputChange={handleInputChange}
+        value={inputValue}
+        onValueChange={handleValueChange}
       />
     </div>
   );

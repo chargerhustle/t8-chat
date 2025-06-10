@@ -11,6 +11,7 @@ import { createMessage } from "@/lib/chat/create-message";
 import { useHybridMessages } from "@/hooks/use-hybrid-messages";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { ModelConfig } from "@/ai/models-config";
+import { EffortLevel } from "@/types";
 
 export default function Chat() {
   const { threadId } = useParams<{ threadId: string }>();
@@ -46,7 +47,12 @@ export default function Chat() {
     [updateScrollPosition, messages.length]
   ); // Re-run when messages change
 
-  const handleSubmit = async (message: string, model: ModelConfig) => {
+  const handleSubmit = async (
+    message: string,
+    model: ModelConfig,
+    reasoningEffort?: EffortLevel,
+    includeSearch?: boolean
+  ) => {
     if (!threadId || isSubmitting || !message.trim()) return;
 
     setIsSubmitting(true);
@@ -61,6 +67,10 @@ export default function Chat() {
         threadId,
         userContent: message,
         model: model.model, // Use the selected model from dropdown
+        modelParams: {
+          reasoningEffort,
+          includeSearch,
+        },
         attachments: [],
       });
     } catch (error) {
