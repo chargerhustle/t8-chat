@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useRouteError, useNavigate } from "react-router"
-import { Button } from "@/components/ui/button"
-import { AlertTriangle, Home, RefreshCw } from "lucide-react"
+import { useRouteError, useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 
 export function ErrorBoundary() {
-  const error = useRouteError() as Error
-  const navigate = useNavigate()
+  const error = useRouteError() as Error;
+  const navigate = useNavigate();
 
   const handleGoHome = () => {
-    navigate("/")
-  }
+    navigate("/");
+  };
 
   const handleRefresh = () => {
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   return (
     <div className="flex items-center justify-center h-screen p-4">
@@ -26,7 +26,7 @@ export function ErrorBoundary() {
             {error?.message || "An unexpected error occurred"}
           </p>
         </div>
-        
+
         <div className="flex gap-3 justify-center">
           <Button onClick={handleRefresh} variant="outline">
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -37,8 +37,8 @@ export function ErrorBoundary() {
             Go Home
           </Button>
         </div>
-        
-        {process.env.NODE_ENV === 'development' && (
+
+        {process.env.NODE_ENV === "development" && (
           <details className="mt-6 text-left">
             <summary className="cursor-pointer text-sm text-muted-foreground">
               Error Details (Development)
@@ -50,5 +50,5 @@ export function ErrorBoundary() {
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

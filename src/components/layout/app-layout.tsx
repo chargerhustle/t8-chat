@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Outlet } from "react-router"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/chat/app-sidebar"
+import { Outlet } from "react-router";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/chat/app-sidebar";
 
 export function AppLayout() {
   return (
@@ -12,5 +12,5 @@ export function AppLayout() {
         <Outlet />
       </SidebarInset>
     </SidebarProvider>
-  )
-} 
+  );
+}

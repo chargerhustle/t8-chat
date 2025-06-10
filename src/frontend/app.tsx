@@ -18,20 +18,63 @@ export default function App() {
     <AuthGuard>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<AppLayout />} errorElement={<ErrorBoundary />}>
-            <Route index element={<LaunchChat />} errorElement={<ErrorBoundary />} />
-            <Route path="chat/:threadId" element={<Chat />} errorElement={<ErrorBoundary />} />
+          <Route
+            path="/"
+            element={<AppLayout />}
+            errorElement={<ErrorBoundary />}
+          >
+            <Route
+              index
+              element={<LaunchChat />}
+              errorElement={<ErrorBoundary />}
+            />
+            <Route
+              path="chat/:threadId"
+              element={<Chat />}
+              errorElement={<ErrorBoundary />}
+            />
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Settings routes - each page handles its own layout */}
-          <Route path="settings" element={<Navigate to="/settings/account" replace />} />
-          <Route path="settings/account" element={<AccountPage />} errorElement={<ErrorBoundary />} />
-          <Route path="settings/customization" element={<CustomizationPage />} errorElement={<ErrorBoundary />} />
-          <Route path="settings/history" element={<HistoryPage />} errorElement={<ErrorBoundary />} />
-          <Route path="settings/models" element={<ModelsPage />} errorElement={<ErrorBoundary />} />
-          <Route path="settings/api-keys" element={<ApiKeysPage />} errorElement={<ErrorBoundary />} />
-          <Route path="settings/attachments" element={<AttachmentsPage />} errorElement={<ErrorBoundary />} />
-          <Route path="settings/contact" element={<ContactPage />} errorElement={<ErrorBoundary />} />
+          <Route
+            path="settings"
+            element={<Navigate to="/settings/account" replace />}
+          />
+          <Route
+            path="settings/account"
+            element={<AccountPage />}
+            errorElement={<ErrorBoundary />}
+          />
+          <Route
+            path="settings/customization"
+            element={<CustomizationPage />}
+            errorElement={<ErrorBoundary />}
+          />
+          <Route
+            path="settings/history"
+            element={<HistoryPage />}
+            errorElement={<ErrorBoundary />}
+          />
+          <Route
+            path="settings/models"
+            element={<ModelsPage />}
+            errorElement={<ErrorBoundary />}
+          />
+          <Route
+            path="settings/api-keys"
+            element={<ApiKeysPage />}
+            errorElement={<ErrorBoundary />}
+          />
+          <Route
+            path="settings/attachments"
+            element={<AttachmentsPage />}
+            errorElement={<ErrorBoundary />}
+          />
+          <Route
+            path="settings/contact"
+            element={<ContactPage />}
+            errorElement={<ErrorBoundary />}
+          />
         </Routes>
       </BrowserRouter>
     </AuthGuard>
