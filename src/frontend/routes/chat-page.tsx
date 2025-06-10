@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useCallback } from "react"
 import { useParams, useNavigate } from "react-router"
 import { useQuery } from "convex-helpers/react/cache"
 import { api } from "@/convex/_generated/api"
@@ -9,19 +9,30 @@ import MessageComponent from "@/components/chat/messages/message"
 import { ChatInput } from "@/components/chat/chat-input/chat-input"
 import { createMessage } from "@/lib/chat/create-message"
 import { useHybridMessages } from "@/hooks/use-hybrid-messages"
+import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom"
 import { ModelConfig } from "@/ai/models-config"
 
 export default function Chat() {
   const { threadId } = useParams<{ threadId: string }>()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Fetch thread using Convex reactive query
   const thread = useQuery(api.threads.getByThreadId, threadId ? { threadId } : "skip")
   
   // Use hybrid messages hook for real-time streaming + Convex data
   const messages = useHybridMessages(threadId || "")
+
+  // Use scroll to bottom hook
+  const { showScrollToBottom, scrollToBottom, scrollContainerRef, messagesEndRef, updateScrollPosition } = useScrollToBottom()
+
+  // Create a ref callback for the messages container that updates scroll position
+  const messagesContainerRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      // Use requestAnimationFrame to ensure DOM has updated after messages render
+      requestAnimationFrame(updateScrollPosition)
+    }
+  }, [updateScrollPosition, messages.length]) // Re-run when messages change
 
   const handleSubmit = async (message: string, model: ModelConfig) => {
     if (!threadId || isSubmitting || !message.trim()) return
@@ -60,11 +71,17 @@ export default function Chat() {
 
   return (
     <div className="relative h-full">
+      <div className="absolute bottom-0 top-0 w-full overflow-hidden border-l border-t border-chat-border bg-chat-background bg-fixed pb-[140px] transition-all ease-snappy max-sm:border-none sm:translate-y-3.5 sm:rounded-tl-xl !translate-y-0 !rounded-none border-none">
+        <div className="bg-noise absolute inset-0 -top-3.5 bg-fixed transition-transform ease-snappy [background-position:right_bottom] translate-y-3.5"></div>
+      </div>
+      
       <div 
+        ref={scrollContainerRef}
         className="absolute inset-0 overflow-y-scroll sm:pt-3.5 custom-scrollbar" 
         style={{ paddingBottom: "141px", scrollbarGutter: "stable both-edges" }}
       >
         <div 
+          ref={messagesContainerRef}
           role="log" 
           aria-label="Chat messages" 
           className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-6 pt-2"
@@ -79,14 +96,12 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-0 z-10 w-full px-2">
-        <div className="w-full max-w-3xl mx-auto pointer-events-auto">
-          <ChatInput 
-            onSubmit={handleSubmit} 
-            isSubmitting={isSubmitting}
-          />
-        </div>
-      </div>
+      <ChatInput 
+        onSubmit={handleSubmit} 
+        isSubmitting={isSubmitting}
+        showScrollToBottom={showScrollToBottom}
+        onScrollToBottom={scrollToBottom}
+      />
     </div>
   )
 }

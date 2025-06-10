@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
 import "@/styles/globals.css";
 import { siteConfig } from "@/config/site.config";
 import RootProviders from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-manrope',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.origin),
@@ -61,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en">
       <head>
         {/* Commented out react-scan due to conflict with React Compiler */}
         {/* <Script
@@ -69,7 +62,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
         /> */}
       </head>
-      <body suppressHydrationWarning className={manrope.className}>
+      <body suppressHydrationWarning>
         <RootProviders>
           {children}
         </RootProviders>

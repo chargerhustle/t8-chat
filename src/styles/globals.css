@@ -1,9 +1,21 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Atkinson Hyperlegible Font */
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('/atkinson_hyperlegible.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  font-optical-sizing: auto;
+}
+
 @theme {
   /* Font Families */
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   /* Colors */
   --color-background: hsl(var(--background));
@@ -76,56 +88,49 @@
 
 @layer base {
   :root {
-    --background: 0 0% 13%; /* #212121 */
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 16%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 16%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-
-    --secondary: 0 0% 14.5%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 14.5%;
-    --muted-foreground: 0 0% 63.9%;
-
-    --accent: 0 0% 14.5%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 16%;
-    --ring: 0 0% 83.9%;
+    /* Default to dark theme */
+    --background: 313.8 0% 8.4%;
+    --foreground: 270 0% 97.8%;
+    --card: 300 0% 3.7%;
+    --card-foreground: 240 0% 95.9%;
+    --popover: 320 0% 5.1%;
+    --popover-foreground: 326 0% 96%;
+    --primary: 332 100% 32%;
+    --primary-foreground: 326 0% 90%;
+    --secondary: 273.8 0% 20.8%;
+    --secondary-foreground: 270 0% 83%;
+    --muted: 283 0% 25%;
+    --muted-foreground: 326 0% 69%;
+    --accent: 272 0% 27%;
+    --accent-foreground: 326 0% 96%;
+    --destructive: 335.82 0% 35.29%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 262.5 0% 15.7%;
+    --input: 326.3 0% 15.7%;
+    --ring: 333.3 0% 50.6%;
     --radius: 0.5rem;
+    --sidebar-background: 240 0% 7.6%;
+    --sidebar-foreground: 240 0% 95.9%;
+    --sidebar-primary: 224.3 0% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 318.5 0% 12.4%;
+    --sidebar-accent-foreground: 240 0% 95.9%;
+    --sidebar-border: 0 0% 0%;
+    --sidebar-ring: 333.3 0% 50.6%;
+    --gradient-noise-top: 313.8 0% 8.4%;
+    --color-heading: 328.2 0% 49.8%;
+    --chat-border: 334.3 0% 16.9%;
+    --chat-background: 270 0% 12.16%;
+    --chat-accent: rgba(26, 26, 26, .86);
+    --chat-overlay: hsla(270, 0%, 16%, var(--blur-fallback, 0.71));
+    --chat-input-gradient: 289 0% 21%;
+    --chat-input-background: hsla(270, 0%, 20%, var(--blur-fallback, 0.4));
+    --blur-fallback: 0.5;
+    --wordmark-color: #cfcfcf;
 
-    --sidebar-background: 0 0% 8%; /* #151515 */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 0 0% 83.9%;
-
-    --chat-input-bg: 0 0% 16%; /* #292929 */
-    --user-message-bg: 0 0% 17%; /* #2C2C2C */
-    
     /* Scrollbar colors */
     --scrollbar-thumb: 0 0% 25%;
     --scrollbar-track: 0 0% 15%;
-
-    /* Inline code background - #1A1A1ADB */
-    --inline-code-bg: 0 0% 10% / 0.86;
-    
-    /* Chat accent color for code blocks */
-    --chat-accent: 0 0% 17%; /* #2C2C2C */
 
     /* Chart colors */
     --chart-1: 220 70% 50%;
@@ -133,16 +138,168 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Prose variables for dark theme */
+    --tw-prose-body: #f3f3f3;
+    --tw-prose-headings: #fafafa;
+    --tw-prose-lead: #d9d9d9;
+    --tw-prose-links: #db2777;
+    --tw-prose-bold: #f3f3f3;
+    --tw-prose-counters: #a8a8a8;
+    --tw-prose-bullets: #a8a8a8;
+    --tw-prose-hr: #a8a8a8;
+    --tw-prose-quotes: #f3f3f3;
+    --tw-prose-quote-borders: #a8a8a8;
+    --tw-prose-captions: silver;
+    --tw-prose-kbd: #fff;
+    --tw-prose-kbd-shadows: #f9f9f9;
+    --tw-prose-code: #fff;
+    --tw-prose-pre-code: #d9d9d9;
+    --tw-prose-pre-bg: rgba(0, 0, 0, .5);
+    --tw-prose-th-borders: #6e6e6e;
+    --tw-prose-td-borders: #464646;
+    --tw-prose-invert-body: #d1d5db;
+    --tw-prose-invert-headings: #fff;
+    --tw-prose-invert-lead: #9ca3af;
+    --tw-prose-invert-links: #fff;
+    --tw-prose-invert-bold: #fff;
+    --tw-prose-invert-counters: #9ca3af;
+    --tw-prose-invert-bullets: #4b5563;
+    --tw-prose-invert-hr: #374151;
+    --tw-prose-invert-quotes: #f3f4f6;
+    --tw-prose-invert-quote-borders: #374151;
+    --tw-prose-invert-captions: #9ca3af;
+    --tw-prose-invert-kbd: #fff;
+    --tw-prose-invert-kbd-shadows: 255 255 255;
+    --tw-prose-invert-code: #fff;
+    --tw-prose-invert-pre-code: #d1d5db;
+    --tw-prose-invert-pre-bg: rgba(0, 0, 0, .5);
+    --tw-prose-invert-th-borders: #4b5563;
+    --tw-prose-invert-td-borders: #374151;
   }
-  
-  /* Dark mode support - if you ever want to add light mode */
+
+  /* Dark theme class for Tailwind compatibility */
   .dark {
-    /* Your current colors are already dark, so this maintains them */
-    --background: 0 0% 13%;
-    --foreground: 0 0% 98%;
-    /* Add other dark mode overrides here if needed */
+    /* Same as :root since we're always dark */
+    --background: 313.8 0% 8.4%;
+    --foreground: 270 0% 97.8%;
+    --card: 300 0% 3.7%;
+    --card-foreground: 240 0% 95.9%;
+    --popover: 320 0% 5.1%;
+    --popover-foreground: 326 0% 96%;
+    --primary: 332 100% 32%;
+    --primary-foreground: 326 0% 90%;
+    --secondary: 273.8 0% 20.8%;
+    --secondary-foreground: 270 0% 83%;
+    --muted: 283 0% 25%;
+    --muted-foreground: 326 0% 69%;
+    --accent: 272 0% 27%;
+    --accent-foreground: 326 0% 96%;
+    --destructive: 335.82 0% 35.29%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 262.5 0% 15.7%;
+    --input: 326.3 0% 15.7%;
+    --ring: 333.3 0% 50.6%;
+    --radius: 0.5rem;
+    --sidebar-background: 240 0% 7.6%;
+    --sidebar-foreground: 240 0% 95.9%;
+    --sidebar-primary: 224.3 0% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 318.5 0% 12.4%;
+    --sidebar-accent-foreground: 240 0% 95.9%;
+    --sidebar-border: 0 0% 0%;
+    --sidebar-ring: 333.3 0% 50.6%;
+    --gradient-noise-top: 313.8 0% 8.4%;
+    --color-heading: 328.2 0% 49.8%;
+    --chat-border: 334.3 0% 16.9%;
+    --chat-background: 270 0% 12.16%;
+    --chat-accent: rgba(26, 26, 26, .86);
+    --chat-overlay: hsla(270, 0%, 16%, var(--blur-fallback, 0.71));
+    --chat-input-gradient: 289 0% 21%;
+    --chat-input-background: hsla(270, 0%, 20%, var(--blur-fallback, 0.4));
+    --blur-fallback: 0.5;
+    --wordmark-color: #cfcfcf;
   }
-  
+
+  /* Light theme */
+  .light {
+    --background: 293.7 0% 92%;
+    --foreground: 296 0% 21%;
+    --card: 291 0% 97%;
+    --card-foreground: 240 0% 30%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 296 0% 21%;
+    --primary: 332 100% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 314.7 0% 85.7%;
+    --secondary-foreground: 295.8 0% 34.5%;
+    --muted: 327.7 0% 78.7%;
+    --muted-foreground: 327 0% 38%;
+    --accent: 314.7 0% 85.7%;
+    --accent-foreground: 240 0% 30%;
+    --destructive: 335 0% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 304.6 0% 90.8%;
+    --input: 317.4 0% 83.1%;
+    --ring: 333.3 0% 50.6%;
+    --sidebar-background: 290.3 0% 87.6%;
+    --sidebar-foreground: 240 0% 30%;
+    --sidebar-primary: 240 0% 30%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 60 0% 97%;
+    --sidebar-accent-foreground: 240 0% 30%;
+    --sidebar-border: 20 0% 92%;
+    --sidebar-ring: 333.3 0% 50.6%;
+    --gradient-noise-top: 292 0% 93.1%;
+    --color-heading: 336.3 0% 19.8%;
+    --chat-border: 304.8 0% 83.9%;
+    --chat-background: 300 0% 98%;
+    --chat-accent: #f3f3f3;
+    --chat-overlay: hsla(309, 0%, 92%, var(--blur-fallback, 0.72));
+    --chat-input-gradient: 295 0% 90%;
+    --chat-input-background: hsla(270, 0%, 100%, var(--blur-fallback, 0.1));
+    --blur-fallback: 0.5;
+    --wordmark-color: #666;
+
+    /* Prose variables for light theme */
+    --tw-prose-body: #374151;
+    --tw-prose-headings: #111827;
+    --tw-prose-lead: #4b5563;
+    --tw-prose-links: #111827;
+    --tw-prose-bold: #111827;
+    --tw-prose-counters: #6b7280;
+    --tw-prose-bullets: #d1d5db;
+    --tw-prose-hr: #e5e7eb;
+    --tw-prose-quotes: #111827;
+    --tw-prose-quote-borders: #e5e7eb;
+    --tw-prose-captions: #6b7280;
+    --tw-prose-kbd: #111827;
+    --tw-prose-kbd-shadows: 17 24 39;
+    --tw-prose-code: #111827;
+    --tw-prose-pre-code: #e5e7eb;
+    --tw-prose-pre-bg: #1f2937;
+    --tw-prose-th-borders: #d1d5db;
+    --tw-prose-td-borders: #e5e7eb;
+    --tw-prose-invert-body: #d1d5db;
+    --tw-prose-invert-headings: #fff;
+    --tw-prose-invert-lead: #9ca3af;
+    --tw-prose-invert-links: #fff;
+    --tw-prose-invert-bold: #fff;
+    --tw-prose-invert-counters: #9ca3af;
+    --tw-prose-invert-bullets: #4b5563;
+    --tw-prose-invert-hr: #374151;
+    --tw-prose-invert-quotes: #f3f4f6;
+    --tw-prose-invert-quote-borders: #374151;
+    --tw-prose-invert-captions: #9ca3af;
+    --tw-prose-invert-kbd: #fff;
+    --tw-prose-invert-kbd-shadows: 255 255 255;
+    --tw-prose-invert-code: #fff;
+    --tw-prose-invert-pre-code: #d1d5db;
+    --tw-prose-invert-pre-bg: rgba(0, 0, 0, .5);
+    --tw-prose-invert-th-borders: #4b5563;
+    --tw-prose-invert-td-borders: #374151;
+  }
+
   /* Prevent page scrolling while allowing component scrolling */
   html, body {
     overflow: hidden;
@@ -158,6 +315,9 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -167,114 +327,187 @@
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--scrollbar-thumb)) transparent;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: hsl(var(--scrollbar-thumb));
     border-radius: 20px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--scrollbar-thumb) / 0.8);
   }
-  
+
   /* Hide scrollbar but keep scrolling functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
 }
 
-
 @layer components {
-  /* Custom prose colors for dark theme */
+  /* Base prose styling */
   .prose {
-    --tw-prose-body: #f0f0f0;
-    --tw-prose-headings: #ffffff;
-    --tw-prose-lead: #d4d4d4;
-    --tw-prose-links: #63b3ed; /* blue-400 */
-    --tw-prose-bold: #ffffff;
-    --tw-prose-counters: #d4d4d4;
-    --tw-prose-bullets: #6b7280;
-    --tw-prose-hr: #4b5563;
-    --tw-prose-quotes: #f3f4f6;
-    --tw-prose-quote-borders: #4b5563;
-    --tw-prose-captions: #9ca3af;
-    --tw-prose-code: #ffffff;
-    --tw-prose-pre-code: #e5e7eb;
-    --tw-prose-pre-bg: #282828;
-    --tw-prose-th-borders: #4b5563;
-    --tw-prose-td-borders: #374151;
-    
-    /* We don't need these since we're always in dark mode, but keeping them for completeness */
-    --tw-prose-invert-body: #f0f0f0;
-    --tw-prose-invert-headings: #ffffff;
-    --tw-prose-invert-lead: #d4d4d4;
-    --tw-prose-invert-links: #63b3ed; /* blue-400 */
-    --tw-prose-invert-bold: #ffffff;
-    --tw-prose-invert-counters: #d4d4d4;
-    --tw-prose-invert-bullets: #6b7280;
-    --tw-prose-invert-hr: #4b5563;
-    --tw-prose-invert-quotes: #f3f4f6;
-    --tw-prose-invert-quote-borders: #4b5563;
-    --tw-prose-invert-captions: #9ca3af;
-    --tw-prose-invert-code: #ffffff;
-    --tw-prose-invert-pre-code: #e5e7eb;
-    --tw-prose-invert-pre-bg: #282828;
-    --tw-prose-invert-th-borders: #4b5563;
-    --tw-prose-invert-td-borders: #374151;
-    
     @apply font-sans text-base;
     font-size: 16px;
     line-height: 1.75;
     color: var(--tw-prose-body);
+    max-width: 65ch;
   }
-  
+
+  /* Prose Pink variant for light theme */
+  .prose.prose-pink {
+    --tw-prose-body: #492c61;
+    --tw-prose-headings: #563271;
+    --tw-prose-lead: #7b44ab;
+    --tw-prose-links: #da006b;
+    --tw-prose-bold: #492c61;
+    --tw-prose-counters: #c4739d;
+    --tw-prose-bullets: #c4739d;
+    --tw-prose-hr: #d8c3ef;
+    --tw-prose-quotes: #492c61;
+    --tw-prose-quote-borders: #c4739d;
+    --tw-prose-captions: #7b44ab;
+    --tw-prose-kbd: #111827;
+    --tw-prose-kbd-shadows: #501854;
+    --tw-prose-code: #492c61;
+    --tw-prose-pre-code: #f2ebfa;
+    --tw-prose-pre-bg: #563271;
+    --tw-prose-th-borders: #d8c3ef;
+    --tw-prose-td-borders: #eadef7;
+  }
+
+  /* Prose Pink variant for dark theme */
+  :root .prose.prose-pink {
+    --tw-prose-body: #f3f3f3;
+    --tw-prose-headings: #fafafa;
+    --tw-prose-lead: #d9d9d9;
+    --tw-prose-links: #da006b;
+    --tw-prose-bold: #f3f3f3;
+    --tw-prose-counters: #a8a8a8;
+    --tw-prose-bullets: #a8a8a8;
+    --tw-prose-hr: #a8a8a8;
+    --tw-prose-quotes: #f3f3f3;
+    --tw-prose-quote-borders: #a8a8a8;
+    --tw-prose-captions: silver;
+    --tw-prose-kbd: #fff;
+    --tw-prose-kbd-shadows: #f9f9f9;
+    --tw-prose-code: #fff;
+    --tw-prose-pre-code: #d9d9d9;
+    --tw-prose-pre-bg: rgba(0, 0, 0, .5);
+    --tw-prose-th-borders: #6e6e6e;
+    --tw-prose-td-borders: #464646;
+  }
+
+  /* Prose Pink links */
+  .prose-pink {
+    --tw-prose-links: #db2777;
+    --tw-prose-invert-links: #ec4899;
+  }
+
+  /* Dark theme prose invert support */
+  .dark\:prose-invert:is(:root *) {
+    --tw-prose-body: var(--tw-prose-invert-body);
+    --tw-prose-headings: var(--tw-prose-invert-headings);
+    --tw-prose-lead: var(--tw-prose-invert-lead);
+    --tw-prose-links: var(--tw-prose-invert-links);
+    --tw-prose-bold: var(--tw-prose-invert-bold);
+    --tw-prose-counters: var(--tw-prose-invert-counters);
+    --tw-prose-bullets: var(--tw-prose-invert-bullets);
+    --tw-prose-hr: var(--tw-prose-invert-hr);
+    --tw-prose-quotes: var(--tw-prose-invert-quotes);
+    --tw-prose-quote-borders: var(--tw-prose-invert-quote-borders);
+    --tw-prose-captions: var(--tw-prose-invert-captions);
+    --tw-prose-kbd: var(--tw-prose-invert-kbd);
+    --tw-prose-kbd-shadows: var(--tw-prose-invert-kbd-shadows);
+    --tw-prose-code: var(--tw-prose-invert-code);
+    --tw-prose-pre-code: var(--tw-prose-invert-pre-code);
+    --tw-prose-pre-bg: var(--tw-prose-invert-pre-bg);
+    --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
+    --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
+  }
+
   /* Paragraph */
   .prose :where(p):not(:where([class~=not-prose],[class~=not-prose] *)) {
     margin-top: 1.25em;
     margin-bottom: 1.25em;
   }
-  
+
   /* Strong */
   .prose :where(strong):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-bold);
     font-weight: 600;
   }
-  
-  /* Inline Code - Updated to match Theo's style */
+
+  /* Inline Code */
   .prose :where(code):not(:where([class~=not-prose],[class~=not-prose] *)) {
-    @apply text-white bg-[#1A1A1ADB] text-[14px] font-normal rounded px-[5px] py-[2px] mx-[2px];
-    font-family: BerkeleyMono, monospace;
+    color: var(--tw-prose-code);
+    background-color: hsl(var(--secondary) / 0.5);
+    font-weight: 600;
+    font-size: 0.875em;
+    border-radius: calc(var(--radius) - 2px);
+    padding: 0.25rem 7px;
+    margin: 0 0.125rem;
+    overflow: auto;
+    font-family: BerkeleyMono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-feature-settings: normal;
+    font-variation-settings: normal;
   }
-  
+
   /* Make sure code inside pre doesn't get the inline styling */
   .prose :where(pre code):not(:where([class~=not-prose],[class~=not-prose] *)) {
-    @apply bg-transparent p-0 text-inherit;
+    background-color: transparent;
+    padding: 0;
+    color: var(--tw-prose-pre-code);
+    font-size: inherit;
+    border-radius: 0;
+    margin: 0;
   }
-  
+
+  /* Pre blocks */
+  .prose :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    background-color: var(--tw-prose-pre-bg);
+    color: var(--tw-prose-pre-code);
+    border-radius: 0.375rem;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+  }
+
+  /* Lead paragraphs */
+  .prose :where(.lead):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-lead);
+    font-size: 1.25em;
+    line-height: 1.6;
+    margin-top: 1.2em;
+    margin-bottom: 1.2em;
+  }
+
   /* Blockquote */
   .prose :where(blockquote):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-quotes);
     font-weight: 500;
     font-style: italic;
     border-inline-start-width: .25rem;
-    border-inline-start-color: hsl(var(--border));
+    border-inline-start-color: var(--tw-prose-quote-borders);
     quotes: "\201C" "\201D" "\2018" "\2019";
     margin-top: 1.6em;
     margin-bottom: 1.6em;
     padding-inline-start: 1em;
   }
-  
+
   /* Ordered Lists */
   .prose :where(ol):not(:where([class~=not-prose],[class~=not-prose] *)) {
     list-style-type: decimal;
@@ -282,12 +515,16 @@
     margin-bottom: 1.25em;
     padding-inline-start: 1.625em;
   }
-  
+
+  .prose :where(ol):not(:where([class~=not-prose],[class~=not-prose] *))::marker {
+    color: var(--tw-prose-counters);
+  }
+
   /* Ordered List Items */
   .prose :where(ol>li):not(:where([class~=not-prose],[class~=not-prose] *)) {
     padding-inline-start: .375em;
   }
-  
+
   /* Unordered Lists */
   .prose :where(ul):not(:where([class~=not-prose],[class~=not-prose] *)) {
     list-style-type: disc;
@@ -295,84 +532,116 @@
     margin-bottom: 1.25em;
     padding-inline-start: 1.625em;
   }
-  
+
+  .prose :where(ul):not(:where([class~=not-prose],[class~=not-prose] *))::marker {
+    color: var(--tw-prose-bullets);
+  }
+
   /* Unordered List Items */
   .prose :where(ul>li):not(:where([class~=not-prose],[class~=not-prose] *)) {
     padding-inline-start: .375em;
   }
-  
+
   /* List Items (general) */
   .prose :where(li):not(:where([class~=not-prose],[class~=not-prose] *)) {
     margin-top: .5em;
     margin-bottom: .5em;
   }
-  
+
   /* Horizontal Rule */
   .prose :where(hr):not(:where([class~=not-prose],[class~=not-prose] *)) {
-    border-color: hsl(var(--border));
+    border-color: var(--tw-prose-hr);
     border-top-width: 1px;
     margin-top: 3em;
     margin-bottom: 3em;
   }
-  
+
   /* Links */
   .prose :where(a):not(:where([class~=not-prose],[class~=not-prose] *)) {
-    @apply text-blue-400 hover:text-blue-300;
+    color: var(--tw-prose-links);
     text-decoration: underline;
     font-weight: 500;
   }
-  
+
+  .prose :where(a):not(:where([class~=not-prose],[class~=not-prose] *)):hover {
+    opacity: 0.8;
+  }
+
   /* Headings */
   .prose :where(h1):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-headings);
     font-weight: 800;
     font-size: 2.25em;
     margin-top: 0;
     margin-bottom: .8888889em;
     line-height: 1.1111111;
   }
-  
+
   .prose :where(h2):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-headings);
     font-weight: 700;
     font-size: 1.5em;
     margin-top: 2em;
     margin-bottom: 1em;
     line-height: 1.3333333;
   }
-  
+
   .prose :where(h2+*):not(:where([class~=not-prose],[class~=not-prose] *)) {
     margin-top: 0;
   }
-  
+
   .prose :where(h3):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-headings);
     font-weight: 600;
     font-size: 1.25em;
     margin-top: 1.6em;
     margin-bottom: .6em;
     line-height: 1.6;
   }
-  
+
   .prose :where(h3+*):not(:where([class~=not-prose],[class~=not-prose] *)) {
     margin-top: 0;
   }
-  
+
   .prose :where(h4):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-headings);
     font-weight: 600;
     margin-top: 1.5em;
     margin-bottom: .5em;
     line-height: 1.5;
   }
-  
+
   .prose :where(h4+*):not(:where([class~=not-prose],[class~=not-prose] *)) {
     margin-top: 0;
   }
-  
+
   /* Tables */
   .prose table {
     overflow-x: auto;
     overflow-y: hidden;
     display: block;
+    /* Custom scrollbar for tables */
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--scrollbar-thumb)) transparent;
   }
-  
+
+  .prose table::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .prose table::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .prose table::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--scrollbar-thumb));
+    border-radius: 20px;
+  }
+
+  .prose table::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--scrollbar-thumb) / 0.8);
+  }
+
   .prose :where(table):not(:where([class~=not-prose],[class~=not-prose] *)) {
     width: 100%;
     table-layout: auto;
@@ -381,55 +650,75 @@
     font-size: .875em;
     line-height: 1.7142857;
   }
-  
+
   /* Table Headers */
   .prose :where(thead):not(:where([class~=not-prose],[class~=not-prose] *)) {
     border-bottom-width: 1px;
-    border-bottom-color: hsl(var(--border));
+    border-bottom-color: var(--tw-prose-th-borders);
   }
-  
+
   .prose :where(thead th:first-child):not(:where([class~=not-prose],[class~=not-prose] *)) {
     padding-inline-start: 0;
   }
-  
+
   .prose :where(thead th):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-headings);
     font-weight: 600;
     vertical-align: bottom;
     padding-inline-end: .5714286em;
     padding-bottom: .5714286em;
     padding-inline-start: .5714286em;
   }
-  
+
   /* Table Body */
   .prose :where(tbody tr):not(:where([class~=not-prose],[class~=not-prose] *)) {
     border-bottom-width: 1px;
-    border-bottom-color: hsl(var(--border));
+    border-bottom-color: var(--tw-prose-td-borders);
   }
-  
+
   .prose :where(tbody td:first-child,tfoot td:first-child):not(:where([class~=not-prose],[class~=not-prose] *)) {
     padding-inline-start: 0;
   }
-  
+
   .prose :where(tbody td,tfoot td):not(:where([class~=not-prose],[class~=not-prose] *)) {
     padding-top: .5714286em;
     padding-inline-end: .5714286em;
     padding-bottom: .5714286em;
     padding-inline-start: .5714286em;
   }
-  
+
   .prose :where(th,td):not(:where([class~=not-prose],[class~=not-prose] *)) {
     text-align: start;
   }
-  
+
   .prose :where(tbody td):not(:where([class~=not-prose],[class~=not-prose] *)) {
     vertical-align: baseline;
   }
-  
+
+  /* Table captions */
+  .prose :where(caption):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-captions);
+    font-size: .875em;
+    margin-top: .875em;
+    margin-bottom: .875em;
+  }
+
+  /* Keyboard shortcuts */
+  .prose :where(kbd):not(:where([class~=not-prose],[class~=not-prose] *)) {
+    color: var(--tw-prose-kbd);
+    background-color: var(--tw-prose-kbd-shadows);
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+    font-size: 0.875em;
+    font-weight: 500;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
   /* Code block outer container */
   .code-block-outer {
     @apply my-4;
   }
-  
+
   /* Shiki Code Blocks */
   .shiki {
     @apply !bg-chat-accent overflow-x-auto;
@@ -438,34 +727,157 @@
     line-height: 1.5;
     margin: 0;
   }
-  
+
   .shiki code {
     @apply bg-transparent p-0 border-0;
     counter-reset: line;
   }
-  
+
   .shiki .line {
     @apply min-h-[1.5rem];
     padding-left: 1rem; /* Add left padding to each line */
   }
-  
+
   /* Remove margins from pre in prose context */
   .prose pre {
     @apply my-0;
   }
-  
+
   /* Adjust code block padding */
   .prose pre > div {
     @apply p-0;
   }
-  
+
   /* Code block wrapper */
   .code-block-wrapper {
     @apply overflow-hidden bg-chat-accent text-sm font-[450] text-secondary-foreground;
   }
-  
+
   /* Add transition for copy button */
   .ease-snappy {
     transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+
+  /* Noise background */
+  .bg-noise {
+    background-image: url('/noise.png');
+    background-size: auto;
+    background-repeat: repeat;
+    background-size: 96px 96px;
+    background-position: right bottom;
+    background-attachment: fixed;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Custom utility for heading color */
+  .text-heading {
+    color: hsl(var(--color-heading));
+  }
+  
+  /* Custom utility for tight line height like reference site */
+  .leading-tight-sm {
+    line-height: 1.25rem;
+  }
+  
+  /* Custom utility for group label line height */
+  .leading-tight-xs {
+    line-height: 1rem;
+  }
+
+  /* Scroll shadow effect */
+  .scroll-shadow:not([data-shadow=false]) {
+    --shadow-height: 20px;
+    --scrollbar-width: 8px;
+    mask-image: linear-gradient(to bottom, transparent, #000 var(--shadow-height), #000 calc(100% - var(--shadow-height)), transparent 100%), linear-gradient(to left, #fff var(--scrollbar-width), transparent var(--scrollbar-width));
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--shadow-height), #000 calc(100% - var(--shadow-height)), transparent 100%), linear-gradient(to left, #fff var(--scrollbar-width), transparent var(--scrollbar-width));
+  }
+
+  /* Safe area padding utilities */
+  .pb-safe-offset-3 {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  }
+
+  /* Button reflection effects */
+  .border-reflect {
+    --c: 320 100% 75%;
+    --min: hsl(var(--c) / 0.2);
+    --max: hsl(var(--c) / 1);
+    --gradientBorder-gradient: linear-gradient(180deg, var(--min), var(--max), var(--min)), linear-gradient(15deg, var(--min) 50%, var(--max));
+    --opacity: 1;
+    --start: rgba(0, 0, 0, 0.85);
+    position: relative;
+  }
+
+  /* Dark theme gradient border - properly scoped */
+  .border-reflect:is(.dark *),
+  .border-reflect {
+    --gradientBorder-gradient: linear-gradient(180deg, #93335b00, #93335bbd, #93335b17), linear-gradient(15deg, #93335b1f 50%, #93335bbd);
+    --start: rgba(0, 0, 0, 0.92);
+    border: 0.5px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Chat input gradient override */
+  .\!\[--c\:--chat-input-gradient\] {
+    --c: var(--chat-input-gradient) !important;
+  }
+
+  .button-reflect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .button-reflect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .button-reflect:hover::before {
+    left: 100%;
+  }
+
+  /* Chat background outline utility */
+  .dark\:outline-chat-background\/40:is(.dark *) {
+    outline-color: hsl(var(--chat-background) / 0.4);
+  }
+  
+  /* Since we're always dark, also apply directly */
+  .dark\:outline-chat-background\/40 {
+    outline-color: hsl(var(--chat-background) / 0.4);
+  }
+
+  /* Dark theme secondary background utility */
+  .dark\:bg-secondary\/\[0\.045\]:is(.dark *) {
+    background-color: hsl(var(--secondary) / 0.045);
+  }
+  
+  /* Since we're always dark, also apply directly */
+  .dark\:bg-secondary\/\[0\.045\] {
+    background-color: hsl(var(--secondary) / 0.045);
+  }
+
+  /* Chat input background utility */
+  .bg-chat-input {
+    background-color: var(--chat-input-background);
+  }
+
+  /* Chat overlay background utility */
+  .bg-chat-overlay {
+    background-color: var(--chat-overlay);
   }
 }

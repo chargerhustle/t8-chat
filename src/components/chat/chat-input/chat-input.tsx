@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
     ArrowUpIcon,
     Paperclip,
+    Globe,
+    ChevronDown,
 } from "lucide-react";
 import { ModelDropdown } from "./model-dropdown";
 import { MODEL_CONFIGS, ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
@@ -21,6 +22,8 @@ interface ChatInputProps {
     onInputChange?: (hasText: boolean) => void;
     value?: string;
     onValueChange?: (value: string) => void;
+    showScrollToBottom?: boolean;
+    onScrollToBottom?: () => void;
 }
 
 function useAutoResizeTextarea({
@@ -74,18 +77,22 @@ function useAutoResizeTextarea({
     return { textareaRef, adjustHeight };
 }
 
-export function ChatInput({ onSubmit, isSubmitting, onInputChange, value, onValueChange }: ChatInputProps) {
+export function ChatInput({ onSubmit, isSubmitting, onInputChange, value, onValueChange, showScrollToBottom, onScrollToBottom }: ChatInputProps) {
     const [internalValue, setInternalValue] = useState("");
     const [selectedModel, setSelectedModel] = useState<ModelConfig>(
         MODEL_CONFIGS.find(m => m.model === DEFAULT_MODEL) || MODEL_CONFIGS[0]
     );
+    const [includeSearch, setIncludeSearch] = useState(false);
     const isControlled = value !== undefined;
     const currentValue = isControlled ? value : internalValue;
     
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
-        minHeight: 60,
+        minHeight: 48,
         maxHeight: 200,
     });
+
+    // Check if current model supports search
+    const modelSupportsSearch = selectedModel.features.includes("search");
 
     const handleSubmit = async (e?: React.FormEvent) => {
         if (e) {
@@ -134,81 +141,163 @@ export function ChatInput({ onSubmit, isSubmitting, onInputChange, value, onValu
         onInputChange?.(newValue.trim().length > 0);
     };
 
+    const toggleSearch = () => {
+        setIncludeSearch(!includeSearch);
+    };
+
     return (
-        <form onSubmit={handleSubmit} className="w-full">
-            <div className="flex flex-col items-center w-full max-w-4xl mx-auto space-y-8">
-                <div className="w-full">
-                    <div className="relative rounded-t-[20px] bg-[#282828]/75 backdrop-blur-lg border-t border-l border-r border-white/10">
-                        <div className="relative flex w-full flex-col items-stretch gap-2 rounded-t-xl px-3 py-3 text-white"
+        <div className="pointer-events-none absolute bottom-0 z-10 w-full px-2">
+            <div className="relative mx-auto flex w-full max-w-3xl flex-col text-center">
+                {showScrollToBottom && (
+                    <div className="flex justify-center pb-4">
+                        <button 
+                            onClick={onScrollToBottom}
+                            className={cn(
+                                "justify-center whitespace-nowrap font-medium transition-colors",
+                                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                                "disabled:cursor-not-allowed disabled:opacity-50",
+                                "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                                "disabled:hover:bg-secondary/50 h-8 px-3 text-xs pointer-events-auto",
+                                "flex items-center gap-2 rounded-full border border-secondary/40",
+                                "bg-chat-overlay text-secondary-foreground/70 backdrop-blur-xl hover:bg-secondary"
+                            )}
                         >
-                            <Textarea
-                                ref={textareaRef}
-                                value={currentValue}
-                                onChange={handleInputChange}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Type your message here..."
+                            <span className="pb-0.5">Scroll to bottom</span>
+                            <ChevronDown className="-mr-1 h-4 w-4" />
+                        </button>
+                    </div>
+                )}
+                <div className="pointer-events-none">
+                    <div className="pointer-events-auto mx-auto w-fit"></div>
+                    <div className="pointer-events-auto">
+                        <div 
+                            className="![--c:--chat-input-gradient] backdrop-blur-lg bg-chat-input border-reflect p-2 pb-0 rounded-t-[20px]"
+                            style={{
+                                "--gradientBorder-gradient": "linear-gradient(180deg, var(--min), var(--max), var(--min)), linear-gradient(15deg, var(--min) 50%, var(--max))",
+                                "--start": "#000000",
+                                "--opacity": "1"
+                            } as React.CSSProperties}
+                        >
+                            <form 
+                                onSubmit={handleSubmit} 
                                 className={cn(
-                                    "w-full px-4 py-3",
-                                    "resize-none",
-                                    "bg-transparent",
-                                    "border-none",
-                                    "text-white text-sm",
-                                    "focus:outline-none",
-                                    "focus-visible:ring-0 focus-visible:ring-offset-0",
-                                    "placeholder:text-neutral-500 placeholder:text-sm",
-                                    "min-h-[60px]",
-                                    "custom-scrollbar"
+                                    "relative flex w-full flex-col items-stretch gap-2 rounded-t-xl",
+                                    "border border-b-0 border-white/70 bg-chat-input",
+                                    "px-3 pt-3 text-secondary-foreground",
+                                    "outline outline-8 outline-[hsl(var(--chat-input-gradient)/0.5)]",
+                                    "pb-safe-offset-3 max-sm:pb-6 sm:max-w-3xl",
+                                    "dark:border-[hsl(0,0%,83%)]/[0.04] dark:bg-secondary/[0.045] dark:outline-chat-background/40"
                                 )}
                                 style={{
-                                    overflow: "auto",
+                                    boxShadow: "rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px"
                                 }}
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-between p-3">
-                            {/* Left side - Model Dropdown */}
-                            <div className="flex items-center gap-2">
-                                <ModelDropdown
-                                    models={MODEL_CONFIGS}
-                                    selectedModel={selectedModel}
-                                    onSelect={setSelectedModel}
-                                />
-                            </div>
-                            
-                            {/* Right side - Attachments + Send */}
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    className="group p-2 hover:bg-neutral-800 rounded-lg transition-colors"
-                                >
-                                    <Paperclip className="w-4 h-4 text-white" />
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={!currentValue.trim() || isSubmitting}
-                                    className={cn(
-                                        "px-1.5 py-1.5 rounded-lg text-sm transition-colors border border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800 flex items-center justify-between gap-1",
-                                        currentValue.trim() && !isSubmitting
-                                            ? "bg-white text-black"
-                                            : "text-zinc-400"
-                                    )}
-                                >
-                                    <ArrowUpIcon
-                                        className={cn(
-                                            "w-4 h-4",
-                                            currentValue.trim() && !isSubmitting
-                                                ? "text-black"
-                                                : "text-zinc-400"
-                                        )}
-                                    />
-                                    <span className="sr-only">Send</span>
-                                </button>
-                            </div>
+                            >
+                                <div className="flex flex-grow flex-col">
+                                    <div></div>
+                                    <div className="flex flex-grow flex-row items-start">
+                                        <textarea
+                                            ref={textareaRef}
+                                            name="input"
+                                            id="chat-input"
+                                            value={currentValue}
+                                            onChange={handleInputChange}
+                                            onKeyDown={handleKeyDown}
+                                            placeholder="Type your message here..."
+                                            className="w-full resize-none bg-transparent text-base leading-6 text-foreground outline-none placeholder:text-secondary-foreground/60 disabled:opacity-0 custom-scrollbar"
+                                            aria-label="Message input"
+                                            aria-describedby="chat-input-description"
+                                            autoComplete="off"
+                                            style={{ height: "48px !important" }}
+                                        />
+                                        <div id="chat-input-description" className="sr-only">
+                                            Press Enter to send, Shift + Enter for new line
+                                        </div>
+                                    </div>
+                                    <div className="-mb-px mt-2 flex w-full flex-row-reverse justify-between">
+                                        <div className="-mr-0.5 -mt-0.5 flex items-center justify-center gap-2" aria-label="Message actions">
+                                            <button
+                                                type="submit"
+                                                disabled={!currentValue.trim() || isSubmitting}
+                                                className={cn(
+                                                    "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm transition-colors",
+                                                    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                                                    "disabled:cursor-not-allowed disabled:opacity-50",
+                                                    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                                                    "border-reflect button-reflect",
+                                                    "bg-[rgb(162,59,103)] font-semibold shadow hover:bg-[#d56698] active:bg-[rgb(162,59,103)]",
+                                                    "disabled:hover:bg-[rgb(162,59,103)] disabled:active:bg-[rgb(162,59,103)]",
+                                                    "dark:bg-primary/20 dark:hover:bg-pink-800/70 dark:active:bg-pink-800/40",
+                                                    "disabled:dark:hover:bg-primary/20 disabled:dark:active:bg-primary/20",
+                                                    "h-9 w-9 relative rounded-lg p-2 text-pink-50"
+                                                )}
+                                                aria-label={currentValue.trim() ? "Send message" : "Message requires text"}
+                                                data-state="closed"
+                                            >
+                                                <ArrowUpIcon className="lucide lucide-arrow-up !size-5" />
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
+                                            <div className="ml-[-7px] flex items-center gap-1">
+                                                <ModelDropdown
+                                                    models={MODEL_CONFIGS}
+                                                    selectedModel={selectedModel}
+                                                    onSelect={setSelectedModel}
+                                                />
+                                                {modelSupportsSearch && (
+                                                    <button 
+                                                        type="button"
+                                                        onClick={toggleSearch}
+                                                        className={cn(
+                                                            "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors",
+                                                            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                                                            "disabled:cursor-not-allowed disabled:opacity-50",
+                                                            "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                                                            "hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50",
+                                                            "px-3 text-xs -mb-1.5 h-auto gap-2",
+                                                            "rounded-full border border-solid border-secondary-foreground/10",
+                                                            "py-1.5 pl-2 pr-2.5 text-muted-foreground max-sm:p-2",
+                                                            includeSearch 
+                                                                ? "bg-pink-500/15 hover:text-foreground" 
+                                                                : "hover:bg-muted/40"
+                                                        )}
+                                                        aria-label={includeSearch ? "Disable search" : "Enable search"}
+                                                        data-state="closed"
+                                                    >
+                                                        <Globe className="lucide lucide-globe h-4 w-4 scale-x-[-1]" />
+                                                        <span className="max-sm:hidden">Search</span>
+                                                    </button>
+                                                )}
+                                                <label 
+                                                    className={cn(
+                                                        "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors",
+                                                        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                                                        "disabled:cursor-not-allowed disabled:opacity-50",
+                                                        "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                                                        "hover:bg-muted/40 hover:text-foreground",
+                                                        "disabled:hover:bg-transparent disabled:hover:text-foreground/50",
+                                                        "text-xs cursor-pointer -mb-1.5 h-auto gap-2",
+                                                        "rounded-full border border-solid border-secondary-foreground/10",
+                                                        "px-2 py-1.5 pr-2.5 text-muted-foreground max-sm:p-2"
+                                                    )}
+                                                    aria-label="Attach a file"
+                                                    data-state="closed"
+                                                >
+                                                    <input multiple className="sr-only" type="file" />
+                                                    <div className="flex gap-1">
+                                                        <Paperclip className="lucide lucide-paperclip size-4" />
+                                                        <span className="max-sm:hidden sm:ml-0.5">Attach</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-        </form>
+        </div>
     );
 }
 

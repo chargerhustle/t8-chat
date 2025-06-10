@@ -1,6 +1,7 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { ModelConfig } from "@/ai/models-config";
+import { cn } from "@/lib/utils";
 import React from "react";
 
 interface ModelDropdownProps {
@@ -15,10 +16,22 @@ export function ModelDropdown({ models, selectedModel, onSelect }: ModelDropdown
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 p-2 bg-transparent text-white hover:bg-neutral-800 rounded-lg transition-colors focus:outline-none text-sm"
+          className={cn(
+            "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+            "hover:bg-muted/40 hover:text-foreground",
+            "disabled:hover:bg-transparent disabled:hover:text-foreground/50",
+            "h-8 rounded-md text-xs relative gap-2 px-2 py-1.5 -mb-2 text-muted-foreground"
+          )}
+          id="radix-model-dropdown"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          data-state="closed"
         >
-          {selectedModel.displayName}
-          <ChevronDown className="w-4 h-4" />
+          <div className="text-left text-sm font-medium">{selectedModel.displayName}</div>
+          <ChevronDown className="lucide lucide-chevron-down right-0 size-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 

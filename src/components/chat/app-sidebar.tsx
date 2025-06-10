@@ -70,13 +70,13 @@ const ThreadItem = memo(
         asChild
         isActive={isActive}
         tooltip={thread.title}
-        className="py-3 group/link relative overflow-hidden"
+        className="group/link relative flex h-9 w-full items-center overflow-hidden rounded-lg px-2 py-1 text-sm font-normal outline-none text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring hover:focus-visible:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-normal"
       >
         <Link to={`/chat/${thread.threadId}`}>
           <div className="relative flex w-full items-center">
             <div className="w-full">
               <div className="relative w-full">
-                <span className="flex h-full w-full rounded bg-transparent px-1 py-1 text-sm outline-none overflow-hidden truncate">
+                <span className="flex h-full w-full rounded bg-transparent px-1 py-1 text-sm font-normal outline-none overflow-hidden truncate leading-tight-sm">
                   {thread.title}
                 </span>
               </div>
@@ -249,13 +249,11 @@ export function AppSidebar() {
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="border-b border-chat-border mx-2 pb-3">
+        </div>
       </SidebarHeader>
 
-      <div className="px-6 py-3">
-        <Separator className="bg-[#292929]" />
-      </div>
-
-      <SidebarContent>
+      <SidebarContent className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden scrollbar-hide scroll-shadow relative pb-2">
         <SidebarMenu className="px-3">
           {/* Pinned threads section */}
           {pinnedThreads.length > 0 && (
@@ -265,11 +263,10 @@ export function AppSidebar() {
             >
               <div
                 data-sidebar="group-label"
-                className="flex h-8 shrink-0 select-none items-center rounded-md text-xs outline-none ring-sidebar-ring transition-[margin,opacity] duration-200 ease-snappy focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 px-1.5 text-color-heading"
+                className="flex h-8 shrink-0 select-none items-center rounded-md text-xs font-medium outline-none ring-sidebar-ring transition-[margin,opacity] duration-200 ease-snappy focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 px-1.5 text-heading leading-tight-xs"
               >
-                <span className="text-[11px] opacity-75 font-normal">
-                  Pinned
-                </span>
+                <Pin className="-ml-0.5 mr-1 mt-px !size-3" />
+                <span>Pinned</span>
               </div>
 
               <div data-sidebar="group-content" className="w-full text-sm">
@@ -307,11 +304,9 @@ export function AppSidebar() {
             >
               <div
                 data-sidebar="group-label"
-                className="flex h-8 shrink-0 select-none items-center rounded-md text-xs outline-none ring-sidebar-ring transition-[margin,opacity] duration-200 ease-snappy focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 px-1.5 text-color-heading"
+                className="flex h-8 shrink-0 select-none items-center rounded-md text-xs font-medium outline-none ring-sidebar-ring transition-[margin,opacity] duration-200 ease-snappy focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 px-1.5 text-heading leading-tight-xs"
               >
-                <span className="text-[11px] opacity-75 font-normal">
-                  {group.group}
-                </span>
+                <span>{group.group}</span>
               </div>
 
               <div data-sidebar="group-content" className="w-full text-sm">

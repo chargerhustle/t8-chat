@@ -62,6 +62,10 @@ export default function LaunchChat() {
 
   return (
     <div className="relative h-full">
+      <div className="absolute bottom-0 top-0 w-full overflow-hidden border-l border-t border-chat-border bg-chat-background bg-fixed pb-[140px] transition-all ease-snappy max-sm:border-none sm:translate-y-3.5 sm:rounded-tl-xl !translate-y-0 !rounded-none border-none">
+        <div className="bg-noise absolute inset-0 -top-3.5 bg-fixed transition-transform ease-snappy [background-position:right_bottom] translate-y-3.5"></div>
+      </div>
+      
       <div className="absolute inset-0 custom-scrollbar">
         <div className="flex h-full flex-col items-center justify-center p-4 pb-[141px]">
           {!hasInputText && !isNavigating && (
@@ -79,15 +83,11 @@ export default function LaunchChat() {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-0 z-10 w-full px-2">
-        <div className="w-full max-w-3xl mx-auto pointer-events-auto">
-          <ChatInput 
-            onSubmit={handleSubmit} 
-            isSubmitting={false} 
-            onInputChange={setHasInputText}
-          />
-        </div>
-      </div>
+      <ChatInput 
+        onSubmit={handleSubmit} 
+        isSubmitting={false} 
+        onInputChange={setHasInputText}
+      />
     </div>
   )
 }

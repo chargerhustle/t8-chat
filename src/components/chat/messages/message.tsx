@@ -3,7 +3,7 @@
 import { memo } from "react"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
-import { MemoizedMarkdown } from "./memoized-markdown"
+import { Markdown } from "@/components/ui/markdown"
 import { MessageToolbar } from "./message-toolbar"
 import { MessageLoading } from "./message-loading"
 
@@ -24,19 +24,20 @@ const MessageComponent = memo(({ message }: MessageProps) => {
     <div className="w-full group">
       <div data-message-id={message.messageId} className={cn(isUser ? "flex justify-end" : "flex justify-start")}>
         {isUser ? (
-          // User message with bubble - similar to Theo's style
+          // User message with bubble
           <div className="flex flex-col items-end max-w-[80%]">
             <div 
               role="article" 
               aria-label="Your message" 
-              className="relative inline-block break-words rounded-xl border border-zinc-800 bg-[#2C2C2C] px-4 text-left text-base"
+              className="relative inline-block break-words rounded-xl border border-zinc-800 bg-[#2C2C2C] px-4 py-3 text-left text-base"
             >
               <span className="sr-only">Your message: </span>
               <div className="flex flex-col gap-3">
-                <MemoizedMarkdown 
-                  id={`${message.messageId}-content`} 
-                  content={message.content} 
-                />
+                <Markdown 
+                  id={`${message.messageId}-content`}
+                >
+                  {message.content}
+                </Markdown>
               </div>
             </div>
             {/* User message toolbar - right side */}
@@ -62,10 +63,11 @@ const MessageComponent = memo(({ message }: MessageProps) => {
                   </div>
                 ) : (
                   // Show actual content when available
-                  <MemoizedMarkdown 
-                    id={`${message.messageId}-content`} 
-                    content={message.content} 
-                  />
+                  <Markdown 
+                    id={`${message.messageId}-content`}
+                  >
+                    {message.content}
+                  </Markdown>
                 )}
               </div>
             </div>
