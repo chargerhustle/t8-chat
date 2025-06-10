@@ -784,7 +784,7 @@
     color: hsl(var(--color-heading));
   }
   
-  /* Custom utility for tight line height like reference site */
+  /* Custom utility for tight line height */
   .leading-tight-sm {
     line-height: 1.25rem;
   }

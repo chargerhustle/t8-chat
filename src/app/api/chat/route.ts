@@ -184,7 +184,7 @@ export async function POST(req: Request) {
     // Get the appropriate model provider
     const modelProvider = getModelProvider(requestData.model)
 
-    // Create data stream using AI SDK's createDataStream (following reference pattern)
+    // Create data stream using AI SDK's createDataStream
     const stream = createDataStream({
       execute: (dataStream) => {
         dataStream.writeData({
