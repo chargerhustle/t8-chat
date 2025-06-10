@@ -1,15 +1,15 @@
-import { generateText } from 'ai'
-import { google } from '@ai-sdk/google';
+import { generateText } from "ai";
+import { google } from "@ai-sdk/google";
 
 /**
  * Generate a title for a thread based on the first message
  */
 export async function generateTitleFromUserMessage({
   messageContent,
-  uniqueIdentifier
+  uniqueIdentifier,
 }: {
-  messageContent: string
-  uniqueIdentifier: string
+  messageContent: string;
+  uniqueIdentifier: string;
 }): Promise<string> {
   try {
     // Generate a title using AI
@@ -26,15 +26,15 @@ export async function generateTitleFromUserMessage({
     - DO NOT use any numbers
     - DO NOT use any punctuation
     `,
-      prompt: JSON.stringify({messageContent}),
+      prompt: JSON.stringify({ messageContent }),
       maxTokens: 10,
-    })
+    });
 
     // Return the generated title, or a default if empty
-    return text.trim() || `Chat ${uniqueIdentifier.slice(0, 8)}`
+    return text.trim() || `Chat ${uniqueIdentifier.slice(0, 8)}`;
   } catch (error) {
-    console.error('[TITLE-GEN] Error generating title:', error)
+    console.error("[TITLE-GEN] Error generating title:", error);
     // Return a fallback title based on the unique identifier
-    return `Chat ${uniqueIdentifier.slice(0, 8)}`
+    return `Chat ${uniqueIdentifier.slice(0, 8)}`;
   }
-} 
+}

@@ -1,10 +1,10 @@
-import { api } from "@/convex/_generated/api"
-import { CONVEX_CLIENT } from "@/lib/convex-client"
-import { Doc, Id } from "@/convex/_generated/dataModel"
-import { AllowedModels, ChatRequest, EffortLevel, ModelParams } from "@/types"
-import { APIErrorResponse } from "@/types/api"
-import { processDataStream } from 'ai'
-import { useTempMessageStore } from "@/lib/chat/temp-message-store"
+import { api } from "@/convex/_generated/api";
+import { CONVEX_CLIENT } from "@/lib/convex-client";
+import { Doc, Id } from "@/convex/_generated/dataModel";
+import { AllowedModels, ChatRequest, EffortLevel, ModelParams } from "@/types";
+import { APIErrorResponse } from "@/types/api";
+import { processDataStream } from "ai";
+import { useTempMessageStore } from "@/lib/chat/temp-message-store";
 
 /**
  * Transform attachments for API submission
@@ -17,28 +17,28 @@ const transformAttachments = (attachments: Doc<"attachments">[]) => {
       type: a.attachmentType as "image" | "pdf" | "text" | "file",
       url: a.attachmentUrl,
       mimeType: a.mimeType,
-    }))
-}
+    }));
+};
 
 /**
  * Create user and assistant messages and send to API
  */
 export async function createMessage(input: {
-  newThread: boolean
-  threadId: string
-  userContent: string
-  model: AllowedModels
+  newThread: boolean;
+  threadId: string;
+  userContent: string;
+  model: AllowedModels;
   modelParams?: ModelParams & {
-    reasoningEffort?: EffortLevel
-    includeSearch?: boolean
-  }
-  abortController?: AbortController
-  attachments: Doc<"attachments">[]
+    reasoningEffort?: EffortLevel;
+    includeSearch?: boolean;
+  };
+  abortController?: AbortController;
+  attachments: Doc<"attachments">[];
 }) {
   // Get current user from Convex Auth
-  const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser)
+  const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser);
   if (!currentUser) {
-    throw new Error("User not authenticated")
+    throw new Error("User not authenticated");
   }
 
   // Create thread if this is a new thread
@@ -48,25 +48,25 @@ export async function createMessage(input: {
         threadId: input.threadId,
         title: "New Thread", // You can make this dynamic later
         model: input.model,
-      })
+      });
     } catch (error) {
-      console.error("Failed to create thread:", error)
-      throw new Error("Failed to create thread")
+      console.error("Failed to create thread:", error);
+      throw new Error("Failed to create thread");
     }
   }
 
   const allMessages = input.newThread
     ? []
-    : await CONVEX_CLIENT.query(api.messages.getByThreadId, {
+    : (await CONVEX_CLIENT.query(api.messages.getByThreadId, {
         threadId: input.threadId,
-      }) || [] // Handle null case
+      })) || []; // Handle null case
 
-  const userMessageId = crypto.randomUUID()
-  const assistantMessageId = crypto.randomUUID()
-  
+  const userMessageId = crypto.randomUUID();
+  const assistantMessageId = crypto.randomUUID();
+
   // Use consistent timestamps for both database and temp store
-  const now = Date.now()
-  
+  const now = Date.now();
+
   const userMessage = {
     messageId: userMessageId,
     content: input.userContent,
@@ -76,7 +76,7 @@ export async function createMessage(input: {
     created_at: now,
     updated_at: now,
     attachmentIds: input.attachments.map((a) => a._id),
-  }
+  };
 
   const assistantMessage = {
     messageId: assistantMessageId,
@@ -84,12 +84,12 @@ export async function createMessage(input: {
     role: "assistant" as const,
     status: "waiting" as const,
     model: input.model,
-    // +1 to make sure this is "later" 
+    // +1 to make sure this is "later"
     created_at: now + 1,
     updated_at: now + 1,
     attachmentIds: [] as Id<"attachments">[], // Fix type issue
     modelParams: input.modelParams,
-  }
+  };
 
   // Add ONLY assistant message to temp store (user is already in Convex)
   useTempMessageStore.getState().addMessage({
@@ -99,14 +99,14 @@ export async function createMessage(input: {
     role: "assistant",
     status: "streaming",
     created_at: now + 1,
-    updated_at: now + 1
-  })
+    updated_at: now + 1,
+  });
 
   // Add messages to database
   await CONVEX_CLIENT.mutation(api.messages.addMessagesToThread, {
     threadId: input.threadId,
     messages: [userMessage, assistantMessage],
-  })
+  });
 
   // Build messages for API submission - getByThreadId already includes attachments
   const messagesToSubmit = allMessages.map((message) => ({
@@ -114,14 +114,14 @@ export async function createMessage(input: {
     content: message.content,
     role: message.role,
     attachments: transformAttachments(message.attachments || []),
-  }))
+  }));
 
   messagesToSubmit.push({
     id: userMessageId,
     content: input.userContent,
     role: "user",
     attachments: transformAttachments(input.attachments),
-  })
+  });
 
   // Call the API with proper authentication data
   await doChatFetchRequest({
@@ -132,35 +132,33 @@ export async function createMessage(input: {
     modelParams: input.modelParams,
     userId: currentUser._id, // Pass the authenticated user ID
     isNewThread: input.newThread,
-  })
+  });
 
   return {
     userMessageId,
     assistantMessageId,
-  }
-} 
-
-
+  };
+}
 
 /**
  * Process chat request and handle streaming response
  */
 async function doChatFetchRequest(input: {
-  messagesToSubmit: ChatRequest["messages"]
-  threadId: string
-  assistantMessageId: string
-  model: AllowedModels
+  messagesToSubmit: ChatRequest["messages"];
+  threadId: string;
+  assistantMessageId: string;
+  model: AllowedModels;
   modelParams?: ModelParams & {
-    reasoningEffort?: EffortLevel
-    includeSearch?: boolean
-  }
-  userId: Id<"users">
-  isNewThread?: boolean
+    reasoningEffort?: EffortLevel;
+    includeSearch?: boolean;
+  };
+  userId: Id<"users">;
+  isNewThread?: boolean;
 }) {
   // Get current user from Convex Auth
-  const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser)
+  const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser);
   if (!currentUser) {
-    throw new Error("User not authenticated")
+    throw new Error("User not authenticated");
   }
 
   const chatRequest: ChatRequest = {
@@ -187,16 +185,20 @@ async function doChatFetchRequest(input: {
       providerOptions: {
         // Provider-specific options - each provider gets its own nested object
         openai: {
-          ...(input.modelParams.reasoningEffort && { reasoningEffort: input.modelParams.reasoningEffort }),
-          ...(input.modelParams.includeSearch && { includeSearch: input.modelParams.includeSearch }),
-        }
-      }
+          ...(input.modelParams.reasoningEffort && {
+            reasoningEffort: input.modelParams.reasoningEffort,
+          }),
+          ...(input.modelParams.includeSearch && {
+            includeSearch: input.modelParams.includeSearch,
+          }),
+        },
+      },
     }),
     // preferences: input.preferences ?? {},
-  }
+  };
 
   // OPTIMAL: Extract updateMessage once for the entire streaming session
-  const { updateMessage, removeMessage } = useTempMessageStore.getState()
+  const { updateMessage, removeMessage } = useTempMessageStore.getState();
 
   const response = await fetch("/api/chat", {
     method: "POST",
@@ -204,80 +206,85 @@ async function doChatFetchRequest(input: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(chatRequest),
-  })
+  });
 
   if (!response.ok) {
     if (!response.body) {
-      throw new Error("Failed to get chat response")
+      throw new Error("Failed to get chat response");
     }
 
     try {
       const errorBody = (await response.json()) as {
-        error: APIErrorResponse
-      }
+        error: APIErrorResponse;
+      };
 
-      console.error("Error from server", errorBody)
+      console.error("Error from server", errorBody);
 
       // 1. TEMP STORE FIRST (immediate UI feedback)
       updateMessage(input.assistantMessageId, {
         status: "error",
-        content: `Error: ${errorBody.error.message}`
-      })
-      
+        content: `Error: ${errorBody.error.message}`,
+      });
+
       // 2. CONVEX SECOND (persistence)
       await CONVEX_CLIENT.mutation(api.messages.setErrorMessage, {
         messageId: input.assistantMessageId,
         errorMessage: errorBody.error.message,
         errorType: errorBody.error.type,
-      })
+      });
     } catch (error) {
-      console.error("Unable to parse error from server", error)
+      console.error("Unable to parse error from server", error);
     }
 
-    return
+    return;
   }
 
   // Extract stream ID from headers if available
-  const streamId = response.headers.get("X-Stream-ID")
-  
-  // Stores client-side message content 
-  let messageContent = ""
-  let reasoning = ""
-  let providerMetadata: Record<string, unknown> | null = null
+  const streamId = response.headers.get("X-Stream-ID");
+
+  // Stores client-side message content
+  let messageContent = "";
+  let reasoning = "";
+  let providerMetadata: Record<string, unknown> | null = null;
 
   // Process the stream data
   await processDataStream({
     stream: response.body!,
     onTextPart: async (text: string) => {
-      messageContent += text
+      messageContent += text;
 
-      
       updateMessage(input.assistantMessageId, {
         content: messageContent,
-        status: "streaming"
-      })
+        status: "streaming",
+      });
     },
     onReasoningPart: async (text: string) => {
-      reasoning += text
+      reasoning += text;
 
       // OPTIMAL: Direct method call, no repeated getState()
       updateMessage(input.assistantMessageId, {
         reasoning: reasoning,
-        status: "streaming"
-      })
+        status: "streaming",
+      });
     },
     onDataPart: async (data: unknown) => {
       // Extract provider metadata from data stream
-      if (data && typeof data === 'object' && data !== null) {
-        const dataObj = data as Record<string, unknown>
+      if (data && typeof data === "object" && data !== null) {
+        const dataObj = data as Record<string, unknown>;
         if (dataObj.providerMetadata) {
-          providerMetadata = dataObj.providerMetadata as Record<string, unknown>
-          console.log("[CHAT] Received provider metadata:", providerMetadata)
+          providerMetadata = dataObj.providerMetadata as Record<
+            string,
+            unknown
+          >;
+          console.log("[CHAT] Received provider metadata:", providerMetadata);
         }
 
         // Handle other data types if needed
-        if (dataObj.type === 'metadata' || dataObj.type === 'provider-metadata') {
-          providerMetadata = { ...providerMetadata, ...dataObj }
+        if (
+          dataObj.type === "metadata" ||
+          dataObj.type === "provider-metadata"
+        ) {
+          providerMetadata = { ...providerMetadata, ...dataObj };
         }
       }
     },
@@ -286,46 +293,54 @@ async function doChatFetchRequest(input: {
       updateMessage(input.assistantMessageId, {
         content: messageContent,
         reasoning: reasoning,
-        status: "done"
-      })
+        status: "done",
+      });
 
       // 2. SECOND: Update Convex with final content (this was moved from API route)
       try {
         // Update message with final content, reasoning, provider metadata, and stream ID
-        const messageUpdate = CONVEX_CLIENT.mutation(api.messages.updateMessage, {
-          messageId: input.assistantMessageId,
-          content: messageContent,
-          reasoning: reasoning,
-          ...(providerMetadata && { providerMetadata }),
-          ...(streamId && { streamId }),
-          status: "done",
-        })
+        const messageUpdate = CONVEX_CLIENT.mutation(
+          api.messages.updateMessage,
+          {
+            messageId: input.assistantMessageId,
+            content: messageContent,
+            reasoning: reasoning,
+            ...(providerMetadata && { providerMetadata }),
+            ...(streamId && { streamId }),
+            status: "done",
+          }
+        );
 
         // Update thread status to completed
         const threadUpdate = CONVEX_CLIENT.mutation(api.threads.updateThread, {
           threadId: input.threadId,
           generationStatus: "completed",
-        })
+        });
 
-        await Promise.all([messageUpdate, threadUpdate])
-        
-        console.log("[CHAT] Client updated Convex with final content, metadata, and thread status")
+        await Promise.all([messageUpdate, threadUpdate]);
+
+        console.log(
+          "[CHAT] Client updated Convex with final content, metadata, and thread status"
+        );
       } catch (error) {
-        console.error("[CHAT] Error updating Convex with final content:", error)
+        console.error(
+          "[CHAT] Error updating Convex with final content:",
+          error
+        );
       }
 
       // 3. FINALLY: Remove from temp store (UI will now show Convex version)
-      removeMessage(input.assistantMessageId)
+      removeMessage(input.assistantMessageId);
     },
     onErrorPart: async (error) => {
       // Handle errors
-      console.error("Stream error:", error)
-      
+      console.error("Stream error:", error);
+
       // OPTIMAL: Direct method call, no repeated getState()
       updateMessage(input.assistantMessageId, {
         status: "error",
-        content: `Error: ${error || 'Unknown error'}`
-      })
-    }
-  })
+        content: `Error: ${error || "Unknown error"}`,
+      });
+    },
+  });
 }
