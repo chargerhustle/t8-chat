@@ -1,12 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+  useLayoutEffect,
+} from "react";
 import { cn } from "@/lib/utils";
 import { ArrowUpIcon, Paperclip, Globe, ChevronDown } from "lucide-react";
 import { ModelDropdown } from "./model-dropdown";
 import { ReasoningEffortDropdown } from "./reasoning-effort-dropdown";
 import { MODEL_CONFIGS, ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
 import { EffortLevel } from "@/types";
+import {
+  AttachmentsList,
+  type Attachment,
+} from "@/components/chat/attachments";
+import { useAttachmentsHeight } from "@/hooks/use-chat-input-height";
 
 interface UseAutoResizeTextareaProps {
   minHeight: number;
@@ -26,6 +37,7 @@ interface ChatInputProps {
   onValueChange?: (value: string) => void;
   showScrollToBottom?: boolean;
   onScrollToBottom?: () => void;
+  onHeightChange?: (height: number) => void;
 }
 
 function useAutoResizeTextarea({
@@ -84,6 +96,7 @@ export function ChatInput({
   onValueChange,
   showScrollToBottom,
   onScrollToBottom,
+  onHeightChange,
 }: ChatInputProps) {
   const [internalValue, setInternalValue] = useState("");
   const [selectedModel, setSelectedModel] = useState<ModelConfig>(
@@ -94,10 +107,41 @@ export function ChatInput({
   const isControlled = value !== undefined;
   const currentValue = isControlled ? value : internalValue;
 
+  // Mock attachments state for UI testing
+  const [attachments, setAttachments] = useState<Attachment[]>([
+    {
+      id: "1",
+      fileName: "image.webp",
+      fileUrl:
+        "https://makerworld.bblmw.com/makerworld/model/US2ab61bb7d3000c/design/2024-01-30_029b2304056c.png?x-oss-process=image/resize,w_1000/format,webp",
+      mimeType: "image/webp",
+      status: "uploaded",
+    },
+  ]);
+
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 48,
     maxHeight: 200,
   });
+
+  // Get ref for measuring attachments height
+  const { attachmentsRef } = useAttachmentsHeight();
+
+  // Simple ref for the container
+  const chatInputContainerRef = useRef<HTMLDivElement>(null);
+
+  // Calculate and report total height when content changes
+  const calculateAndReportHeight = useCallback(() => {
+    if (chatInputContainerRef.current && onHeightChange) {
+      const totalHeight = chatInputContainerRef.current.offsetHeight;
+      onHeightChange(totalHeight);
+    }
+  }, [onHeightChange]);
+
+  // Measure height after DOM updates
+  useLayoutEffect(() => {
+    calculateAndReportHeight();
+  }, [calculateAndReportHeight, attachments.length, currentValue]);
 
   // Check if current model supports search
   const modelSupportsSearch = selectedModel.features.includes("search");
@@ -160,8 +204,15 @@ export function ChatInput({
     setIncludeSearch(!includeSearch);
   };
 
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((attachment) => attachment.id !== id));
+  };
+
   return (
-    <div className="pointer-events-none absolute bottom-0 z-10 w-full px-2">
+    <div
+      ref={chatInputContainerRef}
+      className="pointer-events-none absolute bottom-0 z-10 w-full px-2"
+    >
       <div className="relative mx-auto flex w-full max-w-3xl flex-col text-center">
         {showScrollToBottom && (
           <div className="flex justify-center pb-4">
@@ -212,7 +263,11 @@ export function ChatInput({
                 }}
               >
                 <div className="flex flex-grow flex-col">
-                  <div></div>
+                  <AttachmentsList
+                    ref={attachmentsRef}
+                    attachments={attachments}
+                    onRemoveAttachment={handleRemoveAttachment}
+                  />
                   <div className="flex flex-grow flex-row items-start">
                     <textarea
                       ref={textareaRef}

@@ -17,6 +17,7 @@ export default function Chat() {
   const { threadId } = useParams<{ threadId: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [chatInputHeight, setChatInputHeight] = useState(141);
 
   // Fetch thread using Convex reactive query
   const thread = useQuery(
@@ -80,6 +81,10 @@ export default function Chat() {
     }
   };
 
+  const handleChatInputHeightChange = useCallback((height: number) => {
+    setChatInputHeight(height);
+  }, []);
+
   // Only show error when we're certain thread doesn't exist
   if (threadId && thread === null) {
     return (
@@ -105,7 +110,10 @@ export default function Chat() {
       <div
         ref={scrollContainerRef}
         className="absolute inset-0 overflow-y-scroll sm:pt-3.5 custom-scrollbar"
-        style={{ paddingBottom: "141px", scrollbarGutter: "stable both-edges" }}
+        style={{
+          paddingBottom: `${chatInputHeight}px`,
+          scrollbarGutter: "stable both-edges",
+        }}
       >
         <div
           ref={messagesContainerRef}
@@ -130,6 +138,7 @@ export default function Chat() {
         isSubmitting={isSubmitting}
         showScrollToBottom={showScrollToBottom}
         onScrollToBottom={scrollToBottom}
+        onHeightChange={handleChatInputHeightChange}
       />
     </div>
   );
