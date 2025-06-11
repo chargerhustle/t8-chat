@@ -39,7 +39,11 @@ const applicationTables = {
     .index("by_user", ["userId"])
     .index("by_threadId", ["threadId"])
     .index("by_user_and_threadId", ["userId", "threadId"])
-    .index("by_user_visibility_updatedAt", ["userId", "visibility", "updatedAt"])
+    .index("by_user_visibility_updatedAt", [
+      "userId",
+      "visibility",
+      "updatedAt",
+    ])
     .index("by_user_visibility_pinned", ["userId", "visibility", "pinned"])
     .searchIndex("search_title", {
       searchField: "title",
@@ -74,11 +78,7 @@ const applicationTables = {
         topP: v.optional(v.number()),
         topK: v.optional(v.number()),
         reasoningEffort: v.optional(
-          v.union(
-            v.literal("low"),
-            v.literal("medium"),
-            v.literal("high")
-          )
+          v.union(v.literal("low"), v.literal("medium"), v.literal("high"))
         ),
         includeSearch: v.optional(v.boolean()),
       })
@@ -102,7 +102,7 @@ const applicationTables = {
     fileName: v.string(),
     mimeType: v.string(),
     fileSize: v.number(),
-    fileKey: v.string(), // From UploadThing
+    fileKey: v.string(),
     backfill: v.optional(v.boolean()),
     status: v.optional(v.union(v.literal("deleted"), v.literal("uploaded"))),
   })
