@@ -1,4 +1,9 @@
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { ModelConfig } from "@/ai/models-config";
 import { cn } from "@/lib/utils";
@@ -10,7 +15,11 @@ interface ModelDropdownProps {
   onSelect: (model: ModelConfig) => void;
 }
 
-export function ModelDropdown({ models, selectedModel, onSelect }: ModelDropdownProps) {
+export function ModelDropdown({
+  models,
+  selectedModel,
+  onSelect,
+}: ModelDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,12 +39,14 @@ export function ModelDropdown({ models, selectedModel, onSelect }: ModelDropdown
           aria-expanded="false"
           data-state="closed"
         >
-          <div className="text-left text-sm font-medium">{selectedModel.displayName}</div>
+          <div className="text-left text-sm font-medium">
+            {selectedModel.displayName}
+          </div>
           <ChevronDown className="lucide lucide-chevron-down right-0 size-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="start" 
+      <DropdownMenuContent
+        align="start"
         className="bg-[#0D0D0D] border-neutral-700"
       >
         {models.map((model) => (
@@ -50,4 +61,4 @@ export function ModelDropdown({ models, selectedModel, onSelect }: ModelDropdown
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}

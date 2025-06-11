@@ -2,7 +2,13 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function Error({
   error,
@@ -27,12 +33,7 @@ export default function Error({
           </p>
         </CardContent>
         <CardFooter>
-          <Button
-            onClick={
-              () => reset()
-            }
-            variant="default"
-          >
+          <Button onClick={() => reset()} variant="default">
             Try again
           </Button>
         </CardFooter>

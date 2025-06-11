@@ -48,7 +48,7 @@ export const createThread = mutation({
     if (!userId) {
       throw new Error("User not authenticated");
     }
-    
+
     const now = Date.now();
 
     // Check if thread already exists
@@ -77,12 +77,14 @@ export const createThread = mutation({
       pinned: false,
     });
 
-    console.log("[THREADS] Created new thread", { threadId: args.threadId, userId: userId });
+    console.log("[THREADS] Created new thread", {
+      threadId: args.threadId,
+      userId: userId,
+    });
 
     return { threadId: args.threadId, existed: false };
   },
 });
-
 
 // Get user's threads with proper authentication
 export const get = query({
@@ -96,7 +98,7 @@ export const get = query({
     // Fetch regular threads - limited to 200 most recent
     const threads = await ctx.db
       .query("threads")
-      .withIndex("by_user_visibility_updatedAt", (q) => 
+      .withIndex("by_user_visibility_updatedAt", (q) =>
         q.eq("userId", userId).eq("visibility", "visible")
       )
       .order("desc")
@@ -115,7 +117,7 @@ export const get = query({
     const dedupedCombined = [...pinnedThreads, ...threads]
       .filter(
         (t, index, self) =>
-          index === self.findIndex((t2) => t2.threadId === t.threadId),
+          index === self.findIndex((t2) => t2.threadId === t.threadId)
       )
       .sort((a, b) => b.updatedAt - a.updatedAt);
 
@@ -158,7 +160,10 @@ export const deleteThread = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[THREADS] Deleted thread", { threadId: args.threadId, userId });
+    console.log("[THREADS] Deleted thread", {
+      threadId: args.threadId,
+      userId,
+    });
 
     return { success: true };
   },
@@ -199,15 +204,15 @@ export const togglePin = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[THREADS] Toggled pin status", { 
-      threadId: args.threadId, 
-      pinned: args.pinned, 
-      userId 
+    console.log("[THREADS] Toggled pin status", {
+      threadId: args.threadId,
+      pinned: args.pinned,
+      userId,
     });
 
     return { success: true };
   },
-}); 
+});
 
 /**
  * Update thread metadata
@@ -216,12 +221,14 @@ export const updateThread = mutation({
   args: {
     threadId: v.string(),
     title: v.optional(v.string()),
-    generationStatus: v.optional(v.union(
-      v.literal("pending"),
-      v.literal("generating"),
-      v.literal("completed"),
-      v.literal("failed")
-    )),
+    generationStatus: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("generating"),
+        v.literal("completed"),
+        v.literal("failed")
+      )
+    ),
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -257,7 +264,10 @@ export const updateThread = mutation({
 
     await ctx.db.patch(thread._id, updates);
 
-    console.log("[THREADS] Updated thread", { threadId: args.threadId, updates });
+    console.log("[THREADS] Updated thread", {
+      threadId: args.threadId,
+      updates,
+    });
 
     return { success: true };
   },

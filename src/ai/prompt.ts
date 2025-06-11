@@ -1,4 +1,3 @@
-
 interface UserContext {
   city?: string;
   country?: string;
@@ -75,13 +74,12 @@ export function createSystemPrompt({
   return parts.join("\n");
 }
 
-  
-  // Helper function to extract user context from Vercel headers
-  export function extractUserContextFromHeaders(headers: Headers): UserContext {
-    return {
-      city: headers.get('x-vercel-ip-city') || undefined,
-      country: headers.get('x-vercel-ip-country') || undefined,
-      timezone: headers.get('x-vercel-ip-timezone') || undefined,
-      region: headers.get('x-vercel-ip-country-region') || undefined,
-    };
-  }
+// Helper function to extract user context from Vercel headers
+export function extractUserContextFromHeaders(headers: Headers): UserContext {
+  return {
+    city: headers.get("x-vercel-ip-city") || undefined,
+    country: headers.get("x-vercel-ip-country") || undefined,
+    timezone: headers.get("x-vercel-ip-timezone") || undefined,
+    region: headers.get("x-vercel-ip-country-region") || undefined,
+  };
+}

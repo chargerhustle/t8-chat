@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
 export default function NotFound() {
@@ -23,9 +29,7 @@ export default function NotFound() {
           </p>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleReturnHome}>
-              Return Home
-          </Button>
+          <Button onClick={handleReturnHome}>Return Home</Button>
         </CardFooter>
       </Card>
     </div>

@@ -11,9 +11,7 @@ interface ConvexAuthProviderProps {
 export function ConvexAuthProvider({ children }: ConvexAuthProviderProps) {
   return (
     <ConvexAuthProviderBase client={CONVEX_CLIENT}>
-      <ConvexQueryCacheProvider>
-        {children}
-      </ConvexQueryCacheProvider>
+      <ConvexQueryCacheProvider>{children}</ConvexQueryCacheProvider>
     </ConvexAuthProviderBase>
   );
-} 
+}

@@ -1,69 +1,97 @@
-import { streamText, createDataStream } from "ai"
-import { openai } from "@ai-sdk/openai"
-import { google } from "@ai-sdk/google"
-import { waitUntil } from '@vercel/functions'
-import { api } from "@/convex/_generated/api"
-import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client"
-import { generateTitleFromUserMessage } from "@/lib/chat/title-generator"
-import { createResumableStreamContext, type ResumableStreamContext } from "resumable-stream"
-import { MODEL_CONFIGS, DEFAULT_MODEL } from "@/ai/models-config"
-import { AllowedModels } from "@/types"
-import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt"
+import { streamText, createDataStream } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
+import { waitUntil } from "@vercel/functions";
+import { api } from "@/convex/_generated/api";
+import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client";
+import { generateTitleFromUserMessage } from "@/lib/chat/title-generator";
+import {
+  createResumableStreamContext,
+  type ResumableStreamContext,
+} from "resumable-stream";
+import { MODEL_CONFIGS, DEFAULT_MODEL } from "@/ai/models-config";
+import { AllowedModels } from "@/types";
+import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
 // import { trackUsage } from "@/lib/analytics"
 
-export const runtime = "nodejs"
+export const runtime = "nodejs";
 
 // Environment variables
 const env = {
-  CONVEX_BRIDGE_API_KEY: process.env.CONVEX_BRIDGE_API_KEY || 'dummy-key'
-}
+  CONVEX_BRIDGE_API_KEY: process.env.CONVEX_BRIDGE_API_KEY || "dummy-key",
+};
 
 // Create optimized O(1) lookup map for model configs
 const MODEL_LOOKUP = new Map(
-  MODEL_CONFIGS.map(config => [config.model, config])
+  MODEL_CONFIGS.map((config) => [config.model, config])
 );
 
 /**
  * Get the appropriate AI provider and model based on the model string
  * Uses graceful fallbacks to ensure the chat always works
  */
-function getModelProvider(modelString: AllowedModels) {
-  const modelConfig = MODEL_LOOKUP.get(modelString)
-  
+function getModelProvider(
+  modelString: AllowedModels,
+  providerOptions?: Record<string, Record<string, unknown>>
+) {
+  const modelConfig = MODEL_LOOKUP.get(modelString);
+
   if (!modelConfig) {
-    console.warn(`[CHAT] Model ${modelString} not found in MODEL_CONFIGS. Falling back to ${DEFAULT_MODEL}. Available models: ${Array.from(MODEL_LOOKUP.keys()).join(', ')}`)
+    console.warn(
+      `[CHAT] Model ${modelString} not found in MODEL_CONFIGS. Falling back to ${DEFAULT_MODEL}. Available models: ${Array.from(MODEL_LOOKUP.keys()).join(", ")}`
+    );
     // Graceful fallback to default model
-    const fallbackConfig = MODEL_LOOKUP.get(DEFAULT_MODEL)
+    const fallbackConfig = MODEL_LOOKUP.get(DEFAULT_MODEL);
     if (!fallbackConfig) {
-      console.error(`[CHAT] Critical: Default model ${DEFAULT_MODEL} not found in config!`)
+      console.error(
+        `[CHAT] Critical: Default model ${DEFAULT_MODEL} not found in config!`
+      );
       // Last resort: hardcoded fallback
-      return openai(DEFAULT_MODEL)
+      return openai(DEFAULT_MODEL);
     }
-    return getModelProviderFromConfig(fallbackConfig, DEFAULT_MODEL)
+    return getModelProviderFromConfig(
+      fallbackConfig,
+      DEFAULT_MODEL,
+      providerOptions
+    );
   }
 
-  return getModelProviderFromConfig(modelConfig, modelString)
+  return getModelProviderFromConfig(modelConfig, modelString, providerOptions);
 }
 
 /**
  * Helper function to create provider instance from config
  */
-function getModelProviderFromConfig(modelConfig: { provider: string; displayName?: string; description?: string }, modelString: string) {
-  console.log(`[CHAT] Provider: ${modelConfig.provider}/${modelString}`)
+function getModelProviderFromConfig(
+  modelConfig: { provider: string; displayName?: string; description?: string },
+  modelString: string,
+  providerOptions?: Record<string, Record<string, unknown>>
+) {
+  console.log(`[CHAT] Provider: ${modelConfig.provider}/${modelString}`);
+
+  // Extract provider-specific options
+  const providerSpecificOptions = providerOptions?.[modelConfig.provider] || {};
+
+  console.log(
+    `[CHAT] Provider-specific options for ${modelConfig.provider}:`,
+    providerSpecificOptions
+  );
 
   switch (modelConfig.provider) {
     case "openai":
-      return openai(modelString)
+      return openai(modelString, providerSpecificOptions);
     case "google":
-      return google(modelString)
+      return google(modelString, providerSpecificOptions);
     default:
-      console.warn(`[CHAT] Unknown provider: ${modelConfig.provider} for model: ${modelString}. Falling back to ${DEFAULT_MODEL}`)
+      console.warn(
+        `[CHAT] Unknown provider: ${modelConfig.provider} for model: ${modelString}. Falling back to ${DEFAULT_MODEL}`
+      );
       // Graceful fallback to OpenAI with default model
-      return openai(DEFAULT_MODEL)
+      return openai(DEFAULT_MODEL);
   }
 }
 
-// Global stream context with error handling (following the reference pattern)
+// Global stream context with error handling
 let globalStreamContext: ResumableStreamContext | null = null;
 
 function getStreamContext() {
@@ -73,11 +101,14 @@ function getStreamContext() {
         waitUntil,
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('REDIS_URL')) {
-        console.log('[CHAT] Resumable streams are disabled due to missing REDIS_URL');
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("REDIS_URL")) {
+        console.log(
+          "[CHAT] Resumable streams are disabled due to missing REDIS_URL"
+        );
       } else {
-        console.error('[CHAT] Error creating stream context:', error);
+        console.error("[CHAT] Error creating stream context:", error);
       }
     }
   }
@@ -86,51 +117,67 @@ function getStreamContext() {
 }
 
 export async function POST(req: Request) {
-  console.log("[CHAT] API route called")
+  console.log("[CHAT] API route called");
 
   try {
-    const requestData = await req.json()
-    console.log(`[CHAT] Processing ${requestData.messages?.length || 0} messages with model: ${requestData.model}`)
+    const requestData = await req.json();
+    console.log(
+      `[CHAT] Processing ${requestData.messages?.length || 0} messages with model: ${requestData.model}`
+    );
+    console.log("[CHAT] Request data keys:", Object.keys(requestData));
+    console.log(
+      "[CHAT] Provider options in request:",
+      requestData.providerOptions
+    );
 
     // Validate required fields
     if (!requestData.userId) {
-      return new Response(JSON.stringify({ 
-        error: { 
-          message: "User ID is required", 
-          type: "authentication_error" 
-        } 
-      }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "User ID is required",
+            type: "authentication_error",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     if (!requestData.messages || !Array.isArray(requestData.messages)) {
-      return new Response(JSON.stringify({ 
-        error: { 
-          message: "Messages array is required", 
-          type: "validation_error" 
-        } 
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Messages array is required",
+            type: "validation_error",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     if (!requestData.model) {
-      return new Response(JSON.stringify({ 
-        error: { 
-          message: "Model is required", 
-          type: "validation_error" 
-        } 
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Model is required",
+            type: "validation_error",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
-    
+
     // Generate a unique stream ID for this conversation
-    const streamId = `STREAM:${requestData.responseMessageId}`
+    const streamId = `STREAM:${requestData.responseMessageId}`;
 
     // Auto-generate thread title from first message if it's a new thread
     // Only generate title if explicitly set to "New Thread" (not just missing)
@@ -145,24 +192,27 @@ export async function POST(req: Request) {
           userId: requestData.userId,
           title: title,
           apiKey: env.CONVEX_BRIDGE_API_KEY,
-        })
-      })
+        });
+      });
 
       // Continue processing while title generates
-      waitUntil(titleGenPromise)
+      waitUntil(titleGenPromise);
     }
 
     // Set up database updates - Initial update: Set streamId so other devices can find and resume this stream
-    const initialUpdate = SERVER_CONVEX_CLIENT.mutation(api.internal.chat.updateMessage, {
-      messageId: requestData.responseMessageId,
-      userId: requestData.userId,
-      status: "streaming",
-      streamId: streamId, // Critical: Other devices use this to resume
-      apiKey: env.CONVEX_BRIDGE_API_KEY,
-    });
-    
+    const initialUpdate = SERVER_CONVEX_CLIENT.mutation(
+      api.internal.chat.updateMessage,
+      {
+        messageId: requestData.responseMessageId,
+        userId: requestData.userId,
+        status: "streaming",
+        streamId: streamId, // Critical: Other devices use this to resume
+        apiKey: env.CONVEX_BRIDGE_API_KEY,
+      }
+    );
+
     initialUpdate.catch((e: Error) => {
-      console.error("[CHAT] Error setting initial stream ID", e)
+      console.error("[CHAT] Error setting initial stream ID", e);
     });
 
     // Get user context from headers
@@ -181,14 +231,25 @@ export async function POST(req: Request) {
       userContext,
     });
 
-    // Get the appropriate model provider
-    const modelProvider = getModelProvider(requestData.model)
+    // Debug log provider options
+    if (requestData.providerOptions) {
+      console.log(
+        "[CHAT] Provider options:",
+        JSON.stringify(requestData.providerOptions, null, 2)
+      );
+    }
+
+    // Get the appropriate model provider with provider options
+    const modelProvider = getModelProvider(
+      requestData.model,
+      requestData.providerOptions
+    );
 
     // Create data stream using AI SDK's createDataStream
     const stream = createDataStream({
       execute: (dataStream) => {
         dataStream.writeData({
-          type: 'stream-metadata',
+          type: "stream-metadata",
           streamId: streamId,
         });
 
@@ -198,7 +259,7 @@ export async function POST(req: Request) {
           system: systemPrompt,
           onFinish: async () => {
             // All Convex updates moved to client-side onFinishMessagePart for proper timing
-            console.log("[CHAT] Generation on route complete")
+            console.log("[CHAT] Generation on route complete");
           },
         });
 
@@ -209,7 +270,7 @@ export async function POST(req: Request) {
         });
       },
       onError: () => {
-        return 'Oops, an error occurred!';
+        return "Oops, an error occurred!";
       },
     });
 
@@ -217,33 +278,38 @@ export async function POST(req: Request) {
     const streamContext = getStreamContext();
 
     if (streamContext) {
-      console.log("[CHAT] Creating resumable stream")
+      console.log("[CHAT] Creating resumable stream");
       return new Response(
         await streamContext.resumableStream(streamId, () => stream),
         {
           headers: {
-            'X-Stream-ID': streamId,
+            "X-Stream-ID": streamId,
           },
         }
       );
     } else {
-      console.log("[CHAT] Returning direct stream (resumable streams disabled)")
+      console.log(
+        "[CHAT] Returning direct stream (resumable streams disabled)"
+      );
       return new Response(stream, {
         headers: {
-          'X-Stream-ID': streamId,
+          "X-Stream-ID": streamId,
         },
       });
     }
   } catch (error) {
-    console.error("[CHAT] Error in chat API:", error)
-    return new Response(JSON.stringify({ 
-      error: { 
-        message: "Failed to process chat request", 
-        type: "internal_error" 
-      } 
-    }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    })
+    console.error("[CHAT] Error in chat API:", error);
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Failed to process chat request",
+          type: "internal_error",
+        },
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }

@@ -24,7 +24,7 @@ export type UserId = Id<"users">;
 // ============================================================================
 
 // Automatically derive AllowedModels from MODEL_CONFIGS to ensure they're always in sync
-export type AllowedModels = typeof MODEL_CONFIGS[number]["model"];
+export type AllowedModels = (typeof MODEL_CONFIGS)[number]["model"];
 
 export type EffortLevel = "low" | "medium" | "high";
 
@@ -177,9 +177,9 @@ export type SiteConfig = {
   creator: {
     name: string;
     url: string;
-  }
+  };
   socials: {
     github: string;
     //x: string;
-  }
-}
+  };
+};
