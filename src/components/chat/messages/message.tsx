@@ -18,7 +18,7 @@ const MessageComponent = memo(({ message }: MessageProps) => {
   // Check if we should show loading animation for assistant messages
   const isAssistantLoading =
     !isUser &&
-    message.status === "streaming" &&
+    (message.status === "streaming" || message.status === "waiting") &&
     (!message.content ||
       message.content.trim().length === 0 ||
       message.content === "...");
