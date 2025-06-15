@@ -11,6 +11,7 @@ import {
   validateCoreMessage,
   type APIAttachment,
 } from "@/lib/chat/message-converter";
+import { getUserApiKeys } from "@/lib/ai/byok-providers";
 
 /**
  * Minimal attachment data returned from Convex (shared type)
@@ -223,6 +224,9 @@ async function doChatFetchRequest(input: {
     throw new Error("User not authenticated");
   }
 
+  // Get user API keys for BYOK
+  const userApiKeys = getUserApiKeys();
+
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
     threadMetadata: {
@@ -234,6 +238,8 @@ async function doChatFetchRequest(input: {
     model: input.model,
     // Add authentication data that the API route expects
     userId: input.userId,
+    // BYOK - Include user API keys
+    userApiKeys,
     // Spread modelParams into individual fields that ChatRequest expects
     ...(input.modelParams && {
       temperature: input.modelParams.temperature,

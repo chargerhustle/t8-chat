@@ -456,6 +456,14 @@
     margin-bottom: 1.25em;
   }
 
+  /* Remove bottom margin from last child elements */
+  .prose
+    :where(:last-child):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ) {
+    margin-bottom: 0;
+  }
+
   /* Strong */
   .prose
     :where(strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {

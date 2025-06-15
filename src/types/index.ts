@@ -74,6 +74,14 @@ export interface ChatRequest {
   responseMessageId: string;
   userId?: UserId;
   userPromptCustomization?: UserPromptCustomization;
+
+  // BYOK - User API keys
+  userApiKeys?: {
+    anthropic?: string;
+    openai?: string;
+    google?: string;
+    openrouter?: string;
+  };
 }
 
 export interface ResumeChatRequest {

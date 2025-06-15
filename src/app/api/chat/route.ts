@@ -1,6 +1,4 @@
 import { streamText, createDataStream, smoothStream } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { google } from "@ai-sdk/google";
 import { waitUntil } from "@vercel/functions";
 import { api } from "@/convex/_generated/api";
 import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client";
@@ -12,6 +10,11 @@ import {
 import { MODEL_CONFIGS, DEFAULT_MODEL } from "@/ai/models-config";
 import { AllowedModels } from "@/types";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
+import {
+  getBYOKProvider,
+  type BYOKError,
+  type UserApiKeys,
+} from "@/lib/ai/byok-providers";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
@@ -27,68 +30,30 @@ const MODEL_LOOKUP = new Map(
 );
 
 /**
- * Get the appropriate AI provider and model based on the model string
- * Uses graceful fallbacks to ensure the chat always works
+ * Helper function to create error response for BYOK errors
  */
-function getModelProvider(
-  modelString: AllowedModels,
-  providerOptions?: Record<string, Record<string, unknown>>
-) {
-  const modelConfig = MODEL_LOOKUP.get(modelString);
+function createBYOKErrorResponse(error: BYOKError): Response {
+  const statusCode =
+    error.type === "missing_key"
+      ? 400
+      : error.type === "invalid_key"
+        ? 401
+        : 400;
 
-  if (!modelConfig) {
-    console.warn(
-      `[CHAT] Model ${modelString} not found in MODEL_CONFIGS. Falling back to ${DEFAULT_MODEL}. Available models: ${Array.from(MODEL_LOOKUP.keys()).join(", ")}`
-    );
-    // Graceful fallback to default model
-    const fallbackConfig = MODEL_LOOKUP.get(DEFAULT_MODEL);
-    if (!fallbackConfig) {
-      console.error(
-        `[CHAT] Critical: Default model ${DEFAULT_MODEL} not found in config!`
-      );
-      // Last resort: hardcoded fallback
-      return openai(DEFAULT_MODEL);
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: error.message,
+        type: error.type,
+        provider: error.provider,
+        setupUrl: error.setupUrl,
+      },
+    }),
+    {
+      status: statusCode,
+      headers: { "Content-Type": "application/json" },
     }
-    return getModelProviderFromConfig(
-      fallbackConfig,
-      DEFAULT_MODEL,
-      providerOptions
-    );
-  }
-
-  return getModelProviderFromConfig(modelConfig, modelString, providerOptions);
-}
-
-/**
- * Helper function to create provider instance from config
- */
-function getModelProviderFromConfig(
-  modelConfig: { provider: string; displayName?: string; description?: string },
-  modelString: string,
-  providerOptions?: Record<string, Record<string, unknown>>
-) {
-  console.log(`[CHAT] Provider: ${modelConfig.provider}/${modelString}`);
-
-  // Extract provider-specific options
-  const providerSpecificOptions = providerOptions?.[modelConfig.provider] || {};
-
-  console.log(
-    `[CHAT] Provider-specific options for ${modelConfig.provider}:`,
-    providerSpecificOptions
   );
-
-  switch (modelConfig.provider) {
-    case "openai":
-      return openai(modelString, providerSpecificOptions);
-    case "google":
-      return google(modelString, providerSpecificOptions);
-    default:
-      console.warn(
-        `[CHAT] Unknown provider: ${modelConfig.provider} for model: ${modelString}. Falling back to ${DEFAULT_MODEL}`
-      );
-      // Graceful fallback to OpenAI with default model
-      return openai(DEFAULT_MODEL);
-  }
 }
 
 // Global stream context with error handling
@@ -176,6 +141,24 @@ export async function POST(req: Request) {
       );
     }
 
+    // Validate user API keys are provided (BYOK requirement)
+    if (!requestData.userApiKeys) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message:
+              "API keys are required. Please configure your API keys in Settings.",
+            type: "missing_api_keys",
+            setupUrl: "/settings/api-keys",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Generate a unique stream ID for this conversation
     const streamId = `STREAM:${requestData.responseMessageId}`;
 
@@ -239,11 +222,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get the appropriate model provider with provider options
-    const modelProvider = getModelProvider(
+    // Get the appropriate model provider using BYOK system
+    const providerResult = getBYOKProvider(
       requestData.model,
+      requestData.userApiKeys,
       requestData.providerOptions
     );
+
+    // Handle BYOK errors
+    if ("type" in providerResult) {
+      console.error(`[CHAT] BYOK Error: ${providerResult.message}`);
+      return createBYOKErrorResponse(providerResult);
+    }
+
+    const modelProvider = providerResult.provider;
+    console.log(`[CHAT] Using BYOK provider: ${providerResult.keyProvider}`);
 
     // Create data stream using AI SDK's createDataStream
     const stream = createDataStream({
