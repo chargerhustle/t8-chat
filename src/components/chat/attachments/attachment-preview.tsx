@@ -60,10 +60,6 @@ export function AttachmentPreview({
       });
   };
 
-  const handleOpenInNewTab = () => {
-    window.open(fileUrl, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -97,7 +93,6 @@ export function AttachmentPreview({
                 variant="secondary"
                 size="icon"
                 className="bg-secondary/50 text-secondary-foreground hover:bg-secondary disabled:hover:bg-secondary/50 h-8 w-8"
-                onClick={handleOpenInNewTab}
                 asChild
               >
                 <a
