@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+  useLayoutEffect,
+} from "react";
 import { cn } from "@/lib/utils";
 import { ArrowUpIcon, Paperclip, Globe, ChevronDown } from "lucide-react";
 import { ModelDropdown } from "./model-dropdown";
 import { ReasoningEffortDropdown } from "./reasoning-effort-dropdown";
 import { MODEL_CONFIGS, ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
 import { EffortLevel } from "@/types";
+import { AttachmentsList } from "@/components/chat/attachments";
+import { useAttachments } from "@/hooks/use-attachments";
+import { useAttachmentsHeight } from "@/hooks/use-chat-input-height";
 
 interface UseAutoResizeTextareaProps {
   minHeight: number;
@@ -17,8 +26,9 @@ interface ChatInputProps {
   onSubmit: (
     message: string,
     model: ModelConfig,
-    reasoningEffort?: EffortLevel,
-    includeSearch?: boolean
+    reasoningEffort: EffortLevel,
+    includeSearch: boolean,
+    attachments: ReturnType<typeof useAttachments>["attachments"]
   ) => Promise<void>;
   isSubmitting: boolean;
   onInputChange?: (hasText: boolean) => void;
@@ -26,6 +36,7 @@ interface ChatInputProps {
   onValueChange?: (value: string) => void;
   showScrollToBottom?: boolean;
   onScrollToBottom?: () => void;
+  onHeightChange?: (height: number) => void;
 }
 
 function useAutoResizeTextarea({
@@ -84,6 +95,7 @@ export function ChatInput({
   onValueChange,
   showScrollToBottom,
   onScrollToBottom,
+  onHeightChange,
 }: ChatInputProps) {
   const [internalValue, setInternalValue] = useState("");
   const [selectedModel, setSelectedModel] = useState<ModelConfig>(
@@ -94,10 +106,41 @@ export function ChatInput({
   const isControlled = value !== undefined;
   const currentValue = isControlled ? value : internalValue;
 
+  // Attachment hook (no threadId needed - files uploaded to R2 directly)
+  const {
+    attachments,
+    addFiles,
+    removeAttachment: handleRemoveAttachment,
+    clear: clearAttachments,
+    allFilesUploaded,
+  } = useAttachments();
+
+  // accept string for file input (comma-separated)
+  const acceptMimes = selectedModel.allowedMIMETypes.join(",");
+
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 48,
     maxHeight: 200,
   });
+
+  // Get ref for measuring attachments height
+  const { attachmentsRef } = useAttachmentsHeight();
+
+  // Simple ref for the container
+  const chatInputContainerRef = useRef<HTMLDivElement>(null);
+
+  // Calculate and report total height when content changes
+  const calculateAndReportHeight = useCallback(() => {
+    if (chatInputContainerRef.current && onHeightChange) {
+      const totalHeight = chatInputContainerRef.current.offsetHeight;
+      onHeightChange(totalHeight);
+    }
+  }, [onHeightChange]);
+
+  // Measure height after DOM updates
+  useLayoutEffect(() => {
+    calculateAndReportHeight();
+  }, [calculateAndReportHeight, attachments.length, currentValue]);
 
   // Check if current model supports search
   const modelSupportsSearch = selectedModel.features.includes("search");
@@ -121,6 +164,9 @@ export function ChatInput({
 
     adjustHeight(true);
 
+    // Clear attachments once message sent
+    clearAttachments();
+
     // Notify parent that input is now empty
     onInputChange?.(false);
 
@@ -128,8 +174,9 @@ export function ChatInput({
       await onSubmit(
         messageToSend,
         selectedModel,
-        modelSupportsReasoning ? reasoningEffort : undefined,
-        includeSearch
+        reasoningEffort,
+        includeSearch,
+        attachments
       );
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -160,8 +207,14 @@ export function ChatInput({
     setIncludeSearch(!includeSearch);
   };
 
+  const canSend =
+    currentValue.trim().length > 0 && allFilesUploaded && !isSubmitting;
+
   return (
-    <div className="pointer-events-none absolute bottom-0 z-10 w-full px-2">
+    <div
+      ref={chatInputContainerRef}
+      className="pointer-events-none absolute bottom-0 z-10 w-full px-2"
+    >
       <div className="relative mx-auto flex w-full max-w-3xl flex-col text-center">
         {showScrollToBottom && (
           <div className="flex justify-center pb-4">
@@ -212,7 +265,11 @@ export function ChatInput({
                 }}
               >
                 <div className="flex flex-grow flex-col">
-                  <div></div>
+                  <AttachmentsList
+                    ref={attachmentsRef}
+                    attachments={attachments}
+                    onRemoveAttachment={handleRemoveAttachment}
+                  />
                   <div className="flex flex-grow flex-row items-start">
                     <textarea
                       ref={textareaRef}
@@ -239,7 +296,7 @@ export function ChatInput({
                     >
                       <button
                         type="submit"
-                        disabled={!currentValue.trim() || isSubmitting}
+                        disabled={!canSend}
                         className={cn(
                           "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm transition-colors",
                           "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
@@ -316,7 +373,18 @@ export function ChatInput({
                           aria-label="Attach a file"
                           data-state="closed"
                         >
-                          <input multiple className="sr-only" type="file" />
+                          <input
+                            multiple
+                            className="sr-only"
+                            type="file"
+                            accept={acceptMimes}
+                            onChange={(e) => {
+                              const files = e.target.files;
+                              if (files) addFiles(files);
+                              // reset value so same file can be selected again
+                              e.currentTarget.value = "";
+                            }}
+                          />
                           <div className="flex gap-1">
                             <Paperclip className="lucide lucide-paperclip size-4" />
                             <span className="max-sm:hidden sm:ml-0.5">

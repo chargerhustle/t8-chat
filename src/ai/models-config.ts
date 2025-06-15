@@ -149,7 +149,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "google",
     model: "gemini-2.5-flash-preview-04-17",
     displayName: "Gemini 2.5 Flash",
-    features: ["vision", "documents", "reasoning", "search"],
+    features: ["vision", "documents", "search"],
     allowedAttachmentTypes: ["image", "pdf"],
     allowedMIMETypes: [
       "image/png",
