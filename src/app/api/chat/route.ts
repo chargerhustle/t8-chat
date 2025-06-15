@@ -1,4 +1,4 @@
-import { streamText, createDataStream } from "ai";
+import { streamText, createDataStream, smoothStream } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { waitUntil } from "@vercel/functions";
@@ -257,6 +257,10 @@ export async function POST(req: Request) {
           model: modelProvider,
           messages: requestData.messages,
           system: systemPrompt,
+          experimental_transform: smoothStream({
+            delayInMs: 20,
+            chunking: "word",
+          }),
           onFinish: async () => {
             // All Convex updates moved to client-side onFinishMessagePart for proper timing
             console.log("[CHAT] Generation on route complete");

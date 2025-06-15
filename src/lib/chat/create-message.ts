@@ -6,15 +6,31 @@ import { APIErrorResponse } from "@/types/api";
 import { processDataStream } from "ai";
 import { useTempMessageStore } from "@/lib/chat/temp-message-store";
 import { buildProviderOptions } from "@/lib/chat/provider-options";
+import {
+  convertConvexMessagesToCoreMessages,
+  validateCoreMessage,
+  type APIAttachment,
+} from "@/lib/chat/message-converter";
 
 /**
- * Transform attachments for API submission
+ * Minimal attachment data returned from Convex (shared type)
  */
-const transformAttachments = (attachments: Doc<"attachments">[]) => {
+type MinimalAttachment = {
+  _id: string;
+  attachmentType: string;
+  attachmentUrl: string;
+  mimeType: string;
+};
+
+/**
+ * Transform attachments for API submission - only send minimal required data
+ */
+const transformAttachments = (
+  attachments: (Doc<"attachments"> | MinimalAttachment)[]
+): APIAttachment[] => {
   return attachments
-    .filter((a) => a.status !== "deleted")
+    .filter((a) => !("status" in a) || a.status !== "deleted")
     .map((a) => ({
-      id: a._id,
       type: a.attachmentType as "image" | "pdf" | "text" | "file",
       url: a.attachmentUrl,
       mimeType: a.mimeType,
@@ -30,11 +46,19 @@ export async function createMessage(input: {
   userContent: string;
   model: AllowedModels;
   modelParams?: ModelParams & {
-    reasoningEffort?: EffortLevel;
-    includeSearch?: boolean;
+    reasoningEffort: EffortLevel;
+    includeSearch: boolean;
   };
   abortController?: AbortController;
-  attachments: Doc<"attachments">[];
+  attachments: Array<{
+    id: string;
+    fileName: string;
+    fileUrl?: string;
+    fileKey?: string;
+    mimeType?: string;
+    fileSize?: number;
+    status: "uploading" | "uploaded";
+  }>;
 }) {
   // Get current user from Convex Auth
   const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser);
@@ -53,6 +77,42 @@ export async function createMessage(input: {
     } catch (error) {
       console.error("Failed to create thread:", error);
       throw new Error("Failed to create thread");
+    }
+  }
+
+  // Persist uploaded attachments to DB now that we have a threadId
+  const persistedAttachments: MinimalAttachment[] = [];
+
+  // Prepare attachments for batch creation - pass the already-built URL
+  const attachmentsToCreate = input.attachments
+    .filter(
+      (attachment) =>
+        attachment.status === "uploaded" &&
+        attachment.fileKey &&
+        attachment.fileUrl
+    )
+    .map((attachment) => ({
+      fileKey: attachment.fileKey!,
+      attachmentUrl: attachment.fileUrl!,
+      threadId: input.threadId,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType || "application/octet-stream",
+      fileSize: attachment.fileSize || 0,
+      attachmentType: attachment.mimeType?.startsWith("image/")
+        ? "image"
+        : "file",
+    }));
+
+  // Create all attachments in a single batch operation
+  if (attachmentsToCreate.length > 0) {
+    try {
+      const createdAttachments = await CONVEX_CLIENT.mutation(
+        api.attachments.createAttachments,
+        { attachments: attachmentsToCreate }
+      );
+      persistedAttachments.push(...createdAttachments);
+    } catch (error) {
+      console.error("Failed to persist attachments:", error);
     }
   }
 
@@ -76,7 +136,7 @@ export async function createMessage(input: {
     model: input.model,
     created_at: now,
     updated_at: now,
-    attachmentIds: input.attachments.map((a) => a._id),
+    attachmentIds: persistedAttachments.map((a) => a._id as Id<"attachments">),
   };
 
   const assistantMessage = {
@@ -109,24 +169,25 @@ export async function createMessage(input: {
     messages: [userMessage, assistantMessage],
   });
 
-  // Build messages for API submission - getByThreadId already includes attachments
-  const messagesToSubmit = allMessages.map((message) => ({
-    id: message.messageId,
-    content: message.content,
-    role: message.role,
-    attachments: transformAttachments(message.attachments || []),
-  }));
+  // Convert to AI SDK's CoreMessage format using optimized single-pass conversion
+  const coreMessages = convertConvexMessagesToCoreMessages(
+    allMessages, // Convex messages with attachments
+    {
+      content: input.userContent,
+      attachments: transformAttachments(persistedAttachments),
+    }
+  );
 
-  messagesToSubmit.push({
-    id: userMessageId,
-    content: input.userContent,
-    role: "user",
-    attachments: transformAttachments(input.attachments),
-  });
+  // Validate messages before sending
+  const validMessages = coreMessages.filter(validateCoreMessage);
+
+  if (validMessages.length === 0) {
+    throw new Error("No valid messages to send to AI");
+  }
 
   // Call the API with proper authentication data
   await doChatFetchRequest({
-    messagesToSubmit,
+    coreMessages: validMessages,
     threadId: input.threadId,
     assistantMessageId,
     model: input.model,
@@ -145,13 +206,13 @@ export async function createMessage(input: {
  * Process chat request and handle streaming response
  */
 async function doChatFetchRequest(input: {
-  messagesToSubmit: ChatRequest["messages"];
+  coreMessages: ChatRequest["messages"];
   threadId: string;
   assistantMessageId: string;
   model: AllowedModels;
   modelParams?: ModelParams & {
-    reasoningEffort?: EffortLevel;
-    includeSearch?: boolean;
+    reasoningEffort: EffortLevel;
+    includeSearch: boolean;
   };
   userId: Id<"users">;
   isNewThread?: boolean;
@@ -163,7 +224,7 @@ async function doChatFetchRequest(input: {
   }
 
   const chatRequest: ChatRequest = {
-    messages: input.messagesToSubmit,
+    messages: input.coreMessages,
     threadMetadata: {
       id: input.threadId,
       // Include title information for the route to make proper decisions

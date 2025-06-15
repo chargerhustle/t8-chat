@@ -6,3 +6,6 @@ export type { AttachmentPreviewProps } from "./attachment-preview";
 
 export { AttachmentsList } from "./attachments-list";
 export type { AttachmentsListProps, Attachment } from "./attachments-list";
+
+export { MessageAttachments } from "./message-attachments";
+export type { MessageAttachmentsProps } from "./message-attachments";

@@ -51,16 +51,23 @@ export function buildProviderOptions(
   }
 
   const provider = modelConfig.provider;
+  const supportsReasoning = modelConfig.features.includes("reasoning");
+  const supportsSearch = modelConfig.features.includes("search");
   const providerOptions: ProviderOptions = {};
 
   switch (provider) {
     case "openai":
       // OpenAI format: { openai: { reasoningEffort: "low" | "medium" | "high" } }
-      if (reasoningEffort) {
+      if (reasoningEffort && supportsReasoning) {
         providerOptions.openai = {
           reasoningEffort: reasoningEffort,
         };
+      } else if (reasoningEffort && !supportsReasoning) {
+        console.log(
+          `[PROVIDER_OPTIONS] Reasoning effort requested for OpenAI model: ${model} - not supported, skipping`
+        );
       }
+
       // OpenAI doesn't support search grounding as a provider option
       if (includeSearch) {
         console.log(
@@ -73,14 +80,22 @@ export function buildProviderOptions(
       // Google format: { google: { thinkingConfig: { thinkingBudget: number }, useSearchGrounding: boolean } }
       const googleOptions: Record<string, unknown> = {};
 
-      if (reasoningEffort) {
+      if (reasoningEffort && supportsReasoning) {
         googleOptions.thinkingConfig = {
           thinkingBudget: GOOGLE_THINKING_BUDGETS[reasoningEffort],
         };
+      } else if (reasoningEffort && !supportsReasoning) {
+        console.log(
+          `[PROVIDER_OPTIONS] Reasoning effort requested for Google model: ${model} - not supported, skipping`
+        );
       }
 
-      if (includeSearch) {
+      if (includeSearch && supportsSearch) {
         googleOptions.useSearchGrounding = true;
+      } else if (includeSearch && !supportsSearch) {
+        console.log(
+          `[PROVIDER_OPTIONS] Search requested for Google model: ${model} - not supported, skipping`
+        );
       }
 
       if (Object.keys(googleOptions).length > 0) {
@@ -92,11 +107,15 @@ export function buildProviderOptions(
       // Anthropic format: { anthropic: { thinking: { type: 'enabled', budgetTokens: number } } }
       const anthropicOptions: Record<string, unknown> = {};
 
-      if (reasoningEffort) {
+      if (reasoningEffort && supportsReasoning) {
         anthropicOptions.thinking = {
           type: "enabled",
           budgetTokens: ANTHROPIC_THINKING_BUDGETS[reasoningEffort],
         };
+      } else if (reasoningEffort && !supportsReasoning) {
+        console.log(
+          `[PROVIDER_OPTIONS] Reasoning effort requested for Anthropic model: ${model} - not supported, skipping`
+        );
       }
 
       if (includeSearch) {

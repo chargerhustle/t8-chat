@@ -6,9 +6,12 @@ import { cn } from "@/lib/utils";
 import { Markdown } from "@/components/ui/markdown";
 import { MessageToolbar } from "./message-toolbar";
 import { MessageLoading } from "./message-loading";
+import { MessageAttachments } from "../attachments";
 
 interface MessageProps {
-  message: Doc<"messages">;
+  message: Doc<"messages"> & {
+    attachments: Doc<"attachments">[];
+  };
 }
 
 // Use memo to prevent re-renders when other messages are added
@@ -42,6 +45,7 @@ const MessageComponent = memo(({ message }: MessageProps) => {
                 <Markdown id={`${message.messageId}-content`}>
                   {message.content}
                 </Markdown>
+                <MessageAttachments attachments={message.attachments} />
               </div>
             </div>
             {/* User message toolbar - right side */}

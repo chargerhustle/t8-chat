@@ -51,8 +51,11 @@ export default function Chat() {
   const handleSubmit = async (
     message: string,
     model: ModelConfig,
-    reasoningEffort?: EffortLevel,
-    includeSearch?: boolean
+    reasoningEffort: EffortLevel,
+    includeSearch: boolean,
+    attachments: ReturnType<
+      typeof import("@/hooks/use-attachments").useAttachments
+    >["attachments"]
   ) => {
     if (!threadId || isSubmitting || !message.trim()) return;
 
@@ -72,7 +75,7 @@ export default function Chat() {
           reasoningEffort,
           includeSearch,
         },
-        attachments: [],
+        attachments: attachments as any,
       });
     } catch (error) {
       console.error("[CHAT] Failed to send message:", error);

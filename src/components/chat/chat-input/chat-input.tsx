@@ -13,10 +13,8 @@ import { ModelDropdown } from "./model-dropdown";
 import { ReasoningEffortDropdown } from "./reasoning-effort-dropdown";
 import { MODEL_CONFIGS, ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
 import { EffortLevel } from "@/types";
-import {
-  AttachmentsList,
-  type Attachment,
-} from "@/components/chat/attachments";
+import { AttachmentsList } from "@/components/chat/attachments";
+import { useAttachments } from "@/hooks/use-attachments";
 import { useAttachmentsHeight } from "@/hooks/use-chat-input-height";
 
 interface UseAutoResizeTextareaProps {
@@ -28,8 +26,9 @@ interface ChatInputProps {
   onSubmit: (
     message: string,
     model: ModelConfig,
-    reasoningEffort?: EffortLevel,
-    includeSearch?: boolean
+    reasoningEffort: EffortLevel,
+    includeSearch: boolean,
+    attachments: ReturnType<typeof useAttachments>["attachments"]
   ) => Promise<void>;
   isSubmitting: boolean;
   onInputChange?: (hasText: boolean) => void;
@@ -107,17 +106,17 @@ export function ChatInput({
   const isControlled = value !== undefined;
   const currentValue = isControlled ? value : internalValue;
 
-  // Mock attachments state for UI testing
-  const [attachments, setAttachments] = useState<Attachment[]>([
-    {
-      id: "1",
-      fileName: "image.webp",
-      fileUrl:
-        "https://makerworld.bblmw.com/makerworld/model/US2ab61bb7d3000c/design/2024-01-30_029b2304056c.png?x-oss-process=image/resize,w_1000/format,webp",
-      mimeType: "image/webp",
-      status: "uploaded",
-    },
-  ]);
+  // Attachment hook (no threadId needed - files uploaded to R2 directly)
+  const {
+    attachments,
+    addFiles,
+    removeAttachment: handleRemoveAttachment,
+    clear: clearAttachments,
+    allFilesUploaded,
+  } = useAttachments();
+
+  // accept string for file input (comma-separated)
+  const acceptMimes = selectedModel.allowedMIMETypes.join(",");
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 48,
@@ -165,6 +164,9 @@ export function ChatInput({
 
     adjustHeight(true);
 
+    // Clear attachments once message sent
+    clearAttachments();
+
     // Notify parent that input is now empty
     onInputChange?.(false);
 
@@ -172,8 +174,9 @@ export function ChatInput({
       await onSubmit(
         messageToSend,
         selectedModel,
-        modelSupportsReasoning ? reasoningEffort : undefined,
-        includeSearch
+        reasoningEffort,
+        includeSearch,
+        attachments
       );
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -204,9 +207,8 @@ export function ChatInput({
     setIncludeSearch(!includeSearch);
   };
 
-  const handleRemoveAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((attachment) => attachment.id !== id));
-  };
+  const canSend =
+    currentValue.trim().length > 0 && allFilesUploaded && !isSubmitting;
 
   return (
     <div
@@ -294,7 +296,7 @@ export function ChatInput({
                     >
                       <button
                         type="submit"
-                        disabled={!currentValue.trim() || isSubmitting}
+                        disabled={!canSend}
                         className={cn(
                           "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm transition-colors",
                           "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
@@ -371,7 +373,18 @@ export function ChatInput({
                           aria-label="Attach a file"
                           data-state="closed"
                         >
-                          <input multiple className="sr-only" type="file" />
+                          <input
+                            multiple
+                            className="sr-only"
+                            type="file"
+                            accept={acceptMimes}
+                            onChange={(e) => {
+                              const files = e.target.files;
+                              if (files) addFiles(files);
+                              // reset value so same file can be selected again
+                              e.currentTarget.value = "";
+                            }}
+                          />
                           <div className="flex gap-1">
                             <Paperclip className="lucide lucide-paperclip size-4" />
                             <span className="max-sm:hidden sm:ml-0.5">

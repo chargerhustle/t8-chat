@@ -1,7 +1,7 @@
 "use client";
 
 import { LoaderCircle, Paperclip, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, truncateFilename } from "@/lib/utils";
 
 export interface AttachmentItemProps {
   id: string;
@@ -82,7 +82,9 @@ export function AttachmentItem({
       ) : (
         <Paperclip className="size-4" />
       )}
-      <span className="flex-1 truncate pr-1 text-sm">{fileName}</span>
+      <span className="flex-1 truncate pr-1 text-sm" title={fileName}>
+        {truncateFilename(fileName, 25)}
+      </span>
       <div
         className="absolute -right-1 -top-1 cursor-pointer rounded-full bg-secondary p-1 opacity-0 transition hover:bg-muted group-hover:opacity-100"
         aria-label="Remove upload"

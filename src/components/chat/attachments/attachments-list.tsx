@@ -8,7 +8,9 @@ export interface Attachment {
   id: string;
   fileName: string;
   fileUrl?: string;
+  fileKey?: string;
   mimeType?: string;
+  fileSize?: number;
   status: "uploading" | "uploaded";
 }
 

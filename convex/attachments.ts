@@ -7,6 +7,25 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 
 const r2 = new R2(components.r2);
 
+// Public endpoint for serving R2 files directly (no signed URLs)
+const R2_PUBLIC_ENDPOINT = process.env.R2_PUBLIC_ENDPOINT ?? "";
+
+/**
+ * Build a permanent, publicly accessible URL for an object in the R2 bucket.
+ * Requires the bucket to have public access enabled and the `R2_PUBLIC_ENDPOINT`
+ * environment variable set (e.g. "https://my-bucket.r2.dev").
+ */
+function buildPublicUrl(key: string): string {
+  if (!R2_PUBLIC_ENDPOINT) {
+    throw new Error(
+      "R2_PUBLIC_ENDPOINT env variable must be set to serve public R2 objects"
+    );
+  }
+  // Ensure we don\'t end up with a double slash when concatenating.
+  const base = R2_PUBLIC_ENDPOINT.replace(/\/$/, "");
+  return `${base}/${key}`;
+}
+
 export const {
   generateUploadUrl,
   syncMetadata,
@@ -95,6 +114,67 @@ export const {
 });
 
 /**
+ * Create multiple attachment records in the database after successful upload
+ * Optimized batch version of createAttachment
+ */
+export const createAttachments = mutation({
+  args: {
+    attachments: v.array(
+      v.object({
+        fileKey: v.string(),
+        attachmentUrl: v.string(), // Accept pre-built URL
+        threadId: v.string(),
+        fileName: v.string(),
+        mimeType: v.string(),
+        fileSize: v.number(),
+        attachmentType: v.string(),
+      })
+    ),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("attachments"),
+      attachmentType: v.string(),
+      attachmentUrl: v.string(),
+      mimeType: v.string(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // Prepare all documents for insertion
+    const docs = args.attachments.map((attachmentData) => ({
+      publicMessageIds: [],
+      userId: userId,
+      threadId: attachmentData.threadId,
+      attachmentType: attachmentData.attachmentType,
+      attachmentUrl: attachmentData.attachmentUrl, // Use pre-built URL
+      fileName: attachmentData.fileName,
+      mimeType: attachmentData.mimeType,
+      fileSize: attachmentData.fileSize,
+      fileKey: attachmentData.fileKey,
+      status: "uploaded" as const,
+    }));
+
+    // Parallelize all inserts
+    const ids = await Promise.all(
+      docs.map((doc) => ctx.db.insert("attachments", doc))
+    );
+
+    // Return only the minimal data needed for API calls
+    return ids.map((id, i) => ({
+      _id: id,
+      attachmentType: docs[i].attachmentType,
+      attachmentUrl: docs[i].attachmentUrl,
+      mimeType: docs[i].mimeType,
+    }));
+  },
+});
+
+/**
  * Create an attachment record in the database after successful upload
  */
 export const createAttachment = mutation({
@@ -113,8 +193,8 @@ export const createAttachment = mutation({
       throw new Error("Not authenticated");
     }
 
-    // Get the file URL from R2
-    const attachmentUrl = await r2.getUrl(args.fileKey);
+    // Build a permanent public URL (no TTL)
+    const attachmentUrl = buildPublicUrl(args.fileKey);
 
     const attachmentId = await ctx.db.insert("attachments", {
       publicMessageIds: [],
@@ -177,7 +257,7 @@ export const getAttachmentsByUser = query({
         mimeType: attachment.mimeType,
         fileSize: attachment.fileSize,
         attachmentType: attachment.attachmentType,
-        attachmentUrl: await r2.getUrl(attachment.fileKey),
+        attachmentUrl: buildPublicUrl(attachment.fileKey),
         status: attachment.status,
       }))
     );
@@ -231,7 +311,7 @@ export const getAttachment = query({
       mimeType: attachment.mimeType,
       fileSize: attachment.fileSize,
       attachmentType: attachment.attachmentType,
-      attachmentUrl: await r2.getUrl(attachment.fileKey),
+      attachmentUrl: buildPublicUrl(attachment.fileKey),
       status: attachment.status,
     };
   },

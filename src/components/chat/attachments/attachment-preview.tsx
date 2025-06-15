@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { truncateFilename } from "@/lib/utils";
 
 export interface AttachmentPreviewProps {
   isOpen: boolean;
@@ -27,12 +28,36 @@ export function AttachmentPreview({
   const isImage = mimeType.startsWith("image/");
 
   const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Fetch the file and create a blob URL for proper download
+    fetch(fileUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        // Create blob URL
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        // Create download link
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+
+        // Add to DOM temporarily for click
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up blob URL
+        window.URL.revokeObjectURL(blobUrl);
+      })
+      .catch((error) => {
+        console.error("Download failed:", error);
+        // Fallback: open in new tab if fetch fails
+        window.open(fileUrl, "_blank", "noopener,noreferrer");
+      });
   };
 
   const handleOpenInNewTab = () => {
@@ -47,9 +72,12 @@ export function AttachmentPreview({
       >
         <DialogHeader className="space-y-1.5 text-center sm:text-left !mt-0 flex flex-col items-center justify-between">
           <div className="flex w-full flex-row items-center justify-between">
-            <div className="flex flex-col">
-              <DialogTitle className="tracking-tight text-xl font-medium">
-                {fileName}
+            <div className="flex flex-col flex-1 min-w-0 mr-4">
+              <DialogTitle
+                className="tracking-tight text-xl font-medium truncate"
+                title={fileName}
+              >
+                {truncateFilename(fileName, 50)}
               </DialogTitle>
               <div className="text-sm text-muted-foreground">
                 {/* You can add file size and other metadata here when available */}
