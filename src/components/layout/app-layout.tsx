@@ -2,7 +2,7 @@
 
 import { Outlet } from "react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/chat/app-sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 export function AppLayout() {
   return (
