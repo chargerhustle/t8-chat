@@ -27,7 +27,7 @@ export function PinnedThreadsSection({
   return (
     <div
       data-sidebar="group"
-      className="relative flex w-full min-w-0 flex-col p-2"
+      className="relative flex w-full min-w-0 flex-col py-2"
     >
       <div
         data-sidebar="group-label"

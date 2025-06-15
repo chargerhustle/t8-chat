@@ -57,7 +57,9 @@ export function ChatWelcome({ onSuggestionClick }: ChatWelcomeProps) {
   const suggestions = getSuggestions(selectedCategory);
 
   const handleCategoryClick = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+    setSelectedCategory((prevSelectedCategory) =>
+      prevSelectedCategory === categoryId ? "default" : categoryId
+    );
   };
 
   return (
@@ -77,7 +79,7 @@ export function ChatWelcome({ onSuggestionClick }: ChatWelcomeProps) {
                 onClick={() => handleCategoryClick(category.id)}
                 className={`justify-center whitespace-nowrap text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 flex items-center gap-1 rounded-xl px-5 py-2 font-semibold outline-1 outline-secondary/70 backdrop-blur-xl max-sm:size-16 max-sm:flex-col sm:gap-2 sm:rounded-full ${
                   isSelected
-                    ? "border-reflect button-reflect bg-[rgb(162,59,103)] p-2 text-primary-foreground shadow hover:bg-[#d56698] active:bg-[rgb(162,59,103)] disabled:hover:bg-[rgb(162,59,103)] disabled:active:bg-[rgb(162,59,103)] dark:bg-primary/20 dark:hover:bg-pink-800/70 dark:active:bg-pink-800/40 disabled:dark:hover:bg-primary/20 disabled:dark:active:bg-primary/20"
+                    ? "border-reflect bg-[rgb(162,59,103)] p-2 text-primary-foreground shadow hover:bg-[#d56698] active:bg-[rgb(162,59,103)] disabled:hover:bg-[rgb(162,59,103)] disabled:active:bg-[rgb(162,59,103)] dark:bg-primary/20 dark:hover:bg-pink-800/70 dark:active:bg-pink-800/40 disabled:dark:hover:bg-primary/20 disabled:dark:active:bg-primary/20"
                     : "bg-primary text-primary-foreground shadow hover:bg-pink-600/90 disabled:hover:bg-primary data-[selected=false]:bg-secondary/30 data-[selected=false]:text-secondary-foreground/90 data-[selected=false]:outline data-[selected=false]:hover:bg-secondary"
                 }`}
                 data-selected={isSelected}

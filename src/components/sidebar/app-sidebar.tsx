@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { SidebarHeader as CustomSidebarHeader } from "@/components/sidebar/sidebar-header";
 import { ThreadGroup } from "@/components/sidebar/thread-group";
 import { PinnedThreadsSection } from "@/components/sidebar/pinned-threads-section";
 import { SidebarFooter as CustomSidebarFooter } from "@/components/sidebar/sidebar-footer";
@@ -35,19 +35,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="bg-[#151515] border-r border-[#292929]">
-      <SidebarHeader>
-        <SidebarMenu className="px-3">
-          <SidebarMenuItem>
-            <Button
-              onClick={() => navigate("/")}
-              className="w-full justify-center py-5"
-              variant="default"
-            >
-              New Chat
-            </Button>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <div className="border-b border-chat-border mx-2 pb-3"></div>
+      <SidebarHeader className="flex flex-col gap-2 relative m-1 mb-0 p-0 !pt-safe">
+        <CustomSidebarHeader onNewChat={() => navigate("/")} />
       </SidebarHeader>
 
       <SidebarContent className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden scrollbar-hide scroll-shadow relative pb-2">
@@ -62,7 +51,7 @@ export function AppSidebar() {
 
           {/* Empty state message */}
           {!threads?.length && (
-            <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+            <div className="py-4 text-center text-sm text-muted-foreground">
               No threads yet. Create a new chat to get started.
             </div>
           )}

@@ -904,12 +904,11 @@
 
   /* Dark theme gradient border - properly scoped */
   .border-reflect:is(.dark *),
-  .border-reflect {
+  .dark .border-reflect {
     --gradientBorder-gradient:
       linear-gradient(180deg, #93335b00, #93335bbd, #93335b17),
       linear-gradient(15deg, #93335b1f 50%, #93335bbd);
     --start: rgba(0, 0, 0, 0.92);
-    border: 0.5px solid rgba(255, 255, 255, 0.05);
   }
 
   /* Chat input gradient override */
@@ -918,28 +917,44 @@
   }
 
   .button-reflect {
-    position: relative;
-    overflow: hidden;
+    --min: #2e001f40 !important;
+    --max: #ffa6e2b0 !important;
+    --start: #000000d9 !important;
   }
 
-  .button-reflect::before {
+  /* Ensure the dark overlay is more subtle for enabled buttons */
+  .button-reflect:not(:disabled)::after {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .button-reflect::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    transition: left 0.5s;
+    inset: 1px;
+    background: var(--start);
+    border-radius: calc(var(--radius) - 1px);
+    pointer-events: none;
+    z-index: -1;
   }
 
-  .button-reflect:hover::before {
-    left: 100%;
+  .border-reflect::before {
+    content: "";
+    pointer-events: none;
+    user-select: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--gradientBorder-size, 1px);
+    background: var(--gradientBorder-gradient);
+    mask:
+      linear-gradient(var(--start), #000) content-box,
+      linear-gradient(var(--start), #000);
+    -webkit-mask:
+      linear-gradient(var(--start), #000) content-box,
+      linear-gradient(var(--start), #000);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    opacity: var(--opacity, 1);
   }
 
   /* Chat background outline utility */
@@ -971,4 +986,27 @@
   .bg-chat-overlay {
     background-color: var(--chat-overlay);
   }
+}
+
+/* Small scrollbar for sidebar */
+.small-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.small-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.small-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+.small-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Text color heading utility */
+.text-color-heading {
+  color: hsl(var(--color-heading));
 }
