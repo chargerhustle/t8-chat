@@ -215,6 +215,49 @@ export const togglePin = mutation({
 });
 
 /**
+ * Update thread title specifically
+ */
+export const updateThreadTitle = mutation({
+  args: {
+    threadId: v.string(),
+    title: v.string(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const thread = await ctx.db
+      .query("threads")
+      .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+      .first();
+
+    if (!thread) {
+      throw new Error("Thread not found");
+    }
+
+    if (thread.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    await ctx.db.patch(thread._id, {
+      title: args.title,
+      userSetTitle: true,
+      updatedAt: Date.now(),
+    });
+
+    console.log("[THREADS] Updated thread title", {
+      threadId: args.threadId,
+      title: args.title,
+      userId,
+    });
+
+    return { success: true };
+  },
+});
+
+/**
  * Update thread metadata
  */
 export const updateThread = mutation({
