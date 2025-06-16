@@ -259,7 +259,6 @@ async function doChatFetchRequest(input: {
     // preferences: input.preferences ?? {},
   };
 
-  // OPTIMAL: Extract updateMessage once for the entire streaming session
   const { updateMessage, removeMessage } = useTempMessageStore.getState();
 
   const response = await fetch("/api/chat", {
