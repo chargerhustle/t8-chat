@@ -19,27 +19,6 @@ export default function LaunchChat() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
-  const createNewThread = async () => {
-    const threadId = crypto.randomUUID();
-
-    // Set navigating state to prevent welcome message from showing
-    setIsNavigating(true);
-
-    // 1. Navigate FIRST (instant feedback)
-    navigate(`/chat/${threadId}`);
-
-    // 2. Create the thread in the database
-    try {
-      await createThreadMutation({
-        threadId,
-        title: "New Thread",
-        model: DEFAULT_MODEL,
-      });
-    } catch (error) {
-      console.error("Failed to create thread:", error);
-    }
-  };
-
   const handleSubmit = async (
     message: string,
     model: ModelConfig,

@@ -25,6 +25,9 @@ export default function Chat() {
     threadId ? { threadId } : "skip"
   );
 
+  // Track loading state: undefined = loading, null = not found, object = found
+  const isLoading = thread === undefined;
+
   // Use hybrid messages hook for real-time streaming + Convex data
   const messages = useHybridMessages(threadId || "");
 
@@ -88,8 +91,8 @@ export default function Chat() {
     setChatInputHeight(height);
   }, []);
 
-  // Only show error when we're certain thread doesn't exist
-  if (threadId && thread === null) {
+  // Only show error when we're certain thread doesn't exist (not while loading)
+  if (threadId && thread === null && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-4">
         <div className="text-center">
