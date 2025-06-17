@@ -189,3 +189,13 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     description: 'Gemini 2.5 Flash with "thinking" enabled.',
   },
 ];
+
+/**
+ * Get the display name for a model by its ID
+ * @param modelId - The model ID to look up
+ * @returns The display name if found, otherwise the modelId as fallback
+ */
+export function getModelDisplayName(modelId: string): string {
+  const modelConfig = MODEL_CONFIGS.find((config) => config.id === modelId);
+  return modelConfig?.displayName || modelId;
+}

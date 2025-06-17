@@ -7,6 +7,7 @@ import { Markdown } from "@/components/ui/markdown";
 import { MessageToolbar } from "./message-toolbar";
 import { MessageLoading } from "./message-loading";
 import { MessageAttachments } from "../attachments";
+import { getModelDisplayName } from "@/ai/models-config";
 
 interface MessageProps {
   message: Doc<"messages"> & {
@@ -25,6 +26,11 @@ const MessageComponent = memo(({ message }: MessageProps) => {
     (!message.content ||
       message.content.trim().length === 0 ||
       message.content === "...");
+
+  // Get model display name for assistant messages
+  const modelDisplayName = !isUser
+    ? getModelDisplayName(message.model)
+    : undefined;
 
   return (
     <div
@@ -83,6 +89,7 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               messageContent={message.content}
               align="left"
               isUser={false}
+              model={modelDisplayName}
             />
           </div>
         </div>
