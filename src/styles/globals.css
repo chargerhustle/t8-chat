@@ -872,7 +872,7 @@
 
   /* Add transition for copy button */
   .ease-snappy {
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-timing-function: cubic-bezier(0.2, 0.4, 0.1, 0.95);
   }
 
   /* Noise background */
@@ -946,6 +946,10 @@
   /* Safe area padding utilities */
   .pb-safe-offset-3 {
     padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  }
+
+  .top-safe-offset-2 {
+    top: calc(env(safe-area-inset-top) + 0.5rem);
   }
 
   /* Button reflection effects */

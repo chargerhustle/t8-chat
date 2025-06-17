@@ -1,15 +1,33 @@
+"use client";
+
 import { useNavigate } from "react-router";
 
 interface SidebarHeaderProps {
   onNewChat: () => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
+  isSearching: boolean;
 }
 
-export function SidebarHeader({ onNewChat }: SidebarHeaderProps) {
+export function SidebarHeader({
+  onNewChat,
+  searchQuery,
+  onSearchQueryChange,
+  isSearching,
+}: SidebarHeaderProps) {
   const navigate = useNavigate();
 
   const handleNewChat = () => {
     navigate("/");
     onNewChat();
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchQueryChange(e.target.value);
+  };
+
+  const handleSearchClear = () => {
+    onSearchQueryChange("");
   };
 
   return (
@@ -58,13 +76,39 @@ export function SidebarHeader({ onNewChat }: SidebarHeaderProps) {
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.3-4.3"></path>
           </svg>
-          <input
-            role="searchbox"
-            aria-label="Search threads"
-            placeholder="Search your threads..."
-            className="w-full bg-transparent py-2 text-sm text-foreground placeholder-muted-foreground/50 placeholder:select-none focus:outline-none"
-            defaultValue=""
-          />
+          <div className="relative flex-1">
+            <input
+              role="searchbox"
+              aria-label="Search threads"
+              placeholder="Search your threads..."
+              className="w-full bg-transparent py-2 text-sm text-foreground placeholder-muted-foreground/50 placeholder:select-none focus:outline-none pr-6"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            {searchQuery && (
+              <button
+                onClick={handleSearchClear}
+                className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Clear search"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-x"
+                >
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

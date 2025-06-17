@@ -8,7 +8,6 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import { SidebarHeader as CustomSidebarHeader } from "@/components/sidebar/sidebar-header";
 import { ThreadGroup } from "@/components/sidebar/thread-group";
@@ -26,6 +25,9 @@ export function AppSidebar() {
     currentThreadId,
     pinnedThreads,
     groupedThreads,
+    searchQuery,
+    setSearchQuery,
+    isSearching,
     threadToDelete,
     handleTogglePin,
     handleSetThreadToDelete,
@@ -36,7 +38,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="bg-[#151515] border-r border-[#292929]">
       <SidebarHeader className="flex flex-col gap-2 relative m-1 mb-0 p-0 !pt-safe">
-        <CustomSidebarHeader onNewChat={() => navigate("/")} />
+        <CustomSidebarHeader
+          onNewChat={() => navigate("/")}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          isSearching={isSearching}
+        />
       </SidebarHeader>
 
       <SidebarContent className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden scrollbar-hide scroll-shadow relative pb-2">
@@ -49,8 +56,8 @@ export function AppSidebar() {
             onDelete={handleSetThreadToDelete}
           />
 
-          {/* Empty state message */}
-          {!threads?.length && (
+          {/* Empty state message - only show when not searching */}
+          {!threads?.length && !isSearching && (
             <div className="py-4 text-center text-sm text-muted-foreground">
               No threads yet. Create a new chat to get started.
             </div>
@@ -73,8 +80,6 @@ export function AppSidebar() {
       <SidebarFooter>
         <CustomSidebarFooter currentUser={currentUser} />
       </SidebarFooter>
-
-      <SidebarRail />
 
       {/* Delete Thread Alert Dialog */}
       <DeleteThreadDialog

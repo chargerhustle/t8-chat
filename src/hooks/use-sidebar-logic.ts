@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -24,6 +24,11 @@ interface UseSidebarLogicReturn {
   pinnedThreads: Thread[];
   groupedThreads: { group: DateGroup; threads: Thread[] }[];
 
+  // Search
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  isSearching: boolean;
+
   // Dialog state
   threadToDelete: string | null;
 
@@ -46,8 +51,33 @@ export function useSidebarLogic(): UseSidebarLogicReturn {
   // Dialog state
   const [threadToDelete, setThreadToDelete] = useState<string | null>(null);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  // Debounce search query to avoid excessive API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Use Convex hook for reactive thread data
-  const threads = useThreadData();
+  const allThreads = useThreadData();
+
+  // Search results when there's a search query
+  const searchResults = useQuery(
+    api.threads.search,
+    debouncedSearchQuery.trim()
+      ? { query: debouncedSearchQuery, limit: 50 }
+      : "skip"
+  );
+
+  // Determine which threads to use - only switch to search results when debounced query exists
+  const threads = debouncedSearchQuery.trim() ? searchResults : allThreads;
+  const isSearching = searchQuery.trim().length > 0; // Based on immediate search query, not debounced
 
   // Get current user data
   const currentUser = useQuery(api.auth.getCurrentUser);
@@ -76,7 +106,7 @@ export function useSidebarLogic(): UseSidebarLogicReturn {
     return threads.filter((thread) => thread.pinned);
   }, [threads]);
 
-  // Group non-pinned threads by date
+  // Group non-pinned threads by date (same logic for both regular and search results)
   const groupedThreads = useMemo(() => {
     if (!threads) return [];
 
@@ -158,6 +188,11 @@ export function useSidebarLogic(): UseSidebarLogicReturn {
     currentThreadId,
     pinnedThreads,
     groupedThreads,
+
+    // Search
+    searchQuery,
+    setSearchQuery,
+    isSearching,
 
     // Dialog state
     threadToDelete,

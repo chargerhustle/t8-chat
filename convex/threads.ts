@@ -315,3 +315,35 @@ export const updateThread = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Search threads by title
+ */
+export const search = query({
+  args: {
+    query: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return [];
+    }
+
+    // If query is empty, return empty results
+    if (!args.query.trim()) {
+      return [];
+    }
+
+    // Search threads by title for the current user
+    const results = await ctx.db
+      .query("threads")
+      .withSearchIndex("search_title", (q) =>
+        q.search("title", args.query).eq("userId", userId)
+      )
+      .filter((q) => q.eq(q.field("visibility"), "visible"))
+      .take(args.limit || 10);
+
+    return results;
+  },
+});
