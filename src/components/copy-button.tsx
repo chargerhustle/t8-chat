@@ -11,6 +11,8 @@ interface CopyButtonProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   variant?: "ghost" | "outline" | "secondary";
+  showToast?: boolean;
+  ariaLabel?: string;
 }
 
 export function CopyButton({
@@ -18,6 +20,8 @@ export function CopyButton({
   className,
   size = "sm",
   variant = "ghost",
+  showToast = true,
+  ariaLabel = "Copy to clipboard",
 }: CopyButtonProps) {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -25,12 +29,16 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(text);
 
-      // Show the check icon and sonner toast
+      // Show the check icon
       setIsCopied(true);
-      toast("Copied to Clipboard!", {
-        icon: <CircleCheck className="h-4 w-4" />,
-        duration: 2000,
-      });
+
+      // Show sonner toast if enabled
+      if (showToast) {
+        toast("Copied to Clipboard!", {
+          icon: <CircleCheck className="h-4 w-4" />,
+          duration: 2000,
+        });
+      }
 
       // Reset the icon back to copy after 2 seconds
       setTimeout(() => {
@@ -38,7 +46,9 @@ export function CopyButton({
       }, 2000);
     } catch (err) {
       console.error("Failed to copy text: ", err);
-      toast.error("Failed to copy to clipboard");
+      if (showToast) {
+        toast.error("Failed to copy to clipboard");
+      }
     }
   };
 
@@ -53,6 +63,7 @@ export function CopyButton({
       variant={variant}
       size="icon"
       onClick={handleCopy}
+      aria-label={ariaLabel}
       className={cn(
         "transition-all duration-200",
         size === "sm" && "h-6 w-6",
@@ -61,11 +72,22 @@ export function CopyButton({
         className
       )}
     >
-      {isCopied ? (
-        <Check className={iconSize[size]} />
-      ) : (
-        <Copy className={iconSize[size]} />
-      )}
+      <div className={cn("relative", iconSize[size])}>
+        <Copy
+          className={cn(
+            "absolute inset-0 transition-all duration-200 ease-in-out",
+            isCopied ? "scale-0 opacity-0" : "scale-100 opacity-100"
+          )}
+          aria-hidden="true"
+        />
+        <Check
+          className={cn(
+            "absolute inset-0 transition-all duration-200 ease-in-out",
+            isCopied ? "scale-100 opacity-100" : "scale-0 opacity-0"
+          )}
+          aria-hidden="true"
+        />
+      </div>
     </Button>
   );
 }

@@ -125,7 +125,8 @@ export default function Chat() {
           ref={messagesContainerRef}
           role="log"
           aria-label="Chat messages"
-          className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-6 pt-2"
+          aria-live="polite"
+          className="mx-auto flex w-full max-w-3xl flex-col space-y-12 px-4 pt-safe-offset-10 pb-16"
         >
           {messages.length > 0 ? (
             messages.map((message) => (

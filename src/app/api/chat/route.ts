@@ -18,6 +18,7 @@ import {
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
+export const maxDuration = 799;
 
 // Environment variables
 const env = {

@@ -42,7 +42,12 @@ const INITIAL_COMPONENTS: Partial<Components> = {
 
     return (
       <CodeBlock className={className}>
-        <CodeBlockCode code={children as string} language={language} />
+        <CodeBlockCode
+          code={children as string}
+          language={language}
+          theme="github-dark"
+          showHeader={true}
+        />
       </CodeBlock>
     );
   },
