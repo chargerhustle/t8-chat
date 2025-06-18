@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router";
-import { useQuery } from "convex-helpers/react/cache";
-import { api } from "@/convex/_generated/api";
-import { Button } from "@/components/ui/button";
+import { useParams } from "react-router";
 import MessageComponent from "@/components/chat/messages/message";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
@@ -21,12 +18,6 @@ export default function Chat() {
 
   // Hook for creating messages with proper React integration
   const createMessageHooks = useCreateMessage();
-
-  // Fetch thread using Convex reactive query
-  const thread = useQuery(
-    api.threads.getByThreadId,
-    threadId ? { threadId } : "skip"
-  );
 
   // Use hybrid messages hook for real-time streaming + Convex data
   const messages = useHybridMessages(threadId || "");
