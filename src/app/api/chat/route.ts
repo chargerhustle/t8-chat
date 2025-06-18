@@ -13,7 +13,7 @@ import { getBYOKProvider, type BYOKError } from "@/lib/ai/byok-providers";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 59;
 
 // Environment variables
 const env = {
