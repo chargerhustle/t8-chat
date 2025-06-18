@@ -167,7 +167,7 @@ export default function ModelsPage() {
 
   return (
     <SettingsLayout defaultTab="models">
-      <TabsContent value="models" className="mt-2 space-y-8">
+      <TabsContent value="models" className="space-y-8">
         <div className="flex h-full flex-col space-y-6">
           <div>
             <h2 className="text-xl font-bold sm:text-2xl">Available Models</h2>

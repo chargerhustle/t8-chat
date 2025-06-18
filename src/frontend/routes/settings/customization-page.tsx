@@ -10,7 +10,7 @@ import {
 export default function CustomizationPage() {
   return (
     <SettingsLayout defaultTab="customization">
-      <TabsContent value="customization" className="space-y-12">
+      <TabsContent value="customization" className="space-y-8">
         <PromptCustomization />
         <VisualCustomization />
       </TabsContent>

@@ -94,7 +94,8 @@ const applicationTables = {
     .index("by_userId_and_streamId", ["userId", "resumableStreamId"]),
 
   attachments: defineTable({
-    publicMessageIds: v.array(v.id("messages")),
+    messageId: v.optional(v.string()), // Store the messageId string UUID
+    publicMessageIds: v.optional(v.array(v.id("messages"))), // Keep for backward compatibility during migration
     userId: v.id("users"), // Now references the auth users table
     threadId: v.string(), // Add threadId for efficient querying
     attachmentType: v.string(),
@@ -109,7 +110,8 @@ const applicationTables = {
     .index("by_fileKey", ["fileKey"])
     .index("by_userId", ["userId"])
     .index("by_userId_and_fileKey", ["userId", "fileKey"])
-    .index("by_threadId", ["threadId"]),
+    .index("by_threadId", ["threadId"])
+    .index("by_messageId", ["messageId"]), // New index for efficient message-based queries (string UUID)
 
   userConfiguration: defineTable({
     userId: v.id("users"), // Now references the auth users table

@@ -130,6 +130,7 @@ export const createAttachments = mutation({
         attachmentType: v.string(),
       })
     ),
+    messageId: v.optional(v.string()), // Add messageId parameter (string UUID)
   },
   returns: v.array(
     v.object({
@@ -147,7 +148,7 @@ export const createAttachments = mutation({
 
     // Prepare all documents for insertion
     const docs = args.attachments.map((attachmentData) => ({
-      publicMessageIds: [],
+      messageId: args.messageId, // Set the messageId if provided
       userId: userId,
       threadId: attachmentData.threadId,
       attachmentType: attachmentData.attachmentType,
@@ -197,7 +198,7 @@ export const createAttachment = mutation({
     const attachmentUrl = buildPublicUrl(args.fileKey);
 
     const attachmentId = await ctx.db.insert("attachments", {
-      publicMessageIds: [],
+      messageId: undefined, // Will be set when attachment is associated with a message
       userId: userId,
       threadId: args.threadId,
       attachmentType: args.attachmentType,
@@ -248,19 +249,17 @@ export const getAttachmentsByUser = query({
       ? await query.take(args.limit)
       : await query.collect();
 
-    // Generate fresh URLs for each attachment
-    return Promise.all(
-      attachments.map(async (attachment) => ({
-        _id: attachment._id,
-        threadId: attachment.threadId,
-        fileName: attachment.fileName,
-        mimeType: attachment.mimeType,
-        fileSize: attachment.fileSize,
-        attachmentType: attachment.attachmentType,
-        attachmentUrl: buildPublicUrl(attachment.fileKey),
-        status: attachment.status,
-      }))
-    );
+    // Return attachment data directly from database fields
+    return attachments.map((attachment) => ({
+      _id: attachment._id,
+      threadId: attachment.threadId,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      fileSize: attachment.fileSize,
+      attachmentType: attachment.attachmentType,
+      attachmentUrl: attachment.attachmentUrl,
+      status: attachment.status,
+    }));
   },
 });
 
@@ -378,14 +377,9 @@ export const addAttachmentToMessage = mutation({
       throw new Error("Not authorized to modify this attachment");
     }
 
-    // Add message ID to the attachment's publicMessageIds array
-    const updatedMessageIds = [...attachment.publicMessageIds];
-    if (!updatedMessageIds.includes(args.messageId)) {
-      updatedMessageIds.push(args.messageId);
-    }
-
+    // Set the message ID for this attachment (one-to-one relationship)
     await ctx.db.patch(args.attachmentId, {
-      publicMessageIds: updatedMessageIds,
+      messageId: args.messageId,
     });
 
     return null;
@@ -417,13 +411,9 @@ export const removeAttachmentFromMessage = mutation({
       throw new Error("Not authorized to modify this attachment");
     }
 
-    // Remove message ID from the attachment's publicMessageIds array
-    const updatedMessageIds = attachment.publicMessageIds.filter(
-      (id) => id !== args.messageId
-    );
-
+    // Remove the message ID from this attachment (set to undefined)
     await ctx.db.patch(args.attachmentId, {
-      publicMessageIds: updatedMessageIds,
+      messageId: undefined,
     });
 
     return null;
@@ -455,5 +445,88 @@ export const getFileMetadata = query({
     }
 
     return await r2.getMetadata(ctx, args.fileKey);
+  },
+});
+
+/**
+ * Delete multiple attachments in bulk
+ */
+export const deleteAttachments = mutation({
+  args: {
+    attachmentIds: v.array(v.id("attachments")),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // Get all attachments to verify ownership and collect file keys
+    const attachments = await Promise.all(
+      args.attachmentIds.map((id) => ctx.db.get(id))
+    );
+
+    // Verify all attachments exist and user owns them
+    for (const attachment of attachments) {
+      if (!attachment) {
+        throw new Error("One or more attachments not found");
+      }
+      if (attachment.userId !== userId) {
+        throw new Error("Not authorized to delete one or more attachments");
+      }
+    }
+
+    // Delete files from R2 storage
+    await Promise.all(
+      attachments.map((attachment) =>
+        attachment
+          ? r2.deleteObject(ctx, attachment.fileKey)
+          : Promise.resolve()
+      )
+    );
+
+    // Remove attachment references from messages using the messageId field
+    // Get unique message IDs from the attachments we're deleting
+    const messageIds = [
+      ...new Set(
+        attachments
+          .map((att) => att?.messageId)
+          .filter(Boolean) as Array<string>
+      ),
+    ];
+
+    // Update each affected message to remove the deleted attachment IDs
+    await Promise.all(
+      messageIds.map(async (messageId) => {
+        // Find message by messageId string field
+        const message = await ctx.db
+          .query("messages")
+          .withIndex("by_messageId_and_userId", (q) =>
+            q.eq("messageId", messageId).eq("userId", userId)
+          )
+          .first();
+
+        if (!message) return;
+
+        const updatedAttachmentIds =
+          message.attachmentIds?.filter(
+            (id) => !args.attachmentIds.includes(id)
+          ) || [];
+
+        await ctx.db.patch(message._id, {
+          attachmentIds: updatedAttachmentIds,
+        });
+      })
+    );
+
+    // Mark attachments as deleted in database
+    await Promise.all(
+      args.attachmentIds.map((attachmentId) =>
+        ctx.db.patch(attachmentId, { status: "deleted" })
+      )
+    );
+
+    return null;
   },
 });

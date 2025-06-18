@@ -148,18 +148,6 @@ export async function createMessage(
         : "file",
     }));
 
-  // Create all attachments in a single batch operation
-  if (attachmentsToCreate.length > 0) {
-    try {
-      const createdAttachments = await hooks.mutations.createAttachments({
-        attachments: attachmentsToCreate,
-      });
-      persistedAttachments.push(...createdAttachments);
-    } catch (error) {
-      console.error("Failed to persist attachments:", error);
-    }
-  }
-
   // For existing threads, we need to fetch messages using the client
   // Note: This query needs threadId at runtime, so we keep using CONVEX_CLIENT for now
   const allMessages = input.newThread
@@ -170,6 +158,19 @@ export async function createMessage(
 
   const userMessageId = crypto.randomUUID();
   const assistantMessageId = crypto.randomUUID();
+
+  // Create all attachments in a single batch operation with messageId
+  if (attachmentsToCreate.length > 0) {
+    try {
+      const createdAttachments = await hooks.mutations.createAttachments({
+        attachments: attachmentsToCreate,
+        messageId: userMessageId, // Pass the user message ID (string UUID)
+      });
+      persistedAttachments.push(...createdAttachments);
+    } catch (error) {
+      console.error("Failed to persist attachments:", error);
+    }
+  }
 
   // Use consistent timestamps for both database and temp store
   const now = Date.now();
