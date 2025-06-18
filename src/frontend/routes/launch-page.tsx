@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
+import { useCreateMessage } from "@/hooks/use-create-message";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
@@ -18,6 +19,9 @@ export default function LaunchChat() {
   const [hasInputText, setHasInputText] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [inputValue, setInputValue] = useState("");
+
+  // Hook for creating messages with proper React integration
+  const createMessageHooks = useCreateMessage();
 
   const handleSubmit = async (
     message: string,
@@ -39,17 +43,20 @@ export default function LaunchChat() {
     navigate(`/chat/${threadId}`);
 
     // 2. Call createMessage with everything (it handles thread creation)
-    createMessage({
-      newThread: true, // createMessage will create the thread
-      threadId,
-      userContent: message,
-      model: model.model, // Use the selected model from dropdown
-      modelParams: {
-        reasoningEffort,
-        includeSearch,
+    createMessage(
+      {
+        newThread: true, // createMessage will create the thread
+        threadId,
+        userContent: message,
+        model: model.model, // Use the selected model from dropdown
+        modelParams: {
+          reasoningEffort,
+          includeSearch,
+        },
+        attachments: attachments as any,
       },
-      attachments: attachments as any,
-    }).catch((error) => {
+      createMessageHooks
+    ).catch((error) => {
       console.error("Failed to create thread:", error);
     });
   };

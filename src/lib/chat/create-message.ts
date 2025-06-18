@@ -13,11 +13,14 @@ import {
 } from "@/lib/chat/message-converter";
 import { getUserApiKeys } from "@/lib/ai/byok-providers";
 import { UserCustomization } from "@/ai/prompt";
+import { CreateMessageHooks } from "@/hooks/use-create-message";
 
 /**
  * Get user customization data - localStorage first, then Convex fallback
  */
-async function getUserCustomization(): Promise<UserCustomization | null> {
+async function getUserCustomizationData(
+  convexData: UserCustomization | null | undefined
+): Promise<UserCustomization | null> {
   const STORAGE_KEY = "t8-chat-prompt-customization";
 
   try {
@@ -43,14 +46,9 @@ async function getUserCustomization(): Promise<UserCustomization | null> {
     console.error("Failed to parse localStorage customization:", error);
   }
 
-  try {
-    // Fallback to Convex if localStorage is empty or invalid
-    const convexData = await CONVEX_CLIENT.query(api.auth.getUserCustomization);
-    if (convexData) {
-      return convexData;
-    }
-  } catch (error) {
-    console.error("Failed to fetch Convex customization:", error);
+  // Use the Convex data passed from the hook
+  if (convexData) {
+    return convexData;
   }
 
   return null;
@@ -84,28 +82,31 @@ const transformAttachments = (
 /**
  * Create user and assistant messages and send to API
  */
-export async function createMessage(input: {
-  newThread: boolean;
-  threadId: string;
-  userContent: string;
-  model: AllowedModels;
-  modelParams?: ModelParams & {
-    reasoningEffort: EffortLevel;
-    includeSearch: boolean;
-  };
-  abortController?: AbortController;
-  attachments: Array<{
-    id: string;
-    fileName: string;
-    fileUrl?: string;
-    fileKey?: string;
-    mimeType?: string;
-    fileSize?: number;
-    status: "uploading" | "uploaded";
-  }>;
-}) {
-  // Get current user from Convex Auth
-  const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser);
+export async function createMessage(
+  input: {
+    newThread: boolean;
+    threadId: string;
+    userContent: string;
+    model: AllowedModels;
+    modelParams?: ModelParams & {
+      reasoningEffort: EffortLevel;
+      includeSearch: boolean;
+    };
+    abortController?: AbortController;
+    attachments: Array<{
+      id: string;
+      fileName: string;
+      fileUrl?: string;
+      fileKey?: string;
+      mimeType?: string;
+      fileSize?: number;
+      status: "uploading" | "uploaded";
+    }>;
+  },
+  hooks: CreateMessageHooks
+) {
+  // Get current user from hooks
+  const { currentUser } = hooks.queries;
   if (!currentUser) {
     throw new Error("User not authenticated");
   }
@@ -113,7 +114,7 @@ export async function createMessage(input: {
   // Create thread if this is a new thread
   if (input.newThread) {
     try {
-      await CONVEX_CLIENT.mutation(api.threads.createThread, {
+      await hooks.mutations.createThread({
         threadId: input.threadId,
         title: "New Thread", // You can make this dynamic later
         model: input.model,
@@ -150,16 +151,17 @@ export async function createMessage(input: {
   // Create all attachments in a single batch operation
   if (attachmentsToCreate.length > 0) {
     try {
-      const createdAttachments = await CONVEX_CLIENT.mutation(
-        api.attachments.createAttachments,
-        { attachments: attachmentsToCreate }
-      );
+      const createdAttachments = await hooks.mutations.createAttachments({
+        attachments: attachmentsToCreate,
+      });
       persistedAttachments.push(...createdAttachments);
     } catch (error) {
       console.error("Failed to persist attachments:", error);
     }
   }
 
+  // For existing threads, we need to fetch messages using the client
+  // Note: This query needs threadId at runtime, so we keep using CONVEX_CLIENT for now
   const allMessages = input.newThread
     ? []
     : (await CONVEX_CLIENT.query(api.messages.getByThreadId, {
@@ -209,7 +211,7 @@ export async function createMessage(input: {
   });
 
   // Add messages to database
-  await CONVEX_CLIENT.mutation(api.messages.addMessagesToThread, {
+  await hooks.mutations.addMessagesToThread({
     threadId: input.threadId,
     messages: [userMessage, assistantMessage],
   });
@@ -239,6 +241,7 @@ export async function createMessage(input: {
     modelParams: input.modelParams,
     userId: currentUser._id, // Pass the authenticated user ID
     isNewThread: input.newThread,
+    hooks,
   });
 
   return {
@@ -261,9 +264,10 @@ async function doChatFetchRequest(input: {
   };
   userId: Id<"users">;
   isNewThread?: boolean;
+  hooks: CreateMessageHooks;
 }) {
-  // Get current user from Convex Auth
-  const currentUser = await CONVEX_CLIENT.query(api.auth.getCurrentUser);
+  // Get current user from hooks (already authenticated in main function)
+  const { currentUser, userCustomization } = input.hooks.queries;
   if (!currentUser) {
     throw new Error("User not authenticated");
   }
@@ -272,7 +276,8 @@ async function doChatFetchRequest(input: {
   const userApiKeys = getUserApiKeys();
 
   // Get user customization data
-  const userCustomization = await getUserCustomization();
+  const userCustomizationData =
+    await getUserCustomizationData(userCustomization);
 
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
@@ -288,7 +293,7 @@ async function doChatFetchRequest(input: {
     // BYOK - Include user API keys
     userApiKeys,
     // User customization data
-    userCustomization: userCustomization || undefined,
+    userCustomization: userCustomizationData || undefined,
     // Spread modelParams into individual fields that ChatRequest expects
     ...(input.modelParams && {
       temperature: input.modelParams.temperature,
@@ -337,7 +342,7 @@ async function doChatFetchRequest(input: {
       });
 
       // 2. CONVEX SECOND (persistence)
-      await CONVEX_CLIENT.mutation(api.messages.setErrorMessage, {
+      await input.hooks.mutations.setErrorMessage({
         messageId: input.assistantMessageId,
         errorMessage: errorBody.error.message,
         errorType: errorBody.error.type,
@@ -409,20 +414,17 @@ async function doChatFetchRequest(input: {
       // 2. SECOND: Update Convex with final content (this was moved from API route)
       try {
         // Update message with final content, reasoning, provider metadata, and stream ID
-        const messageUpdate = CONVEX_CLIENT.mutation(
-          api.messages.updateMessage,
-          {
-            messageId: input.assistantMessageId,
-            content: messageContent,
-            reasoning: reasoning,
-            ...(providerMetadata && { providerMetadata }),
-            ...(streamId && { streamId }),
-            status: "done",
-          }
-        );
+        const messageUpdate = input.hooks.mutations.updateMessage({
+          messageId: input.assistantMessageId,
+          content: messageContent,
+          reasoning: reasoning,
+          ...(providerMetadata && { providerMetadata }),
+          ...(streamId && { streamId }),
+          status: "done",
+        });
 
         // Update thread status to completed
-        const threadUpdate = CONVEX_CLIENT.mutation(api.threads.updateThread, {
+        const threadUpdate = input.hooks.mutations.updateThread({
           threadId: input.threadId,
           generationStatus: "completed",
         });

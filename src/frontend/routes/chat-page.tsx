@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import MessageComponent from "@/components/chat/messages/message";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
+import { useCreateMessage } from "@/hooks/use-create-message";
 import { useHybridMessages } from "@/hooks/use-hybrid-messages";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { ModelConfig } from "@/ai/models-config";
@@ -18,6 +19,9 @@ export default function Chat() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatInputHeight, setChatInputHeight] = useState(141);
+
+  // Hook for creating messages with proper React integration
+  const createMessageHooks = useCreateMessage();
 
   // Fetch thread using Convex reactive query
   const thread = useQuery(
@@ -69,17 +73,20 @@ export default function Chat() {
         `[CHAT] Adding user message to thread ${threadId}: ${message}`
       );
 
-      await createMessage({
-        newThread: false, // Thread already exists
-        threadId,
-        userContent: message,
-        model: model.model, // Use the selected model from dropdown
-        modelParams: {
-          reasoningEffort,
-          includeSearch,
+      await createMessage(
+        {
+          newThread: false, // Thread already exists
+          threadId,
+          userContent: message,
+          model: model.model, // Use the selected model from dropdown
+          modelParams: {
+            reasoningEffort,
+            includeSearch,
+          },
+          attachments: attachments as any,
         },
-        attachments: attachments as any,
-      });
+        createMessageHooks
+      );
     } catch (error) {
       console.error("[CHAT] Failed to send message:", error);
     } finally {
