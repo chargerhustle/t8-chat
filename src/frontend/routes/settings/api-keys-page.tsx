@@ -165,7 +165,7 @@ export default function ApiKeysPage() {
 
             {/* OpenRouter API Key */}
             {renderApiKeySection(
-              "OpenRouter API Key",
+              "OpenRouter API Key (Coming soon)",
               [
                 "OpenAI",
                 "Anthropic",
