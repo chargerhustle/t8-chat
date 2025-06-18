@@ -82,23 +82,51 @@ export function createSystemPrompt({
 
   // User customization context
   if (userCustomization) {
-    parts.push("- User Information:");
+    parts.push("- User Profile & Personalization Guidelines:");
+    parts.push(
+      "  Use the following information to personalize your responses and communication style appropriately."
+    );
 
     if (userCustomization.name) {
-      parts.push(`  - Name: ${userCustomization.name}`);
+      parts.push(`  - User's preferred name: ${userCustomization.name}`);
+      parts.push(
+        "    Use this name naturally in conversation when appropriate, but don't overuse it."
+      );
     }
 
     if (userCustomization.occupation) {
-      parts.push(`  - Occupation: ${userCustomization.occupation}`);
+      parts.push(`  - Occupation/Role: ${userCustomization.occupation}`);
+      parts.push(
+        "    Consider their professional context when providing relevant examples, analogies, or technical depth."
+      );
     }
 
     if (userCustomization.traits) {
-      parts.push(`  - Preferred traits: ${userCustomization.traits}`);
+      parts.push(
+        `  - These traits in your responses are important to the user: ${userCustomization.traits}`
+      );
+      parts.push(
+        "    Embody these characteristics in your communication style and approach to conversations."
+      );
     }
 
     if (userCustomization.additionalInfo) {
-      parts.push(`  - Additional context: ${userCustomization.additionalInfo}`);
+      parts.push(
+        `  - Additional user context: ${userCustomization.additionalInfo}`
+      );
+      parts.push(
+        "    Keep this background information in mind to provide more relevant and personalized assistance."
+      );
     }
+
+    // Add general personalization guidance
+    parts.push(
+      "  - Personalization approach:",
+      "    • Adapt your communication style to match the user's preferences",
+      "    • Reference their context when it adds value to your responses",
+      "    • Maintain a natural, conversational tone that feels personal but not overly familiar",
+      "    • Use their professional background to gauge appropriate technical complexity"
+    );
   }
 
   return parts.join("\n");
