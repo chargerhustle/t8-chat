@@ -1,10 +1,13 @@
 import React from "react";
-import { Eye, Globe, FileText, Brain, Settings2 } from "lucide-react";
+import { Eye, Globe, FileText, Brain } from "lucide-react";
 import { ModelFeature } from "@/ai/models-config";
 import { Badge } from "@/components/ui/badge";
 
 // Feature icon mapping
-const featureIcons: Record<ModelFeature, React.ComponentType<any>> = {
+const featureIcons: Record<
+  ModelFeature,
+  React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+> = {
   vision: Eye,
   search: Globe,
   documents: FileText,

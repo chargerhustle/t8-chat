@@ -19,7 +19,7 @@ type DateGroup =
 interface UseSidebarLogicReturn {
   // Data
   threads: Thread[] | null | undefined;
-  currentUser: any;
+  currentUser: Doc<"users"> | null | undefined;
   currentThreadId: string | null;
   pinnedThreads: Thread[];
   groupedThreads: { group: DateGroup; threads: Thread[] }[];

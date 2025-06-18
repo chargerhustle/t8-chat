@@ -2,20 +2,15 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
 import { useCreateMessage } from "@/hooks/use-create-message";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
+import { ModelConfig } from "@/ai/models-config";
 import { ChatWelcome } from "@/components/chat/chat-welcome";
 import { EffortLevel } from "@/types";
 
 export default function LaunchChat() {
   const navigate = useNavigate();
-  const createThreadMutation = useMutation(api.threads.createThread);
   const [hasInputText, setHasInputText] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -53,7 +48,7 @@ export default function LaunchChat() {
           reasoningEffort,
           includeSearch,
         },
-        attachments: attachments as any,
+        attachments,
       },
       createMessageHooks
     ).catch((error) => {

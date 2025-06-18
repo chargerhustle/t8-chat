@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { LoaderCircle, Paperclip, X } from "lucide-react";
 import { cn, truncateFilename } from "@/lib/utils";
 
@@ -51,12 +52,14 @@ export function AttachmentItem({
         onClick={handleClick}
         data-state="closed"
       >
-        <img
+        <Image
           className="size-10 rounded-lg object-cover transition-opacity opacity-100"
           aria-hidden="true"
           role="presentation"
           alt=""
           src={fileUrl}
+          width={40}
+          height={40}
         />
         <div
           className="absolute -right-1 -top-1 cursor-pointer rounded-full bg-secondary p-1 opacity-0 transition hover:bg-muted group-hover:opacity-100"

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { SettingsLayout } from "@/components/layout/settings-layout";
-import { MODEL_CONFIGS, ModelConfig, ModelFeature } from "@/ai/models-config";
+import { MODEL_CONFIGS, ModelConfig } from "@/ai/models-config";
 import { getModelIcon } from "@/components/chat/chat-input/model-icons";
 import { FeatureBadges } from "@/components/settings";
 import { Button } from "@/components/ui/button";
@@ -172,7 +172,7 @@ export default function ModelsPage() {
           <div>
             <h2 className="text-xl font-bold sm:text-2xl">Available Models</h2>
             <p className="mt-2 text-sm text-muted-foreground/80 sm:text-base">
-              Choose which models appear in your model selector. This won't
+              Choose which models appear in your model selector. This won&apos;t
               affect existing conversations.
             </p>
           </div>

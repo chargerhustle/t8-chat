@@ -4,7 +4,7 @@ import { ScrollToBottomButton } from "./scroll-to-bottom-button";
 import { ChatTextarea } from "./chat-textarea";
 import { ChatInputActions } from "./chat-input-actions";
 import { ChatInputForm } from "./chat-input-form";
-import { MODEL_CONFIGS, ModelConfig, DEFAULT_MODEL } from "@/ai/models-config";
+import { MODEL_CONFIGS, ModelConfig } from "@/ai/models-config";
 import { EffortLevel } from "@/types";
 import { AttachmentsList } from "@/components/chat/attachments";
 import { useAttachments } from "@/hooks/use-attachments";
@@ -64,18 +64,13 @@ export function ChatInput({
   });
 
   // Input value management
-  const {
-    currentValue,
-    isControlled,
-    internalValue,
-    setInternalValue,
-    handleInputChange,
-  } = useChatInputValue({
-    value,
-    onValueChange,
-    onInputChange,
-    adjustHeight,
-  });
+  const { currentValue, isControlled, setInternalValue, handleInputChange } =
+    useChatInputValue({
+      value,
+      onValueChange,
+      onInputChange,
+      adjustHeight,
+    });
 
   // Attachment hook (no threadId needed - files uploaded to R2 directly)
   const {

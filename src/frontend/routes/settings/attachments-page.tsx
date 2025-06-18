@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { TabsContent } from "@/components/ui/tabs";
@@ -120,10 +121,12 @@ export default function AttachmentsPage() {
   const getFileIcon = (mimeType: string, attachmentUrl: string) => {
     if (mimeType.startsWith("image/")) {
       return (
-        <img
+        <Image
           alt="Preview"
           className="h-12 w-12 shrink-0 rounded object-cover"
           src={attachmentUrl}
+          width={48}
+          height={48}
         />
       );
     } else if (mimeType === "application/pdf" || mimeType.includes("text")) {

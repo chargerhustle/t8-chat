@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Download, ExternalLink, X } from "lucide-react";
 import {
   Dialog,
@@ -120,10 +121,18 @@ export function AttachmentPreview({
         <div className="flex-1 overflow-hidden rounded-md">
           {isImage ? (
             <div className="flex justify-center">
-              <img
+              <Image
                 alt={fileName}
                 className="max-h-[70vh] max-w-full rounded-md object-contain"
                 src={fileUrl}
+                width={800}
+                height={600}
+                style={{
+                  width: "auto",
+                  height: "auto",
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
+                }}
               />
             </div>
           ) : (

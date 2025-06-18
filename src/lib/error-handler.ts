@@ -1,6 +1,5 @@
 import {
   AppError,
-  ErrorType,
   CreateErrorOptions,
   ErrorContext,
   ErrorActionId,

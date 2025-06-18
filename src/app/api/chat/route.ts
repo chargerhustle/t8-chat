@@ -7,18 +7,9 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from "resumable-stream";
-import {
-  MODEL_CONFIGS,
-  DEFAULT_MODEL,
-  getModelStreamingType,
-} from "@/ai/models-config";
-import { AllowedModels } from "@/types";
+import { MODEL_CONFIGS, getModelStreamingType } from "@/ai/models-config";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
-import {
-  getBYOKProvider,
-  type BYOKError,
-  type UserApiKeys,
-} from "@/lib/ai/byok-providers";
+import { getBYOKProvider, type BYOKError } from "@/lib/ai/byok-providers";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";

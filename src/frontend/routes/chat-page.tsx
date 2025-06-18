@@ -52,8 +52,8 @@ export default function Chat() {
         requestAnimationFrame(updateScrollPosition);
       }
     },
-    [updateScrollPosition, messages.length]
-  ); // Re-run when messages change
+    [updateScrollPosition]
+  );
 
   const handleSubmit = async (
     message: string,
@@ -83,7 +83,7 @@ export default function Chat() {
             reasoningEffort,
             includeSearch,
           },
-          attachments: attachments as any,
+          attachments,
         },
         createMessageHooks
       );

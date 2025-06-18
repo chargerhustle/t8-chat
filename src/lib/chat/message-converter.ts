@@ -1,5 +1,4 @@
 import { CoreMessage, TextPart, ImagePart, FilePart } from "ai";
-import { Doc } from "@/convex/_generated/dataModel";
 
 /**
  * Our internal attachment format (from transformAttachments)

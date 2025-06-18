@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { FileText } from "lucide-react";
 import { Doc } from "@/convex/_generated/dataModel";
 import { AttachmentPreview } from "./attachment-preview";
@@ -43,10 +44,17 @@ export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
             {isImage ? (
               // Image preview
               <div>
-                <img
+                <Image
                   alt="Attached image"
                   className="max-h-[300px] cursor-pointer rounded-lg object-contain"
                   src={attachment.attachmentUrl}
+                  width={400}
+                  height={300}
+                  style={{
+                    width: "auto",
+                    height: "auto",
+                    maxHeight: "300px",
+                  }}
                   onClick={() => handleAttachmentClick(attachment)}
                 />
               </div>

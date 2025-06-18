@@ -73,7 +73,7 @@ export function UserStatsCard({
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Chat threads you've created
+            Chat threads you&apos;ve created
           </p>
         </div>
 

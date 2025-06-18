@@ -7,7 +7,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { SidebarHeader as CustomSidebarHeader } from "@/components/sidebar/sidebar-header";
 import { ThreadGroup } from "@/components/sidebar/thread-group";
@@ -42,7 +41,6 @@ export function AppSidebar() {
           onNewChat={() => navigate("/")}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          isSearching={isSearching}
         />
       </SidebarHeader>
 

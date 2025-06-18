@@ -3,7 +3,10 @@ import { ModelFeature } from "@/ai/models-config";
 import React from "react";
 
 // Feature icon mapping
-export const featureIcons: Record<ModelFeature, React.ComponentType<any>> = {
+export const featureIcons: Record<
+  ModelFeature,
+  React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+> = {
   vision: Eye,
   search: Globe,
   documents: FileText,

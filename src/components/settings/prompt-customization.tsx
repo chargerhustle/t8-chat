@@ -81,7 +81,7 @@ export function PromptCustomization() {
           parsedData.traits !== currentData.traits ||
           parsedData.additionalInfo !== currentData.additionalInfo;
         setHasChanges(hasDataChanged);
-      } catch (error) {
+      } catch {
         setHasChanges(true); // If there's an error parsing, assume there are changes
       }
     } else {

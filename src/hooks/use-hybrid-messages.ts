@@ -3,7 +3,6 @@ import { useQuery } from "convex-helpers/react/cache";
 import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useTempMessage } from "@/lib/chat/temp-message-store";
-import { DEFAULT_MODEL } from "@/ai/models-config";
 
 // Type for message with attachments (as returned by getByThreadId)
 type MessageWithAttachments = Doc<"messages"> & {

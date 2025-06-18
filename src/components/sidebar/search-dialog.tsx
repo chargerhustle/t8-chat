@@ -9,6 +9,7 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import TextareaAutosize from "react-textarea-autosize";
 import { createMessage } from "@/lib/chat/create-message";
+import { useCreateMessage } from "@/hooks/use-create-message";
 import { DEFAULT_MODEL } from "@/ai/models-config";
 
 import {
@@ -30,6 +31,9 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Hook for creating messages with proper React integration
+  const createMessageHooks = useCreateMessage();
 
   // Debounce search query
   useEffect(() => {
@@ -123,17 +127,20 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
 
       // Create message with the search query
       try {
-        await createMessage({
-          newThread: true,
-          threadId,
-          userContent: query,
-          model: DEFAULT_MODEL,
-          modelParams: {
-            reasoningEffort: "medium",
-            includeSearch: false,
+        await createMessage(
+          {
+            newThread: true,
+            threadId,
+            userContent: query,
+            model: DEFAULT_MODEL,
+            modelParams: {
+              reasoningEffort: "medium",
+              includeSearch: false,
+            },
+            attachments: [],
           },
-          attachments: [],
-        });
+          createMessageHooks
+        );
       } catch (error) {
         console.error("Failed to create message:", error);
       }

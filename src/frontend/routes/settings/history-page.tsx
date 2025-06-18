@@ -4,7 +4,7 @@ import { SettingsLayout } from "@/components/layout/settings-layout";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Download, Trash2, Pin, Loader2 } from "lucide-react";
+import { Download, Trash2, Pin, Loader2 } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";

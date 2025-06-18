@@ -1,6 +1,6 @@
-import { openai, createOpenAI } from "@ai-sdk/openai";
-import { google, createGoogleGenerativeAI } from "@ai-sdk/google";
-import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { LanguageModelV1 } from "ai";
 import { MODEL_CONFIGS } from "@/ai/models-config";
@@ -191,7 +191,7 @@ export function createBYOKProviderFromConfig(
       usingUserKey: true,
       keyProvider: provider,
     };
-  } catch (error) {
+  } catch {
     return {
       type: "invalid_key",
       message: `Invalid ${provider} API key. Please check your key in Settings.`,

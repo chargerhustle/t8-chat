@@ -2,10 +2,9 @@ import { useCallback, useState } from "react";
 import { useMutation } from "convex/react";
 import { useUploadFile } from "@convex-dev/r2/react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import type { Attachment } from "@/components/chat/attachments";
 import { toast } from "sonner";
-import { Upload, Trash2, AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Trash2 } from "lucide-react";
 import React from "react";
 import { truncateFilename } from "@/lib/utils";
 
@@ -58,7 +57,7 @@ type AnyAttachment = UploadingAttachment | UploadedAttachment;
  */
 export function useAttachments() {
   const [attachments, setAttachments] = useState<AnyAttachment[]>([]);
-  const [uploadingIds, setUploadingIds] = useState<Set<string>>(new Set());
+  const [, setUploadingIds] = useState<Set<string>>(new Set());
 
   // --- Convex helpers ------------------------------------------------------
 
@@ -175,7 +174,7 @@ export function useAttachments() {
                   : a
               );
             });
-          } catch (err) {
+          } catch {
             setUploadingIds((prev) => {
               const newSet = new Set(prev);
               newSet.delete(tempId);
@@ -234,7 +233,7 @@ export function useAttachments() {
               id: `delete-success-${fileName}`,
             }
           );
-        } catch (err) {
+        } catch {
           toast.error(
             `Failed to delete "${truncateFilename(fileName, 40)}" from storage`,
             {

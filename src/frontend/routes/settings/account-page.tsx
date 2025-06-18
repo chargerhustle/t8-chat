@@ -5,13 +5,10 @@ import { TabsContent } from "@/components/ui/tabs";
 import { SettingsLayout } from "@/components/layout";
 import { UserStatsCard, SupportInfoCard } from "@/components/settings";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { MessageSquare, FileText, Zap, Trash2 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/auth/delete-account-dialog";
 
 export default function AccountPage() {
-  const currentUser = useQuery(api.auth.getCurrentUser);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (
@@ -25,7 +22,7 @@ export default function AccountPage() {
                 Your Account
               </h2>
               <p className="mt-1 text-center text-sm text-muted-foreground md:text-left">
-                Here's what you've got going on
+                Here&apos;s what you&apos;ve got going on
               </p>
             </div>
           </div>

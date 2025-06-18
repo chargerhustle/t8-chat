@@ -1,22 +1,16 @@
 "use client";
 
 import { CopyButton } from "@/components/copy-button";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { RefreshCcw, SquarePen } from "lucide-react";
 
 interface MessageToolbarProps {
   messageContent: string;
-  align?: "left" | "right";
-  className?: string;
   isUser?: boolean;
   model?: string;
 }
 
 export function MessageToolbar({
   messageContent,
-  align = "left",
-  className,
   isUser = false,
   model,
 }: MessageToolbarProps) {

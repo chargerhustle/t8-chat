@@ -6,14 +6,12 @@ interface SidebarHeaderProps {
   onNewChat: () => void;
   searchQuery: string;
   onSearchQueryChange: (query: string) => void;
-  isSearching: boolean;
 }
 
 export function SidebarHeader({
   onNewChat,
   searchQuery,
   onSearchQueryChange,
-  isSearching,
 }: SidebarHeaderProps) {
   const navigate = useNavigate();
 

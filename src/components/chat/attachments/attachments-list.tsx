@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, forwardRef } from "react";
-import { AttachmentItem, AttachmentItemProps } from "./attachment-item";
+import { AttachmentItem } from "./attachment-item";
 import { AttachmentPreview } from "./attachment-preview";
 
 export interface Attachment {

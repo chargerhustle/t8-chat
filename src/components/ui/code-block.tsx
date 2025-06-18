@@ -58,7 +58,17 @@ function CodeBlockCode({
     // Try the File System Access API first
     if ("showSaveFilePicker" in window) {
       try {
-        const fileHandle = await (window as any).showSaveFilePicker({
+        const fileHandle = await (
+          window as unknown as {
+            showSaveFilePicker: (options: {
+              suggestedName: string;
+              types: Array<{
+                description: string;
+                accept: Record<string, string[]>;
+              }>;
+            }) => Promise<FileSystemFileHandle>;
+          }
+        ).showSaveFilePicker({
           suggestedName: `code-snippet.${language}`,
           types: [
             {
@@ -71,9 +81,9 @@ function CodeBlockCode({
         await writable.write(code);
         await writable.close();
         return;
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Check if user cancelled the dialog
-        if (err.name === "AbortError") {
+        if (err instanceof Error && err.name === "AbortError") {
           // User cancelled, don't fallback to download
           return;
         }
