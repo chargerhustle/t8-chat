@@ -8,6 +8,7 @@ import { MessageToolbar } from "./message-toolbar";
 import { MessageLoading } from "./message-loading";
 import { MessageAttachments } from "../attachments";
 import { getModelDisplayName } from "@/ai/models-config";
+import { ApiKeyError } from "@/components/error/api-key-error";
 
 interface MessageProps {
   message: Doc<"messages"> & {
@@ -31,6 +32,14 @@ const MessageComponent = memo(({ message }: MessageProps) => {
   const modelDisplayName = !isUser
     ? getModelDisplayName(message.model)
     : undefined;
+
+  // Check if this is an API key related error (missing or invalid)
+  const isApiKeyError =
+    !isUser &&
+    message.status === "error" &&
+    (message.serverError?.type === "missing_api_keys" ||
+      message.serverError?.type === "missing_key" ||
+      message.serverError?.type === "invalid_key");
 
   return (
     <div
@@ -72,6 +81,9 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               <div className="flex items-center py-2">
                 <MessageLoading />
               </div>
+            ) : isApiKeyError ? (
+              // Show API key error component
+              <ApiKeyError />
             ) : (
               // Show actual content when available
               <Markdown id={`${message.messageId}-content`}>
