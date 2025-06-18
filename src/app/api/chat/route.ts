@@ -7,7 +7,11 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from "resumable-stream";
-import { MODEL_CONFIGS, DEFAULT_MODEL } from "@/ai/models-config";
+import {
+  MODEL_CONFIGS,
+  DEFAULT_MODEL,
+  getModelStreamingType,
+} from "@/ai/models-config";
 import { AllowedModels } from "@/types";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
 import {
@@ -206,6 +210,7 @@ export async function POST(req: Request) {
     const modelConfig = MODEL_LOOKUP.get(requestData.model);
     const modelDisplayName = modelConfig?.displayName || requestData.model;
     const modelDescription = modelConfig?.description;
+    const streamingType = getModelStreamingType(requestData.model);
 
     // Create system prompt
     const systemPrompt = createSystemPrompt({
@@ -254,7 +259,7 @@ export async function POST(req: Request) {
           system: systemPrompt,
           experimental_transform: smoothStream({
             delayInMs: 20,
-            chunking: "word",
+            chunking: streamingType,
           }),
           onFinish: async () => {
             // All Convex updates moved to client-side onFinishMessagePart for proper timing

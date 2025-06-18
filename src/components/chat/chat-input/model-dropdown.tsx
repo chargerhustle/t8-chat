@@ -105,7 +105,7 @@ export function ModelDropdown({
             >
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-2 pr-2 font-medium text-muted-foreground transition-colors">
-                  {getModelIcon(model.provider, model.id)}
+                  {getModelIcon(model.icon)}
                   <span className="w-fit">{model.displayName}</span>
                   <button
                     className="p-1.5"

@@ -9,6 +9,7 @@ export type TempMessage = {
   role: "assistant";
   status: "streaming" | "done" | "error";
   reasoning?: string;
+  model: string; // Add model field to track which model is being used
   created_at: number;
   updated_at: number;
 };

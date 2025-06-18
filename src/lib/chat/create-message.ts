@@ -203,6 +203,7 @@ export async function createMessage(input: {
     content: "",
     role: "assistant",
     status: "streaming",
+    model: input.model, // Include the selected model
     created_at: now + 1,
     updated_at: now + 1,
   });

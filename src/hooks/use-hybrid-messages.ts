@@ -21,7 +21,7 @@ const convertTempToFullMessage = (
   _id: tempMsg!.messageId as Id<"messages">,
   _creationTime: tempMsg!.created_at,
   userId: "temp-user" as Id<"users">,
-  model: DEFAULT_MODEL,
+  model: tempMsg!.model, // Use the actual model from temp message
   attachmentIds: [],
   attachments: [],
   modelParams: undefined,
