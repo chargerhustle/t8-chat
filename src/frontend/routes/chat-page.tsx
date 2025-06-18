@@ -16,7 +16,6 @@ import { EffortLevel } from "@/types";
 
 export default function Chat() {
   const { threadId } = useParams<{ threadId: string }>();
-  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatInputHeight, setChatInputHeight] = useState(141);
 
@@ -28,9 +27,6 @@ export default function Chat() {
     api.threads.getByThreadId,
     threadId ? { threadId } : "skip"
   );
-
-  // Track loading state: undefined = loading, null = not found, object = found
-  const isLoading = thread === undefined;
 
   // Use hybrid messages hook for real-time streaming + Convex data
   const messages = useHybridMessages(threadId || "");
@@ -97,22 +93,6 @@ export default function Chat() {
   const handleChatInputHeightChange = useCallback((height: number) => {
     setChatInputHeight(height);
   }, []);
-
-  // Only show error when we're certain thread doesn't exist (not while loading)
-  if (threadId && thread === null && !isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-4">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Thread not found</h2>
-          <p className="text-muted-foreground mb-4">
-            The thread you&apos;re looking for doesn&apos;t exist or has been
-            deleted.
-          </p>
-          <Button onClick={() => navigate("/")}>Go back home</Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative h-full">
