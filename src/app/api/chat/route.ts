@@ -213,6 +213,7 @@ export async function POST(req: Request) {
       modelDisplayName,
       modelDescription,
       userContext,
+      userCustomization: requestData.userCustomization,
     });
 
     // Debug log provider options

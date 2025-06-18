@@ -302,3 +302,70 @@ export const setErrorMessage = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Query: Get user statistics
+ * Returns basic user stats without heavy queries
+ */
+export const getUserStats = query({
+  args: {},
+  returns: v.object({
+    joinedDate: v.number(),
+    totalThreads: v.number(),
+    lastActivity: v.optional(v.number()),
+    favoriteModel: v.optional(v.string()),
+  }),
+  handler: async (ctx: QueryCtx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return {
+        joinedDate: 0,
+        totalThreads: 0,
+        lastActivity: undefined,
+        favoriteModel: undefined,
+      };
+    }
+
+    // Get user creation time (single document lookup)
+    const user = await ctx.db.get(userId);
+    const joinedDate = user?._creationTime || 0;
+
+    // Count threads (much lighter than messages)
+    const threads = await ctx.db
+      .query("threads")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const totalThreads = threads.length;
+
+    // Get last activity from most recent thread
+    const lastActivity =
+      threads.length > 0
+        ? Math.max(...threads.map((t) => t.updatedAt))
+        : undefined;
+
+    // Find favorite model (most frequently used) - efficient counting
+    const modelCounts: Record<string, number> = {};
+    let favoriteModel: string | undefined;
+    let maxCount = 0;
+
+    for (let i = 0; i < threads.length; i++) {
+      const model = threads[i].model;
+      const count = (modelCounts[model] || 0) + 1;
+      modelCounts[model] = count;
+
+      // Track the most frequent model as we go
+      if (count > maxCount) {
+        maxCount = count;
+        favoriteModel = model;
+      }
+    }
+
+    return {
+      joinedDate,
+      totalThreads,
+      lastActivity,
+      favoriteModel,
+    };
+  },
+});

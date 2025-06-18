@@ -7,16 +7,25 @@ interface UserContext {
   occupation?: string;
 }
 
+export interface UserCustomization {
+  name?: string;
+  occupation?: string;
+  traits?: string;
+  additionalInfo?: string;
+}
+
 export function createSystemPrompt({
   model,
   modelDisplayName,
   modelDescription,
   userContext,
+  userCustomization,
 }: {
   model: string;
   modelDisplayName: string;
   modelDescription?: string;
   userContext?: UserContext;
+  userCustomization?: UserCustomization;
 }): string {
   const parts: string[] = [];
 
@@ -69,6 +78,27 @@ export function createSystemPrompt({
     parts.push(`- User location: ${userContext.city}, ${userContext.country}`);
   } else if (userContext?.country) {
     parts.push(`- User location: ${userContext.country}`);
+  }
+
+  // User customization context
+  if (userCustomization) {
+    parts.push("- User Information:");
+
+    if (userCustomization.name) {
+      parts.push(`  - Name: ${userCustomization.name}`);
+    }
+
+    if (userCustomization.occupation) {
+      parts.push(`  - Occupation: ${userCustomization.occupation}`);
+    }
+
+    if (userCustomization.traits) {
+      parts.push(`  - Preferred traits: ${userCustomization.traits}`);
+    }
+
+    if (userCustomization.additionalInfo) {
+      parts.push(`  - Additional context: ${userCustomization.additionalInfo}`);
+    }
   }
 
   return parts.join("\n");

@@ -6,6 +6,7 @@
 import type { CoreMessage } from "ai";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import type { MODEL_CONFIGS } from "@/ai/models-config";
+import type { UserCustomization } from "@/ai/prompt";
 
 // ============================================================================
 // CONVEX DOCUMENT ALIASES (for convenience only)
@@ -73,7 +74,7 @@ export interface ChatRequest {
   threadMetadata: ThreadMetadata;
   responseMessageId: string;
   userId?: UserId;
-  userPromptCustomization?: UserPromptCustomization;
+  userCustomization?: UserCustomization;
 
   // BYOK - User API keys
   userApiKeys?: {

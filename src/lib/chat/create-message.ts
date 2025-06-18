@@ -12,6 +12,49 @@ import {
   type APIAttachment,
 } from "@/lib/chat/message-converter";
 import { getUserApiKeys } from "@/lib/ai/byok-providers";
+import { UserCustomization } from "@/ai/prompt";
+
+/**
+ * Get user customization data - localStorage first, then Convex fallback
+ */
+async function getUserCustomization(): Promise<UserCustomization | null> {
+  const STORAGE_KEY = "t8-chat-prompt-customization";
+
+  try {
+    // Try localStorage first for immediate response
+    const localData = localStorage.getItem(STORAGE_KEY);
+    if (localData) {
+      const parsed = JSON.parse(localData);
+      if (
+        parsed.name ||
+        parsed.occupation ||
+        parsed.traits ||
+        parsed.additionalInfo
+      ) {
+        return {
+          name: parsed.name || "",
+          occupation: parsed.occupation || "",
+          traits: parsed.traits || "",
+          additionalInfo: parsed.additionalInfo || "",
+        };
+      }
+    }
+  } catch (error) {
+    console.error("Failed to parse localStorage customization:", error);
+  }
+
+  try {
+    // Fallback to Convex if localStorage is empty or invalid
+    const convexData = await CONVEX_CLIENT.query(api.auth.getUserCustomization);
+    if (convexData) {
+      return convexData;
+    }
+  } catch (error) {
+    console.error("Failed to fetch Convex customization:", error);
+  }
+
+  return null;
+}
 
 /**
  * Minimal attachment data returned from Convex (shared type)
@@ -227,6 +270,9 @@ async function doChatFetchRequest(input: {
   // Get user API keys for BYOK
   const userApiKeys = getUserApiKeys();
 
+  // Get user customization data
+  const userCustomization = await getUserCustomization();
+
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
     threadMetadata: {
@@ -240,6 +286,8 @@ async function doChatFetchRequest(input: {
     userId: input.userId,
     // BYOK - Include user API keys
     userApiKeys,
+    // User customization data
+    userCustomization: userCustomization || undefined,
     // Spread modelParams into individual fields that ChatRequest expects
     ...(input.modelParams && {
       temperature: input.modelParams.temperature,

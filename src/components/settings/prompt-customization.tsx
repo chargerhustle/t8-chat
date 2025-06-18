@@ -1,21 +1,130 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
+const STORAGE_KEY = "t8-chat-prompt-customization";
+
+interface PromptCustomizationData {
+  name: string;
+  occupation: string;
+  traits: string;
+  additionalInfo: string;
+}
 
 export function PromptCustomization() {
   const [name, setName] = useState("");
   const [occupation, setOccupation] = useState("");
   const [traits, setTraits] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Get data from Convex
+  const convexCustomization = useQuery(api.auth.getUserCustomization);
+  const saveCustomization = useMutation(api.auth.saveUserCustomization);
+
+  // Load data from localStorage first, then fallback to Convex
+  useEffect(() => {
+    // First, try to load from localStorage
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    let loadedFromLocalStorage = false;
+
+    if (savedData) {
+      try {
+        const parsedData: PromptCustomizationData = JSON.parse(savedData);
+        setName(parsedData.name || "");
+        setOccupation(parsedData.occupation || "");
+        setTraits(parsedData.traits || "");
+        setAdditionalInfo(parsedData.additionalInfo || "");
+        loadedFromLocalStorage = true;
+      } catch (error) {
+        console.error(
+          "Failed to parse saved prompt customization data from localStorage:",
+          error
+        );
+      }
+    }
+
+    // Only use Convex data as fallback if localStorage didn't provide valid data
+    if (!loadedFromLocalStorage && convexCustomization !== undefined) {
+      if (convexCustomization) {
+        setName(convexCustomization.name || "");
+        setOccupation(convexCustomization.occupation || "");
+        setTraits(convexCustomization.traits || "");
+        setAdditionalInfo(convexCustomization.additionalInfo || "");
+      }
+    }
+  }, [convexCustomization]);
+
+  // Track changes to enable/disable save button
+  useEffect(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    const currentData: PromptCustomizationData = {
+      name,
+      occupation,
+      traits,
+      additionalInfo,
+    };
+
+    if (savedData) {
+      try {
+        const parsedData: PromptCustomizationData = JSON.parse(savedData);
+        const hasDataChanged =
+          parsedData.name !== currentData.name ||
+          parsedData.occupation !== currentData.occupation ||
+          parsedData.traits !== currentData.traits ||
+          parsedData.additionalInfo !== currentData.additionalInfo;
+        setHasChanges(hasDataChanged);
+      } catch (error) {
+        setHasChanges(true); // If there's an error parsing, assume there are changes
+      }
+    } else {
+      // If no saved data exists, check if any field has content
+      const hasContent = !!(name || occupation || traits || additionalInfo);
+      setHasChanges(hasContent);
+    }
+  }, [name, occupation, traits, additionalInfo]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const dataToSave: PromptCustomizationData = {
+      name,
+      occupation,
+      traits,
+      additionalInfo,
+    };
+
+    try {
+      // Save to localStorage first (for immediate feedback)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+
+      // Save to Convex
+      await saveCustomization({
+        name,
+        occupation,
+        traits,
+        additionalInfo,
+      });
+
+      setHasChanges(false);
+      toast.success("Preferences saved successfully!");
+    } catch (error) {
+      console.error("Failed to save prompt customization preferences:", error);
+      toast.error("Failed to save preferences. Please try again.");
+    }
+  };
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Customize T8 Chat</h2>
-      <form className="grid gap-6 py-2">
+      <form className="grid gap-6 py-2" onSubmit={handleSave}>
         {/* Name Input */}
         <div className="relative grid gap-2">
           <Label className="text-base font-medium">
@@ -92,7 +201,7 @@ export function PromptCustomization() {
 
         {/* Action Buttons */}
         <div className="flex flex-row items-center gap-2 justify-end">
-          <Button type="submit" disabled>
+          <Button type="submit" disabled={!hasChanges}>
             Save Preferences
           </Button>
         </div>

@@ -1,25 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import { Search, Plus, PanelLeft } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { cn } from "@/lib/utils";
-import { SearchDialog } from "./search-dialog";
 
-export function SidebarFloatingToolbar() {
+interface SidebarFloatingToolbarProps {
+  onSearchOpen: () => void;
+}
+
+export function SidebarFloatingToolbar({
+  onSearchOpen,
+}: SidebarFloatingToolbarProps) {
   const { state, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const isCollapsed = state === "collapsed";
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleNewThread = () => {
     navigate("/");
-  };
-
-  const handleSearch = () => {
-    setIsSearchOpen(true);
   };
 
   return (
@@ -57,7 +56,7 @@ export function SidebarFloatingToolbar() {
               ? "translate-x-0 opacity-100 duration-250"
               : "sm:pointer-events-none sm:-translate-x-[2.125rem] sm:opacity-0 sm:delay-0 sm:duration-150"
           )}
-          onClick={handleSearch}
+          onClick={onSearchOpen}
         >
           <Search className="h-4 w-4" />
           <span className="sr-only">Search</span>
@@ -79,11 +78,6 @@ export function SidebarFloatingToolbar() {
           <span className="sr-only">New Thread</span>
         </Button>
       </div>
-
-      <SearchDialog
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
     </>
   );
 }

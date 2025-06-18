@@ -23,7 +23,7 @@ export function SidebarFooter({ currentUser }: SidebarFooterProps) {
         to="/settings"
         aria-label="Go to settings"
         role="button"
-        className="flex select-none flex-row items-center justify-between gap-3 rounded-lg px-3 py-3 hover:bg-sidebar-accent focus:bg-sidebar-accent focus:outline-2"
+        className="flex select-none flex-row items-center justify-between gap-3 rounded-lg px-3 py-3 hover:bg-sidebar-accent focus:bg-sidebar-accent focus:outline-none"
         data-discover="true"
       >
         <div className="flex w-full min-w-0 flex-row items-center gap-3">

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import TextareaAutosize from "react-textarea-autosize";
 import { createMessage } from "@/lib/chat/create-message";
 import { DEFAULT_MODEL } from "@/ai/models-config";
+
 import {
   Dialog,
   DialogContent,
@@ -181,8 +182,8 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
               </div>
               <div className="border-b border-chat-border px-3"></div>
             </div>
-            {/* Enter icon - show when there's any text */}
-            {searchQuery.trim() && (
+            {/* Enter icon - show when there's at least 5 characters */}
+            {searchQuery.trim().length >= 5 && (
               <div className="absolute right-3 mt-1 text-xs text-muted-foreground/75 flex items-center gap-1">
                 <CornerDownLeft className="size-3" />
                 to start new chat

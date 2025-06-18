@@ -1,9 +1,11 @@
 "use client";
 
 import { TabsContent } from "@/components/ui/tabs";
-import { SettingsLayout } from "@/components/layout/settings-layout";
-import { PromptCustomization } from "@/components/settings/prompt-customization";
-import { VisualCustomization } from "@/components/settings/visual-customization";
+import { SettingsLayout } from "@/components/layout";
+import {
+  PromptCustomization,
+  VisualCustomization,
+} from "@/components/settings";
 
 export default function CustomizationPage() {
   return (

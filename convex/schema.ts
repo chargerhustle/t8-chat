@@ -114,6 +114,14 @@ const applicationTables = {
   userConfiguration: defineTable({
     userId: v.id("users"), // Now references the auth users table
     hasMigrated: v.optional(v.boolean()),
+    customization: v.optional(
+      v.object({
+        name: v.string(),
+        occupation: v.string(),
+        traits: v.string(),
+        additionalInfo: v.string(),
+      })
+    ),
   }).index("by_userId", ["userId"]),
 };
 

@@ -1,18 +1,16 @@
 "use client";
 
 import { TabsContent } from "@/components/ui/tabs";
-import { SettingsLayout } from "@/components/layout/settings-layout";
+import { SettingsLayout } from "@/components/layout";
+import { UserStatsCard, SupportInfoCard } from "@/components/settings";
 import { Button } from "@/components/ui/button";
-import {
-  Rocket,
-  Sparkles,
-  Headset,
-  Info,
-  ArrowRight,
-  Copy,
-} from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Rocket, Sparkles, Headset, ArrowRight } from "lucide-react";
 
 export default function AccountPage() {
+  const currentUser = useQuery(api.auth.getCurrentUser);
+
   return (
     <SettingsLayout defaultTab="account">
       <TabsContent value="account" className="space-y-8">
@@ -82,60 +80,10 @@ export default function AccountPage() {
           </p>
         </div>
 
-        {/* Message Usage - Mobile Only */}
-        <div className="space-y-6 rounded-lg bg-card p-4 md:hidden">
-          <div className="flex flex-row justify-between sm:flex-col sm:justify-between lg:flex-row lg:items-center">
-            <span className="text-sm font-semibold">Message Usage</span>
-            <div className="text-xs text-muted-foreground">
-              <p>Resets 06/21/2025</p>
-            </div>
-          </div>
-          <div className="space-y-6">
-            {/* Standard Usage */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Standard</h3>
-                <span className="text-sm text-muted-foreground">169/1500</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: "11.2667%" }}
-                ></div>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                1331 messages remaining
-              </p>
-            </div>
-
-            {/* Premium Usage */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1">
-                  <h3 className="text-sm font-medium">Premium</h3>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4"
-                    aria-label="Premium credits info"
-                  >
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </div>
-                <span className="text-sm text-muted-foreground">48/100</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: "48%" }}
-                ></div>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                52 messages remaining
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center">
+        {/* User Stats - Mobile Only */}
+        <div className="md:hidden">
+          <UserStatsCard showCustomizeButton={false} />
+          <div className="mt-4 flex items-center justify-center">
             <Button className="bg-[rgb(162,59,103)] hover:bg-[#d56698] text-primary-foreground px-4 py-2 h-auto justify-center whitespace-normal text-start">
               Buy more premium credits
               <ArrowRight className="-mr-1 !size-3.5" />
@@ -167,22 +115,7 @@ export default function AccountPage() {
 
         {/* Support Information - Mobile Only */}
         <div className="mt-8 block md:hidden">
-          <div className="w-fit space-y-2">
-            <h2 className="text-2xl font-bold">Support Information</h2>
-            <div className="space-y-2">
-              <p className="px-px py-1.5 text-sm text-muted-foreground/80">
-                Your user ID may be requested by our support team to help
-                resolve issues.
-              </p>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 hover:bg-input/60"
-              >
-                <span>Copy User ID</span>
-                <Copy className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </div>
-          </div>
+          <SupportInfoCard />
         </div>
       </TabsContent>
     </SettingsLayout>
