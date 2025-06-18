@@ -40,9 +40,11 @@ export const ThreadItem = memo(
     };
 
     const handleButtonClick = (e: React.MouseEvent) => {
-      // Prevent all single clicks from bubbling up to the Link
-      e.preventDefault();
-      e.stopPropagation();
+      // Only prevent propagation when editing
+      if (isEditing) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
 
     const handleSave = async () => {
@@ -93,7 +95,6 @@ export const ThreadItem = memo(
               <button
                 data-state="closed"
                 className="w-full"
-                onClick={handleButtonClick}
                 onDoubleClick={handleDoubleClick}
               >
                 <div className="relative w-full">
