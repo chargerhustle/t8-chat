@@ -39,6 +39,12 @@ export const ThreadItem = memo(
       setEditValue(thread.title);
     };
 
+    const handleButtonClick = (e: React.MouseEvent) => {
+      // Prevent all single clicks from bubbling up to the Link
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
     const handleSave = async () => {
       if (editValue.trim() && editValue.trim() !== thread.title) {
         try {
@@ -87,11 +93,14 @@ export const ThreadItem = memo(
               <button
                 data-state="closed"
                 className="w-full"
+                onClick={handleButtonClick}
                 onDoubleClick={handleDoubleClick}
               >
                 <div className="relative w-full">
                   {isEditing ? (
                     <input
+                      id={`thread-edit-${thread.threadId}`}
+                      name={`threadEdit-${thread.threadId}`}
                       ref={inputRef}
                       aria-label="Edit thread title"
                       className="h-full w-full rounded bg-transparent px-1 py-1 text-sm text-sidebar-accent-foreground outline-none border-none focus:ring-0 focus:outline-none"
@@ -100,10 +109,12 @@ export const ThreadItem = memo(
                       onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={handleKeyDown}
                       onBlur={handleBlur}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={handleButtonClick}
                     />
                   ) : (
                     <input
+                      id={`thread-title-${thread.threadId}`}
+                      name={`threadTitle-${thread.threadId}`}
                       aria-label="Thread title"
                       aria-describedby="thread-title-hint"
                       aria-readonly="true"

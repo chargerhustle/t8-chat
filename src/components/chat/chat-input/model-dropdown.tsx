@@ -75,6 +75,8 @@ export function ModelDropdown({
           <div className="flex items-center">
             <Search className="ml-px mr-3 !size-4 text-muted-foreground/75" />
             <input
+              id="model-search-input"
+              name="modelSearch"
               role="searchbox"
               aria-label="Search models"
               placeholder="Search models..."

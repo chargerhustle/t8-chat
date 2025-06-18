@@ -78,6 +78,8 @@ export function SidebarHeader({
           </svg>
           <div className="relative flex-1">
             <input
+              id="sidebar-search-input"
+              name="sidebarSearch"
               role="searchbox"
               aria-label="Search threads"
               placeholder="Search your threads..."

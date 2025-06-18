@@ -168,6 +168,8 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                   <Plus className="mr-3 !size-4" />
                 </div>
                 <TextareaAutosize
+                  id="search-dialog-textarea"
+                  name="searchDialogQuery"
                   ref={textareaRef}
                   className="w-full resize-none bg-transparent text-sm placeholder:select-none placeholder:text-muted-foreground/50 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 custom-scrollbar"
                   role="searchbox"

@@ -19,7 +19,8 @@ export default function ApiKeysPage() {
     models: string[],
     linkUrl: string,
     linkText: string,
-    keyManager: ReturnType<typeof useApiKey>
+    keyManager: ReturnType<typeof useApiKey>,
+    provider: string
   ) => (
     <div className="space-y-4 rounded-lg border border-input p-4">
       <div className="flex flex-col space-y-2">
@@ -71,6 +72,8 @@ export default function ApiKeysPage() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Input
+              id={`${provider}-api-key-input`}
+              name={`${provider}ApiKey`}
               type="password"
               placeholder={keyManager.getPlaceholder()}
               value={keyManager.state.value}
@@ -130,7 +133,8 @@ export default function ApiKeysPage() {
               ],
               "https://console.anthropic.com/account/keys",
               "Anthropic's Console",
-              anthropicKey
+              anthropicKey,
+              "anthropic"
             )}
 
             {/* OpenAI API Key */}
@@ -139,7 +143,8 @@ export default function ApiKeysPage() {
               ["GPT-4.5", "o3"],
               "https://platform.openai.com/api-keys",
               "OpenAI's Dashboard",
-              openaiKey
+              openaiKey,
+              "openai"
             )}
 
             {/* Google API Key */}
@@ -154,7 +159,8 @@ export default function ApiKeysPage() {
               ],
               "https://console.cloud.google.com/apis/credentials",
               "Google Cloud Console",
-              googleKey
+              googleKey,
+              "google"
             )}
 
             {/* OpenRouter API Key */}
@@ -169,7 +175,8 @@ export default function ApiKeysPage() {
               ],
               "https://openrouter.ai/keys",
               "OpenRouter Dashboard",
-              openrouterKey
+              openrouterKey,
+              "openrouter"
             )}
           </div>
         </div>

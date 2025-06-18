@@ -93,6 +93,8 @@ export function ChatInputToolbar({
           data-state="closed"
         >
           <input
+            id="file-attachment-input"
+            name="fileAttachment"
             multiple
             className="sr-only"
             type="file"
