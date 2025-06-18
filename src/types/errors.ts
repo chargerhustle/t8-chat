@@ -521,3 +521,41 @@ export type ErrorHandler = (error: AppError) => void | Promise<void>;
  * Error recovery function type
  */
 export type ErrorRecoveryFn = () => void | Promise<void>;
+
+/**
+ * Extract only the error types that are configured as toast errors
+ */
+export type ToastErrorType =
+  | "usage_limit_warning"
+  | "validation_error"
+  | "file_too_large"
+  | "unsupported_file_type"
+  | "feature_not_available"
+  | "clipboard_error"
+  | "unknown_error";
+
+/**
+ * Extract only the error types that are configured as inline errors
+ */
+export type InlineErrorType =
+  | "api_key_error"
+  | "provider_error"
+  | "rate_limit_exceeded"
+  | "quota_exceeded"
+  | "network_error"
+  | "connection_timeout"
+  | "chat_generation_failed"
+  | "stream_interrupted";
+
+/**
+ * Extract only the error types that are configured as boundary errors
+ */
+export type BoundaryErrorType =
+  | "authentication_required"
+  | "unauthorized"
+  | "server_unavailable"
+  | "not_found"
+  | "thread_not_found"
+  | "internal_error"
+  | "maintenance_mode"
+  | "browser_not_supported";
