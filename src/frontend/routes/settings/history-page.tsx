@@ -3,11 +3,15 @@
 import { SettingsLayout } from "@/components/layout/settings-layout";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Download, Trash2, Pin } from "lucide-react";
+import { Upload, Download, Trash2, Pin, Loader2 } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Doc } from "@/convex/_generated/dataModel";
+import { useThreadExport } from "@/hooks/use-thread-export";
+import { useThreadDeletion } from "@/hooks/use-thread-deletion";
+import { DeleteThreadsDialog } from "@/components/settings";
+import { toast } from "sonner";
 
 // Skeleton loading component for threads
 function ThreadSkeleton() {
@@ -30,6 +34,15 @@ export default function HistoryPage() {
     new Set()
   );
   const [selectAll, setSelectAll] = useState(false);
+  const { exportThreads, isExporting } = useThreadExport();
+  const {
+    deleteThreads,
+    confirmDelete,
+    cancelDelete,
+    isDeleting,
+    showDeleteDialog,
+    pendingThreadCount,
+  } = useThreadDeletion();
 
   const handleSelectAll = () => {
     if (selectAll) {
@@ -56,6 +69,47 @@ export default function HistoryPage() {
   const clearSelection = () => {
     setSelectedThreads(new Set());
     setSelectAll(false);
+  };
+
+  const handleExport = async () => {
+    if (!threads) return;
+
+    // Get threadIds for the selected threads
+    const selectedThreadIds = threads
+      .filter((thread) => selectedThreads.has(thread._id))
+      .map((thread) => thread.threadId);
+
+    await exportThreads(selectedThreadIds);
+  };
+
+  const handleDelete = async () => {
+    if (!threads) return;
+
+    // Get threadIds for the selected threads
+    const selectedThreadIds = threads
+      .filter((thread) => selectedThreads.has(thread._id))
+      .map((thread) => thread.threadId);
+
+    await deleteThreads(selectedThreadIds);
+  };
+
+  const handleConfirmDelete = async () => {
+    await confirmDelete();
+    // Clear selection after successful deletion
+    clearSelection();
+  };
+
+  const handleDeleteAllHistory = async () => {
+    if (!threads || threads.length === 0) {
+      toast.error("No chat history to delete", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Get all thread IDs
+    const allThreadIds = threads.map((thread) => thread.threadId);
+    await deleteThreads(allThreadIds);
   };
 
   const formatDate = (timestamp: number) => {
@@ -106,19 +160,41 @@ export default function HistoryPage() {
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-2"
-                    disabled={selectedThreads.size === 0}
+                    disabled={selectedThreads.size === 0 || isExporting}
+                    onClick={handleExport}
                   >
-                    <Upload className="h-4 w-4" />
-                    <span className="sr-only md:not-sr-only">Export</span>
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    <span className="sr-only md:not-sr-only">
+                      {isExporting
+                        ? "Exporting..."
+                        : selectedThreads.size > 0
+                          ? `Export (${selectedThreads.size})`
+                          : "Export"}
+                    </span>
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
                     className="flex items-center gap-2"
-                    disabled={selectedThreads.size === 0}
+                    disabled={selectedThreads.size === 0 || isDeleting}
+                    onClick={handleDelete}
                   >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only md:not-sr-only">Delete</span>
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                    <span className="sr-only md:not-sr-only">
+                      {isDeleting
+                        ? "Deleting..."
+                        : selectedThreads.size > 0
+                          ? `Delete (${selectedThreads.size})`
+                          : "Delete"}
+                    </span>
                   </Button>
                 </div>
               </div>
@@ -198,8 +274,14 @@ export default function HistoryPage() {
               <Button
                 variant="destructive"
                 className="border border-red-800/20 bg-red-800/80 hover:bg-red-600 disabled:opacity-50 dark:bg-red-800/20 hover:dark:bg-red-800"
+                disabled={!threads || threads.length === 0 || isDeleting}
+                onClick={handleDeleteAllHistory}
               >
-                <Trash2 className="mr-2 h-5 w-5" />
+                {isDeleting ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 h-5 w-5" />
+                )}
                 Delete Chat History
               </Button>
             </div>
@@ -211,6 +293,13 @@ export default function HistoryPage() {
           The retention policies of our LLM hosting partners may vary.
         </p>
       </div>
+
+      <DeleteThreadsDialog
+        isOpen={showDeleteDialog}
+        onClose={cancelDelete}
+        onConfirmDelete={handleConfirmDelete}
+        threadCount={pendingThreadCount}
+      />
     </SettingsLayout>
   );
 }
