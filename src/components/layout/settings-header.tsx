@@ -36,11 +36,12 @@ export function SettingsHeader() {
         Back to Chat
       </Button>
       <div className="flex flex-row items-center gap-2">
-        <Button variant="ghost" size="icon" className="size-8 relative">
+        {/* Theme toggle temporarily commented out */}
+        {/* <Button variant="ghost" size="icon" className="size-8 relative">
           <Sun className="absolute inset-0 m-auto size-4 transition-all duration-200 rotate-0 scale-100" />
           <Moon className="absolute inset-0 m-auto size-4 transition-all duration-200 -rotate-90 scale-0" />
           <span className="sr-only">Toggle theme</span>
-        </Button>
+        </Button> */}
         <Button
           variant="ghost"
           className="hover:bg-muted/40"
