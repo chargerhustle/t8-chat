@@ -11,6 +11,8 @@ import { MODEL_CONFIGS, getModelStreamingType } from "@/ai/models-config";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
 import { getBYOKProvider, type BYOKError } from "@/lib/ai/byok-providers";
 import { createSaveToMemoryTool } from "@/ai/save-to-memory-tool";
+import { createUpdateMemoryTool } from "@/ai/update-memory-tool";
+import { createDeleteMemoryTool } from "@/ai/delete-memory-tool";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
@@ -249,9 +251,11 @@ export async function POST(req: Request) {
         // Conditionally add tools based on user preferences
         const tools: Record<string, Tool> = {};
 
-        // Only add memory tool if memories are enabled
+        // Only add memory tools if memories are enabled
         if (requestData.preferences?.memoriesEnabled !== false) {
           tools.saveToMemory = createSaveToMemoryTool(requestData.userId);
+          tools.updateMemory = createUpdateMemoryTool(requestData.userId);
+          tools.deleteMemory = createDeleteMemoryTool(requestData.userId);
         }
 
         const result = streamText({

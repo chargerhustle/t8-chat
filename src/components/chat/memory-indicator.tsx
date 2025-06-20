@@ -1,4 +1,4 @@
-import { BookCheck, ChevronRight } from "lucide-react";
+import { BookCheck, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import {
   Popover,
@@ -9,16 +9,54 @@ import { useNavigate } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MemoryIndicatorProps {
-  memoriesSaved: Array<{ id: string; content: string; createdAt: number }>;
+  memoriesSaved?: Array<{ id: string; content: string }>;
+  memoriesUpdated?: Array<{ id: string; content: string }>;
+  memoriesDeleted?: Array<{ id: string; content: string }>;
 }
 
-export function MemoryIndicator({ memoriesSaved }: MemoryIndicatorProps) {
+export function MemoryIndicator({
+  memoriesSaved,
+  memoriesUpdated,
+  memoriesDeleted,
+}: MemoryIndicatorProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  if (!memoriesSaved || memoriesSaved.length === 0) {
+  // Determine which type of memory action occurred
+  const hasSaved = memoriesSaved && memoriesSaved.length > 0;
+  const hasUpdated = memoriesUpdated && memoriesUpdated.length > 0;
+  const hasDeleted = memoriesDeleted && memoriesDeleted.length > 0;
+
+  // If no memory actions, don't show indicator
+  if (!hasSaved && !hasUpdated && !hasDeleted) {
     return null;
+  }
+
+  // Determine icon and message based on action type
+  let icon, message, memories;
+
+  if (hasDeleted) {
+    icon = <Trash2 className="h-4 w-4" />;
+    message =
+      memoriesDeleted!.length === 1
+        ? "Memory deleted"
+        : `${memoriesDeleted!.length} memories deleted`;
+    memories = memoriesDeleted!;
+  } else if (hasUpdated) {
+    icon = <Pencil className="h-4 w-4" />;
+    message =
+      memoriesUpdated!.length === 1
+        ? "Memory updated"
+        : `${memoriesUpdated!.length} memories updated`;
+    memories = memoriesUpdated!;
+  } else {
+    icon = <BookCheck className="h-4 w-4" />;
+    message =
+      memoriesSaved!.length === 1
+        ? "Memory saved"
+        : `${memoriesSaved!.length} memories saved`;
+    memories = memoriesSaved!;
   }
 
   const handleManageClick = () => {
@@ -30,12 +68,8 @@ export function MemoryIndicator({ memoriesSaved }: MemoryIndicatorProps) {
   if (isMobile) {
     return (
       <div className="inline-flex items-center gap-2 text-muted-foreground">
-        <BookCheck className="h-4 w-4" />
-        <span className="text-sm">
-          {memoriesSaved.length === 1
-            ? "Memory saved"
-            : `${memoriesSaved.length} memories saved`}
-        </span>
+        {icon}
+        <span className="text-sm">{message}</span>
       </div>
     );
   }
@@ -48,12 +82,8 @@ export function MemoryIndicator({ memoriesSaved }: MemoryIndicatorProps) {
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
         >
-          <BookCheck className="h-4 w-4" />
-          <span className="text-sm">
-            {memoriesSaved.length === 1
-              ? "Memory saved"
-              : `${memoriesSaved.length} memories saved`}
-          </span>
+          {icon}
+          <span className="text-sm">{message}</span>
         </div>
       </PopoverTrigger>
       <PopoverContent
@@ -66,7 +96,7 @@ export function MemoryIndicator({ memoriesSaved }: MemoryIndicatorProps) {
       >
         <div className="space-y-2">
           <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-2 pr-1">
-            {memoriesSaved.map((memory, index) => (
+            {memories.map((memory, index) => (
               <div
                 key={index}
                 className="text-sm text-foreground bg-transparent p-2 rounded-md"

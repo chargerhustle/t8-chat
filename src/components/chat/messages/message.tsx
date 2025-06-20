@@ -34,7 +34,7 @@ const MessageComponent = memo(({ message }: MessageProps) => {
     ? getModelDisplayName(message.model)
     : undefined;
 
-  // Extract completed saveToMemory tool invocations for memory indicator
+  // Extract completed memory tool invocations for memory indicator
   const memoriesSaved =
     !isUser && message.tools
       ? message.tools
@@ -51,6 +51,34 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               tool.result.memories ||
               (tool.result.memory ? [tool.result.memory] : [])
           )
+      : [];
+
+  // Extract completed updateMemory tool invocations
+  const memoriesUpdated =
+    !isUser && message.tools
+      ? message.tools
+          .filter(
+            (tool) =>
+              tool.toolName === "updateMemory" &&
+              tool.state === "result" &&
+              tool.result?.success &&
+              tool.result?.updatedMemories
+          )
+          .flatMap((tool) => tool.result.updatedMemories)
+      : [];
+
+  // Extract completed deleteMemory tool invocations
+  const memoriesDeleted =
+    !isUser && message.tools
+      ? message.tools
+          .filter(
+            (tool) =>
+              tool.toolName === "deleteMemory" &&
+              tool.state === "result" &&
+              tool.result?.success &&
+              tool.result?.deletedMemories
+          )
+          .flatMap((tool) => tool.result.deletedMemories)
       : [];
 
   // Check if this is an API key related error (missing or invalid)
@@ -90,8 +118,12 @@ const MessageComponent = memo(({ message }: MessageProps) => {
       ) : (
         // Assistant message
         <div className="group relative w-full max-w-full break-words">
-          {/* Memory indicator for assistant messages with saved memories */}
-          <MemoryIndicator memoriesSaved={memoriesSaved} />
+          {/* Memory indicator for assistant messages with memory actions */}
+          <MemoryIndicator
+            memoriesSaved={memoriesSaved}
+            memoriesUpdated={memoriesUpdated}
+            memoriesDeleted={memoriesDeleted}
+          />
 
           <div
             role="article"

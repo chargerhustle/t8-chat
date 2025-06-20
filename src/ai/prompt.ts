@@ -147,17 +147,45 @@ export function createSystemPrompt({
     );
   }
 
-  // Memory preferences information
-  if (memoriesEnabled === true) {
-    parts.push("- Memory Saving Status:");
+  // Memory management information
+  if (memoriesEnabled !== false) {
+    const hasMemories =
+      userCustomization?.memories && userCustomization.memories.length > 0;
+
+    parts.push("- Memory Management Status:");
     parts.push(
-      "  Memory saving is currently enabled in user preferences. You can save important information from conversations for future reference using the saveToMemory tool when appropriate. Users can manage their memory settings in [Settings > Customization](/settings/customization)",
-      "  - IMPORTANT: When using the saveToMemory tool, check existing memories first to avoid saving duplicate or redundant information. Only save genuinely NEW information that isn't already captured."
+      "  Memory management is currently ENABLED and you have access to memory tools. Users can manage their memory settings in [Settings > Customization](/settings/customization)"
     );
-  } else if (memoriesEnabled === false) {
-    parts.push("- Memory Saving Status:");
+
+    if (hasMemories) {
+      parts.push(
+        "  - Available Memory Tools (YOU CAN USE THESE):",
+        "    • saveToMemory: Save NEW important information from conversations (supports multiple memories)",
+        "    • updateMemory: Update one or more existing memories when explicitly requested by user",
+        "    • deleteMemory: Delete one or more memories when explicitly requested by user",
+        "  - Memory Management Guidelines:",
+        "    • ONLY use updateMemory/deleteMemory tools when the user explicitly asks",
+        "    • These tools support batch operations - you can update/delete multiple memories in one call",
+        "    • When using saveToMemory, check existing memories first to avoid duplicates",
+        "    • Only save genuinely NEW information that isn't already captured",
+        "    • Reference existing memories naturally when relevant to the conversation"
+      );
+    } else {
+      parts.push(
+        "  - Available Memory Tools (YOU CAN USE THESE):",
+        "    • saveToMemory: Save important information from conversations for future reference",
+        "  - Memory Saving Guidelines:",
+        "    • Save genuinely useful information that would be helpful in future conversations",
+        "    • Focus on user preferences, important facts, and contextual information",
+        "    • Don't save temporary or trivial information"
+      );
+    }
+  } else {
+    parts.push("- Memory Management Status:");
     parts.push(
-      "  Memory saving is currently disabled in user preferences. You cannot save information from conversations for future reference. If the user wants to enable memory saving, they can toggle on this feature in [Settings > Customization](/settings/customization)."
+      "  Memory management is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
+      "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to memory when this feature is disabled. Be honest that memory management is turned off.",
+      "  If the user wants to enable memory management, they can toggle on this feature in [Settings > Customization](/settings/customization)."
     );
   }
 
