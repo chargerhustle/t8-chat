@@ -9,6 +9,7 @@ import { MessageLoading } from "./message-loading";
 import { MessageAttachments } from "../attachments";
 import { getModelDisplayName } from "@/ai/models-config";
 import { ApiKeyError } from "@/components/error/api-key-error";
+import { MemoryIndicator } from "../memory-indicator";
 
 interface MessageProps {
   message: Doc<"messages"> & {
@@ -32,6 +33,25 @@ const MessageComponent = memo(({ message }: MessageProps) => {
   const modelDisplayName = !isUser
     ? getModelDisplayName(message.model)
     : undefined;
+
+  // Extract completed saveToMemory tool invocations for memory indicator
+  const memoriesSaved =
+    !isUser && message.tools
+      ? message.tools
+          .filter(
+            (tool) =>
+              tool.toolName === "saveToMemory" &&
+              tool.state === "result" &&
+              tool.result?.success &&
+              (tool.result?.memory || tool.result?.memories)
+          )
+          .flatMap(
+            (tool) =>
+              // Handle both old format (single memory) and new format (array of memories)
+              tool.result.memories ||
+              (tool.result.memory ? [tool.result.memory] : [])
+          )
+      : [];
 
   // Check if this is an API key related error (missing or invalid)
   const isApiKeyError =
@@ -70,6 +90,9 @@ const MessageComponent = memo(({ message }: MessageProps) => {
       ) : (
         // Assistant message
         <div className="group relative w-full max-w-full break-words">
+          {/* Memory indicator for assistant messages with saved memories */}
+          <MemoryIndicator memoriesSaved={memoriesSaved} />
+
           <div
             role="article"
             aria-label="Assistant message"
@@ -91,6 +114,7 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               </Markdown>
             )}
           </div>
+
           {/* Assistant message toolbar - positioned absolutely to the left */}
           <div className="absolute left-0 -ml-0.5 mt-2 flex w-full flex-row justify-start gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-focus:opacity-100">
             <MessageToolbar

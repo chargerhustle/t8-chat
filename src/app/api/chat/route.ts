@@ -10,6 +10,7 @@ import {
 import { MODEL_CONFIGS, getModelStreamingType } from "@/ai/models-config";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
 import { getBYOKProvider, type BYOKError } from "@/lib/ai/byok-providers";
+import { createSaveToMemoryTool } from "@/ai/save-to-memory-tool";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
@@ -248,6 +249,12 @@ export async function POST(req: Request) {
           model: modelProvider,
           messages: requestData.messages,
           system: systemPrompt,
+          tools: {
+            saveToMemory: createSaveToMemoryTool(requestData.userId),
+          },
+          maxSteps: 5,
+          toolCallStreaming: true,
+          experimental_continueSteps: true,
           experimental_transform: smoothStream({
             delayInMs: 20,
             chunking: streamingType,

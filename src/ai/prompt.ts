@@ -12,6 +12,7 @@ export interface UserCustomization {
   occupation?: string;
   traits?: string;
   additionalInfo?: string;
+  memories?: Array<{ content: string; createdAt: number }>;
 }
 
 export function createSystemPrompt({
@@ -90,7 +91,7 @@ export function createSystemPrompt({
     if (userCustomization.name) {
       parts.push(`  - User's preferred name: ${userCustomization.name}`);
       parts.push(
-        "    Use this name naturally in conversation when appropriate, but don't overuse it."
+        "    Use this name sparingly and naturally, like a real person would - only when it feels organic to the conversation (greetings, getting attention, or personal moments). Avoid using it in every response or multiple times per response."
       );
     }
 
@@ -126,6 +127,26 @@ export function createSystemPrompt({
       "    • Reference their context when it adds value to your responses",
       "    • Maintain a natural, conversational tone that feels personal but not overly familiar",
       "    • Use their professional background to gauge appropriate technical complexity"
+    );
+  }
+
+  // User memories section
+  if (userCustomization?.memories && userCustomization.memories.length > 0) {
+    parts.push("- User Memory & Context:");
+    parts.push(
+      "  The following information has been saved from previous conversations with this user. Use this context to provide more personalized and relevant responses (do not push them):"
+    );
+
+    userCustomization.memories.forEach((memory) => {
+      const memoryDate = new Date(memory.createdAt).toLocaleDateString();
+      parts.push(`  • ${memory.content} (saved ${memoryDate})`);
+    });
+
+    parts.push(
+      "  - Reference this information naturally when relevant to the conversation. Do not overuse them.",
+      "  - Don't explicitly mention that you're using saved memories unless asked",
+      "  - Use this context to provide more personalized assistance",
+      "  - IMPORTANT: When using the saveToMemory tool, check existing memories first to avoid saving duplicate or redundant information. Only save genuinely NEW information that isn't already captured."
     );
   }
 

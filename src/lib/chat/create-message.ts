@@ -4,7 +4,7 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { AllowedModels, ChatRequest, EffortLevel, ModelParams } from "@/types";
 import { APIErrorResponse } from "@/types/api";
 import { processDataStream } from "ai";
-import { useTempMessageStore } from "@/lib/chat/temp-message-store";
+import { useTempMessageStore, Tool } from "@/lib/chat/temp-message-store";
 import { buildProviderOptions } from "@/lib/chat/provider-options";
 import {
   convertConvexMessagesToCoreMessages,
@@ -16,12 +16,51 @@ import { UserCustomization } from "@/ai/prompt";
 import { CreateMessageHooks } from "@/hooks/use-create-message";
 
 /**
+ * Get user memories data - localStorage first, then Convex fallback
+ */
+function getUserMemoriesData(
+  convexMemories:
+    | Array<{ content: string; createdAt: number }>
+    | null
+    | undefined
+): Array<{ content: string; createdAt: number }> {
+  const STORAGE_KEY = "user-memories";
+
+  try {
+    // Try localStorage first for immediate response
+    const localData = localStorage.getItem(STORAGE_KEY);
+    if (localData) {
+      const parsed = JSON.parse(localData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to parse localStorage memories:", error);
+  }
+
+  // Use the Convex data passed from the hook
+  if (convexMemories && Array.isArray(convexMemories)) {
+    return convexMemories;
+  }
+
+  return [];
+}
+
+/**
  * Get user customization data - localStorage first, then Convex fallback
  */
 async function getUserCustomizationData(
-  convexData: UserCustomization | null | undefined
+  convexData: UserCustomization | null | undefined,
+  convexMemories:
+    | Array<{ content: string; createdAt: number }>
+    | null
+    | undefined
 ): Promise<UserCustomization | null> {
   const STORAGE_KEY = "t8-chat-prompt-customization";
+
+  // Get memories using the same localStorage-first pattern
+  const memories = getUserMemoriesData(convexMemories);
 
   try {
     // Try localStorage first for immediate response
@@ -32,13 +71,15 @@ async function getUserCustomizationData(
         parsed.name ||
         parsed.occupation ||
         parsed.traits ||
-        parsed.additionalInfo
+        parsed.additionalInfo ||
+        memories.length > 0
       ) {
         return {
           name: parsed.name || "",
           occupation: parsed.occupation || "",
           traits: parsed.traits || "",
           additionalInfo: parsed.additionalInfo || "",
+          memories: memories.length > 0 ? memories : undefined,
         };
       }
     }
@@ -47,8 +88,14 @@ async function getUserCustomizationData(
   }
 
   // Use the Convex data passed from the hook
-  if (convexData) {
-    return convexData;
+  if (convexData || memories.length > 0) {
+    return {
+      name: convexData?.name || "",
+      occupation: convexData?.occupation || "",
+      traits: convexData?.traits || "",
+      additionalInfo: convexData?.additionalInfo || "",
+      memories: memories.length > 0 ? memories : undefined,
+    };
   }
 
   return null;
@@ -277,8 +324,10 @@ async function doChatFetchRequest(input: {
   const userApiKeys = getUserApiKeys();
 
   // Get user customization data
-  const userCustomizationData =
-    await getUserCustomizationData(userCustomization);
+  const userCustomizationData = await getUserCustomizationData(
+    userCustomization,
+    userCustomization?.memories
+  );
 
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
@@ -314,7 +363,8 @@ async function doChatFetchRequest(input: {
     // preferences: input.preferences ?? {},
   };
 
-  const { updateMessage, removeMessage } = useTempMessageStore.getState();
+  const { updateMessage, removeMessage, addTool, updateTool } =
+    useTempMessageStore.getState();
 
   const response = await fetch("/api/chat", {
     method: "POST",
@@ -362,6 +412,7 @@ async function doChatFetchRequest(input: {
   let messageContent = "";
   let reasoning = "";
   let providerMetadata: Record<string, unknown> | null = null;
+  const tools: Tool[] = [];
 
   // Process the stream data
   await processDataStream({
@@ -377,7 +428,6 @@ async function doChatFetchRequest(input: {
     onReasoningPart: async (text: string) => {
       reasoning += text;
 
-      // OPTIMAL: Direct method call, no repeated getState()
       updateMessage(input.assistantMessageId, {
         reasoning: reasoning,
         status: "streaming",
@@ -404,6 +454,112 @@ async function doChatFetchRequest(input: {
         }
       }
     },
+    onToolCallStreamingStartPart: async (part) => {
+      console.log("[TOOLS] Tool streaming start:", part);
+
+      const newTool = {
+        toolCallId: part.toolCallId,
+        toolName: part.toolName,
+        args: {},
+        state: "streaming-start" as const,
+        timestamp: Date.now(),
+      };
+
+      tools.push(newTool);
+      addTool(input.assistantMessageId, newTool);
+    },
+    onToolCallDeltaPart: async (part) => {
+      console.log("[TOOLS] Tool call delta:", part);
+
+      // Update local tools array but don't trigger React state updates
+      // to avoid infinite loop during streaming
+      const toolIndex = tools.findIndex(
+        (t) => t.toolCallId === part.toolCallId
+      );
+      if (toolIndex !== -1) {
+        tools[toolIndex] = {
+          ...tools[toolIndex],
+          state: "streaming-delta" as const,
+          timestamp: Date.now(),
+        };
+      }
+
+      // Don't call updateTool here to prevent infinite React state updates
+    },
+    onToolCallPart: async (part) => {
+      console.log("[TOOLS] Tool call complete:", part);
+
+      const toolUpdate = {
+        args: part.args,
+        state: "call" as const,
+        timestamp: Date.now(),
+      };
+
+      const toolIndex = tools.findIndex(
+        (t) => t.toolCallId === part.toolCallId
+      );
+      if (toolIndex !== -1) {
+        tools[toolIndex] = {
+          ...tools[toolIndex],
+          ...toolUpdate,
+        };
+      }
+
+      updateTool(input.assistantMessageId, part.toolCallId, toolUpdate);
+    },
+    onToolResultPart: async (result) => {
+      console.log("[TOOLS] Tool result received:", result);
+
+      const toolUpdate = {
+        result: result.result,
+        state: "result" as const,
+        timestamp: Date.now(),
+      };
+
+      const toolIndex = tools.findIndex(
+        (t) => t.toolCallId === result.toolCallId
+      );
+      if (toolIndex !== -1) {
+        tools[toolIndex] = {
+          ...tools[toolIndex],
+          ...toolUpdate,
+        };
+      }
+
+      updateTool(input.assistantMessageId, result.toolCallId, toolUpdate);
+
+      // Handle saveToMemory tool - use local tools array instead of store lookup
+      const correspondingTool = tools.find(
+        (tool) => tool.toolCallId === result.toolCallId
+      );
+
+      if (correspondingTool?.toolName === "saveToMemory") {
+        try {
+          const toolResult = result.result as {
+            success: boolean;
+            memories?: Array<{ content: string; createdAt: number }>;
+          };
+
+          if (toolResult.success && toolResult.memories) {
+            // Save to localStorage for instant settings UI access
+            const existingMemories = JSON.parse(
+              localStorage.getItem("user-memories") || "[]"
+            );
+            localStorage.setItem(
+              "user-memories",
+              JSON.stringify([...existingMemories, ...toolResult.memories])
+            );
+
+            console.log("[MEMORY] Saved memories to localStorage");
+          }
+        } catch (error) {
+          console.error(
+            "[MEMORY] Error handling saveToMemory tool result:",
+            error
+          );
+        }
+      }
+    },
     onFinishMessagePart: async () => {
       // 1. FIRST: Update temp store to "done" status (immediate UI feedback)
       updateMessage(input.assistantMessageId, {
@@ -414,13 +570,14 @@ async function doChatFetchRequest(input: {
 
       // 2. SECOND: Update Convex with final content (this was moved from API route)
       try {
-        // Update message with final content, reasoning, provider metadata, and stream ID
+        // Update message with final content, reasoning, provider metadata, tools, and stream ID
         const messageUpdate = input.hooks.mutations.updateMessage({
           messageId: input.assistantMessageId,
           content: messageContent,
           reasoning: reasoning,
           ...(providerMetadata && { providerMetadata }),
           ...(streamId && { streamId }),
+          ...(tools.length > 0 && { tools }),
           status: "done",
         });
 
@@ -449,7 +606,6 @@ async function doChatFetchRequest(input: {
       // Handle errors
       console.error("Stream error:", error);
 
-      // OPTIMAL: Direct method call, no repeated getState()
       updateMessage(input.assistantMessageId, {
         status: "error",
         content: `Error: ${error || "Unknown error"}`,

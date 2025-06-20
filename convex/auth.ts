@@ -72,6 +72,14 @@ export const getUserCustomization = query({
       occupation: v.string(),
       traits: v.string(),
       additionalInfo: v.string(),
+      memories: v.optional(
+        v.array(
+          v.object({
+            content: v.string(),
+            createdAt: v.number(),
+          })
+        )
+      ),
     })
   ),
   handler: async (ctx) => {
@@ -85,7 +93,17 @@ export const getUserCustomization = query({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
 
-    return userConfig?.customization || null;
+    if (!userConfig?.customization && !userConfig?.memories) {
+      return null;
+    }
+
+    return {
+      name: userConfig?.customization?.name || "",
+      occupation: userConfig?.customization?.occupation || "",
+      traits: userConfig?.customization?.traits || "",
+      additionalInfo: userConfig?.customization?.additionalInfo || "",
+      memories: userConfig?.memories || undefined,
+    };
   },
 });
 
