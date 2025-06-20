@@ -1,3 +1,5 @@
+import type { UserCustomization } from "@/types";
+
 interface UserContext {
   city?: string;
   country?: string;
@@ -5,14 +7,6 @@ interface UserContext {
   region?: string;
   name?: string;
   occupation?: string;
-}
-
-export interface UserCustomization {
-  name?: string;
-  occupation?: string;
-  traits?: string;
-  additionalInfo?: string;
-  memories?: Array<{ id: string; content: string; createdAt: number }>;
 }
 
 export function createSystemPrompt({

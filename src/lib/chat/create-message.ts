@@ -1,7 +1,13 @@
 import { api } from "@/convex/_generated/api";
 import { CONVEX_CLIENT } from "@/lib/convex-client";
 import { Doc, Id } from "@/convex/_generated/dataModel";
-import { AllowedModels, ChatRequest, EffortLevel, ModelParams } from "@/types";
+import {
+  AllowedModels,
+  ChatRequest,
+  EffortLevel,
+  ModelParams,
+  UserCustomization,
+} from "@/types";
 import { APIErrorResponse } from "@/types/api";
 import { processDataStream } from "ai";
 import { useTempMessageStore, Tool } from "@/lib/chat/temp-message-store";
@@ -12,7 +18,6 @@ import {
   type APIAttachment,
 } from "@/lib/chat/message-converter";
 import { getUserApiKeys } from "@/lib/ai/byok-providers";
-import { UserCustomization } from "@/ai/prompt";
 import { CreateMessageHooks } from "@/hooks/use-create-message";
 import { getCachedPreferences } from "@/hooks/use-user-preferences";
 

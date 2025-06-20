@@ -6,20 +6,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Trash2, Eye, EyeOff, Pencil, Check, X } from "lucide-react";
-import { useQuery, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ClearMemoriesDialog } from "./clear-memories-dialog";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
+import type { UserCustomization, Memory } from "@/types";
 
 const STORAGE_KEY = "t8-chat-memories";
 
-interface Memory {
-  id: string;
-  content: string;
-  createdAt: number;
+interface MemoryManagementProps {
+  customization?: UserCustomization | null;
 }
 
-export function MemoryManagement() {
+export function MemoryManagement({
+  customization: convexCustomization,
+}: MemoryManagementProps) {
   const [showMemories, setShowMemories] = useState(false);
   const [memories, setMemories] = useState<Memory[]>([]);
   const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
@@ -29,9 +30,6 @@ export function MemoryManagement() {
   // Get preferences from context
   const { preferences, updatePreference } = useUserPreferences();
   const memoriesEnabled = preferences.memoriesEnabled;
-
-  // Get data from Convex
-  const convexCustomization = useQuery(api.auth.getUserCustomization);
 
   // Mutations
   const updateMemoryMutation = useMutation(api.memories.updateMemory);

@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { useQuery, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { UserCustomization } from "@/types";
 
 const STORAGE_KEY = "t8-chat-prompt-customization";
 
@@ -18,7 +19,13 @@ interface PromptCustomizationData {
   additionalInfo: string;
 }
 
-export function PromptCustomization() {
+interface PromptCustomizationProps {
+  customization?: UserCustomization | null;
+}
+
+export function PromptCustomization({
+  customization: convexCustomization,
+}: PromptCustomizationProps) {
   const [name, setName] = useState("");
   const [occupation, setOccupation] = useState("");
   const [traits, setTraits] = useState("");
@@ -26,7 +33,6 @@ export function PromptCustomization() {
   const [hasChanges, setHasChanges] = useState(false);
 
   // Get data from Convex
-  const convexCustomization = useQuery(api.auth.getUserCustomization);
   const saveCustomization = useMutation(api.auth.saveUserCustomization);
 
   // Load data from localStorage first, then sync with Convex

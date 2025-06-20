@@ -6,7 +6,6 @@
 import type { CoreMessage } from "ai";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import type { MODEL_CONFIGS } from "@/ai/models-config";
-import type { UserCustomization } from "@/ai/prompt";
 import type { UserPreferences } from "@/hooks/use-user-preferences";
 
 // ============================================================================
@@ -194,3 +193,22 @@ export type SiteConfig = {
     //x: string;
   };
 };
+
+export interface Memory {
+  id: string;
+  content: string;
+  createdAt: number;
+}
+
+export interface UserCustomization {
+  name: string;
+  occupation: string;
+  traits: string;
+  additionalInfo: string;
+  memories?: Memory[];
+  preferences?: {
+    memoriesEnabled: boolean;
+    hidePersonalInfo: boolean;
+    statsForNerds: boolean;
+  };
+}

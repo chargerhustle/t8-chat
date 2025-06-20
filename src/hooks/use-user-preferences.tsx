@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
@@ -13,7 +19,7 @@ export interface UserPreferences {
 
 // Default preferences
 const DEFAULT_PREFERENCES: UserPreferences = {
-  memoriesEnabled: true,  // Default to enabled
+  memoriesEnabled: true, // Default to enabled
   hidePersonalInfo: false,
   statsForNerds: true,
 };
@@ -32,11 +38,14 @@ interface PreferencesContextType {
 }
 
 // Create context
-const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined);
+const PreferencesContext = createContext<PreferencesContextType | undefined>(
+  undefined
+);
 
 // Provider component
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [preferences, setPreferences] =
+    useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isLoading, setIsLoading] = useState(true);
 
   // Get data from Convex
@@ -62,14 +71,17 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
           hasLocalData = true;
         }
       } catch (error) {
-        console.error("Failed to parse saved preferences from localStorage:", error);
+        console.error(
+          "Failed to parse saved preferences from localStorage:",
+          error
+        );
       }
     }
 
     // When Convex data is available, use it as the authoritative source
     if (convexCustomization !== undefined) {
       setIsLoading(false);
-      
+
       if (convexCustomization?.preferences) {
         const convexPrefs: UserPreferences = {
           memoriesEnabled: convexCustomization.preferences.memoriesEnabled,
@@ -81,7 +93,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         setPreferences(convexPrefs);
 
         // Update localStorage with authoritative Convex data
-        localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(convexPrefs));
+        localStorage.setItem(
+          PREFERENCES_STORAGE_KEY,
+          JSON.stringify(convexPrefs)
+        );
       } else {
         // No Convex preferences data
         if (!hasLocalData) {
@@ -103,19 +118,25 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       // Optimistic update - update UI immediately
       const newPreferences = { ...preferences, [key]: value };
       setPreferences(newPreferences);
-      
+
       // Update localStorage immediately
-      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(newPreferences));
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify(newPreferences)
+      );
 
       // Save to Convex in the background
       await savePreferencesMutation(newPreferences);
     } catch (error) {
       // Revert optimistic update on error
       setPreferences(preferences);
-      
+
       // Revert localStorage
-      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
-      
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify(preferences)
+      );
+
       console.error("Failed to save preference:", error);
       throw error; // Re-throw so components can handle the error
     }
@@ -138,7 +159,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 export function useUserPreferences() {
   const context = useContext(PreferencesContext);
   if (context === undefined) {
-    throw new Error("useUserPreferences must be used within a PreferencesProvider");
+    throw new Error(
+      "useUserPreferences must be used within a PreferencesProvider"
+    );
   }
   return context;
 }
@@ -161,7 +184,7 @@ export function getCachedPreferences(): UserPreferences {
   } catch (error) {
     console.error("Failed to get cached preferences:", error);
   }
-  
+
   // Return defaults if cache is invalid
   return DEFAULT_PREFERENCES;
-} 
+}
