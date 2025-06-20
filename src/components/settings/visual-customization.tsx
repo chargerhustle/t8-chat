@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useUserPreferences } from "@/hooks/use-user-preferences";
 
 export function VisualCustomization() {
-  const [hidePersonalInfo, setHidePersonalInfo] = useState(false);
-  const [statsForNerds, setStatsForNerds] = useState(true);
+  const { preferences, updatePreference } = useUserPreferences();
+  const { hidePersonalInfo, statsForNerds } = preferences;
 
   return (
     <div className="space-y-6">
@@ -28,7 +28,9 @@ export function VisualCustomization() {
             aria-checked={hidePersonalInfo}
             data-state={hidePersonalInfo ? "checked" : "unchecked"}
             className="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary"
-            onClick={() => setHidePersonalInfo(!hidePersonalInfo)}
+            onClick={() =>
+              updatePreference("hidePersonalInfo", !hidePersonalInfo)
+            }
           >
             <span
               data-state={hidePersonalInfo ? "checked" : "unchecked"}
@@ -51,7 +53,7 @@ export function VisualCustomization() {
             aria-checked={statsForNerds}
             data-state={statsForNerds ? "checked" : "unchecked"}
             className="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary"
-            onClick={() => setStatsForNerds(!statsForNerds)}
+            onClick={() => updatePreference("statsForNerds", !statsForNerds)}
           >
             <span
               data-state={statsForNerds ? "checked" : "unchecked"}

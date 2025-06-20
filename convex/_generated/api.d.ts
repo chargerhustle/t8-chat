@@ -14,6 +14,7 @@ import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
 import type * as internal_chat from "../internal/chat.js";
 import type * as internal_threads from "../internal/threads.js";
+import type * as memories from "../memories.js";
 import type * as messages from "../messages.js";
 import type * as threads from "../threads.js";
 
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "internal/chat": typeof internal_chat;
   "internal/threads": typeof internal_threads;
+  memories: typeof memories;
   messages: typeof messages;
   threads: typeof threads;
 }>;

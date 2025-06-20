@@ -144,10 +144,18 @@ const applicationTables = {
     memories: v.optional(
       v.array(
         v.object({
+          id: v.string(),
           content: v.string(),
           createdAt: v.number(),
         })
       )
+    ),
+    preferences: v.optional(
+      v.object({
+        memoriesEnabled: v.boolean(),
+        hidePersonalInfo: v.boolean(),
+        statsForNerds: v.boolean(),
+      })
     ),
   }).index("by_userId", ["userId"]),
 };

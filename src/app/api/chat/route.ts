@@ -1,4 +1,4 @@
-import { streamText, createDataStream, smoothStream } from "ai";
+import { streamText, createDataStream, smoothStream, type Tool } from "ai";
 import { waitUntil } from "@vercel/functions";
 import { api } from "@/convex/_generated/api";
 import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client";
@@ -211,6 +211,7 @@ export async function POST(req: Request) {
       modelDescription,
       userContext,
       userCustomization: requestData.userCustomization,
+      memoriesEnabled: requestData.preferences?.memoriesEnabled,
     });
 
     // Debug log provider options
@@ -245,13 +246,19 @@ export async function POST(req: Request) {
           streamId: streamId,
         });
 
+        // Conditionally add tools based on user preferences
+        const tools: Record<string, Tool> = {};
+
+        // Only add memory tool if memories are enabled
+        if (requestData.preferences?.memoriesEnabled !== false) {
+          tools.saveToMemory = createSaveToMemoryTool(requestData.userId);
+        }
+
         const result = streamText({
           model: modelProvider,
           messages: requestData.messages,
           system: systemPrompt,
-          tools: {
-            saveToMemory: createSaveToMemoryTool(requestData.userId),
-          },
+          tools,
           maxSteps: 5,
           toolCallStreaming: true,
           experimental_continueSteps: true,

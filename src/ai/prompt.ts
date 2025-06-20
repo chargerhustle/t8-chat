@@ -12,7 +12,7 @@ export interface UserCustomization {
   occupation?: string;
   traits?: string;
   additionalInfo?: string;
-  memories?: Array<{ content: string; createdAt: number }>;
+  memories?: Array<{ id: string; content: string; createdAt: number }>;
 }
 
 export function createSystemPrompt({
@@ -21,12 +21,14 @@ export function createSystemPrompt({
   modelDescription,
   userContext,
   userCustomization,
+  memoriesEnabled,
 }: {
   model: string;
   modelDisplayName: string;
   modelDescription?: string;
   userContext?: UserContext;
   userCustomization?: UserCustomization;
+  memoriesEnabled?: boolean;
 }): string {
   const parts: string[] = [];
 
@@ -139,14 +141,29 @@ export function createSystemPrompt({
 
     userCustomization.memories.forEach((memory) => {
       const memoryDate = new Date(memory.createdAt).toLocaleDateString();
-      parts.push(`  • ${memory.content} (saved ${memoryDate})`);
+      parts.push(
+        `  • [ID: ${memory.id}] ${memory.content} (saved ${memoryDate})`
+      );
     });
 
     parts.push(
       "  - Reference this information naturally when relevant to the conversation. Do not overuse them.",
       "  - Don't explicitly mention that you're using saved memories unless asked",
-      "  - Use this context to provide more personalized assistance",
+      "  - Use this context to provide more personalized assistance"
+    );
+  }
+
+  // Memory preferences information
+  if (memoriesEnabled === true) {
+    parts.push("- Memory Saving Status:");
+    parts.push(
+      "  Memory saving is currently enabled in user preferences. You can save important information from conversations for future reference using the saveToMemory tool when appropriate. Users can manage their memory settings in [Settings > Customization](/settings/customization)",
       "  - IMPORTANT: When using the saveToMemory tool, check existing memories first to avoid saving duplicate or redundant information. Only save genuinely NEW information that isn't already captured."
+    );
+  } else if (memoriesEnabled === false) {
+    parts.push("- Memory Saving Status:");
+    parts.push(
+      "  Memory saving is currently disabled in user preferences. You cannot save information from conversations for future reference. If the user wants to enable memory saving, they can toggle on this feature in [Settings > Customization](/settings/customization)."
     );
   }
 

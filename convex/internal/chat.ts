@@ -129,6 +129,7 @@ export const saveMemory = internalApiMutation({
   args: {
     userId: v.id("users"),
     memory: v.object({
+      id: v.string(),
       content: v.string(),
       createdAt: v.number(),
     }),
@@ -152,6 +153,7 @@ export const saveMemory = internalApiMutation({
     } else {
       // Update existing user configuration by adding the memory
       const existingMemories = userConfig.memories || [];
+
       await ctx.db.patch(userConfig._id, {
         memories: [...existingMemories, args.memory],
       });
@@ -167,6 +169,7 @@ export const saveMemories = internalApiMutation({
     userId: v.id("users"),
     memories: v.array(
       v.object({
+        id: v.string(),
         content: v.string(),
         createdAt: v.number(),
       })
@@ -195,6 +198,7 @@ export const saveMemories = internalApiMutation({
     } else {
       // Update existing user configuration by adding all memories
       const existingMemories = userConfig.memories || [];
+
       await ctx.db.patch(userConfig._id, {
         memories: [...existingMemories, ...args.memories],
       });

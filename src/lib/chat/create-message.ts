@@ -14,17 +14,18 @@ import {
 import { getUserApiKeys } from "@/lib/ai/byok-providers";
 import { UserCustomization } from "@/ai/prompt";
 import { CreateMessageHooks } from "@/hooks/use-create-message";
+import { getCachedPreferences } from "@/hooks/use-user-preferences";
 
 /**
  * Get user memories data - localStorage first, then Convex fallback
  */
 function getUserMemoriesData(
   convexMemories:
-    | Array<{ content: string; createdAt: number }>
+    | Array<{ id: string; content: string; createdAt: number }>
     | null
     | undefined
-): Array<{ content: string; createdAt: number }> {
-  const STORAGE_KEY = "user-memories";
+): Array<{ id: string; content: string; createdAt: number }> {
+  const STORAGE_KEY = "t8-chat-memories";
 
   try {
     // Try localStorage first for immediate response
@@ -53,7 +54,7 @@ function getUserMemoriesData(
 async function getUserCustomizationData(
   convexData: UserCustomization | null | undefined,
   convexMemories:
-    | Array<{ content: string; createdAt: number }>
+    | Array<{ id: string; content: string; createdAt: number }>
     | null
     | undefined
 ): Promise<UserCustomization | null> {
@@ -323,6 +324,9 @@ async function doChatFetchRequest(input: {
   // Get user API keys for BYOK
   const userApiKeys = getUserApiKeys();
 
+  // Get user preferences (fast, synchronous)
+  const userPreferences = getCachedPreferences();
+
   // Get user customization data
   const userCustomizationData = await getUserCustomizationData(
     userCustomization,
@@ -360,7 +364,8 @@ async function doChatFetchRequest(input: {
         input.modelParams.includeSearch
       ),
     }),
-    // preferences: input.preferences ?? {},
+    // User preferences for tool enabling/disabling
+    preferences: userPreferences,
   };
 
   const { updateMessage, removeMessage, addTool, updateTool } =
@@ -534,30 +539,9 @@ async function doChatFetchRequest(input: {
       );
 
       if (correspondingTool?.toolName === "saveToMemory") {
-        try {
-          const toolResult = result.result as {
-            success: boolean;
-            memories?: Array<{ content: string; createdAt: number }>;
-          };
-
-          if (toolResult.success && toolResult.memories) {
-            // Save to localStorage for instant settings UI access
-            const existingMemories = JSON.parse(
-              localStorage.getItem("user-memories") || "[]"
-            );
-            localStorage.setItem(
-              "user-memories",
-              JSON.stringify([...existingMemories, ...toolResult.memories])
-            );
-
-            console.log("[MEMORY] Saved memories to localStorage");
-          }
-        } catch (error) {
-          console.error(
-            "[MEMORY] Error handling saveToMemory tool result:",
-            error
-          );
-        }
+        console.log(
+          "[MEMORY] saveToMemory tool completed - Memory Management component will handle localStorage sync"
+        );
       }
     },
     onFinishMessagePart: async () => {

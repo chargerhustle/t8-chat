@@ -9,7 +9,7 @@ import { useNavigate } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MemoryIndicatorProps {
-  memoriesSaved: Array<{ content: string; createdAt: number }>;
+  memoriesSaved: Array<{ id: string; content: string; createdAt: number }>;
 }
 
 export function MemoryIndicator({ memoriesSaved }: MemoryIndicatorProps) {

@@ -63,6 +63,46 @@ export const saveUserCustomization = mutation({
   },
 });
 
+export const saveUserPreferences = mutation({
+  args: {
+    memoriesEnabled: v.boolean(),
+    hidePersonalInfo: v.boolean(),
+    statsForNerds: v.boolean(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const preferences = {
+      memoriesEnabled: args.memoriesEnabled,
+      hidePersonalInfo: args.hidePersonalInfo,
+      statsForNerds: args.statsForNerds,
+    };
+
+    // Check if user configuration already exists
+    const existingConfig = await ctx.db
+      .query("userConfiguration")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (existingConfig) {
+      // Update existing configuration
+      await ctx.db.patch(existingConfig._id, { preferences });
+    } else {
+      // Create new configuration
+      await ctx.db.insert("userConfiguration", {
+        userId,
+        preferences,
+      });
+    }
+
+    return null;
+  },
+});
+
 export const getUserCustomization = query({
   args: {},
   returns: v.union(
@@ -75,10 +115,18 @@ export const getUserCustomization = query({
       memories: v.optional(
         v.array(
           v.object({
+            id: v.string(),
             content: v.string(),
             createdAt: v.number(),
           })
         )
+      ),
+      preferences: v.optional(
+        v.object({
+          memoriesEnabled: v.boolean(),
+          hidePersonalInfo: v.boolean(),
+          statsForNerds: v.boolean(),
+        })
       ),
     })
   ),
@@ -103,6 +151,7 @@ export const getUserCustomization = query({
       traits: userConfig?.customization?.traits || "",
       additionalInfo: userConfig?.customization?.additionalInfo || "",
       memories: userConfig?.memories || undefined,
+      preferences: userConfig?.preferences || undefined,
     };
   },
 });

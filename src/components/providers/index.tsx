@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/theme/provider";
 import { ConvexAuthProvider } from "./convex-auth-provider";
+import { PreferencesProvider } from "@/hooks/use-user-preferences";
 
 export default function RootProviders({
   children,
@@ -8,14 +9,16 @@ export default function RootProviders({
 }) {
   return (
     <ConvexAuthProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        forcedTheme="dark"
-        disableTransitionOnChange
-      >
-        {children}
-      </ThemeProvider>
+      <PreferencesProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          forcedTheme="dark"
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </PreferencesProvider>
     </ConvexAuthProvider>
   );
 }

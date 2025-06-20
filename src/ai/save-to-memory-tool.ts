@@ -4,6 +4,24 @@ import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
+/**
+ * Generate a short, human-readable memory ID
+ * Format: mem_YYYYMMDD_XXXXX (e.g., mem_20241215_A3B7K)
+ */
+function generateMemoryId(): string {
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+
+  // Generate 5 random alphanumeric characters (uppercase)
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let randomStr = "";
+  for (let i = 0; i < 5; i++) {
+    randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return `mem_${dateStr}_${randomStr}`;
+}
+
 export const createSaveToMemoryTool = (userId: string) =>
   tool({
     description:
@@ -25,6 +43,7 @@ export const createSaveToMemoryTool = (userId: string) =>
 
         // Create memory objects for each piece of information
         const memoryObjects = memories.map((content) => ({
+          id: generateMemoryId(),
           content,
           createdAt: Date.now(),
         }));
@@ -58,6 +77,7 @@ export type SaveToMemoryResult = {
   success: boolean;
   message: string;
   memories?: Array<{
+    id: string;
     content: string;
     createdAt: number;
   }>;

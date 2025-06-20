@@ -29,11 +29,10 @@ export function PromptCustomization() {
   const convexCustomization = useQuery(api.auth.getUserCustomization);
   const saveCustomization = useMutation(api.auth.saveUserCustomization);
 
-  // Load data from localStorage first, then fallback to Convex
+  // Load data from localStorage first, then sync with Convex
   useEffect(() => {
-    // First, try to load from localStorage
+    // First, try to load from localStorage for immediate UI update
     const savedData = localStorage.getItem(STORAGE_KEY);
-    let loadedFromLocalStorage = false;
 
     if (savedData) {
       try {
@@ -42,7 +41,6 @@ export function PromptCustomization() {
         setOccupation(parsedData.occupation || "");
         setTraits(parsedData.traits || "");
         setAdditionalInfo(parsedData.additionalInfo || "");
-        loadedFromLocalStorage = true;
       } catch (error) {
         console.error(
           "Failed to parse saved prompt customization data from localStorage:",
@@ -51,13 +49,33 @@ export function PromptCustomization() {
       }
     }
 
-    // Only use Convex data as fallback if localStorage didn't provide valid data
-    if (!loadedFromLocalStorage && convexCustomization !== undefined) {
+    // When Convex data is available, use it as the authoritative source
+    if (convexCustomization !== undefined) {
       if (convexCustomization) {
-        setName(convexCustomization.name || "");
-        setOccupation(convexCustomization.occupation || "");
-        setTraits(convexCustomization.traits || "");
-        setAdditionalInfo(convexCustomization.additionalInfo || "");
+        const convexData: PromptCustomizationData = {
+          name: convexCustomization.name || "",
+          occupation: convexCustomization.occupation || "",
+          traits: convexCustomization.traits || "",
+          additionalInfo: convexCustomization.additionalInfo || "",
+        };
+
+        // Update state with Convex data
+        setName(convexData.name);
+        setOccupation(convexData.occupation);
+        setTraits(convexData.traits);
+        setAdditionalInfo(convexData.additionalInfo);
+
+        // Update localStorage with authoritative Convex data
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(convexData));
+      } else {
+        // No Convex data - clear everything (user deleted data)
+        setName("");
+        setOccupation("");
+        setTraits("");
+        setAdditionalInfo("");
+
+        // Clear localStorage cache since Convex has no data
+        localStorage.removeItem(STORAGE_KEY);
       }
     }
   }, [convexCustomization]);
