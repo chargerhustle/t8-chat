@@ -8,6 +8,9 @@ import {
   MemoryManagement,
 } from "@/components/settings";
 
+/**
+ * Renders the content for the customization settings tab, including prompt, memory, and visual customization sections.
+ */
 function CustomizationPageContent() {
   const { userCustomization } = useSettingsData();
 
@@ -20,6 +23,9 @@ function CustomizationPageContent() {
   );
 }
 
+/**
+ * Renders the customization settings page within the settings layout, displaying user customization options in the "customization" tab.
+ */
 export default function CustomizationPage() {
   return (
     <SettingsLayout defaultTab="customization">

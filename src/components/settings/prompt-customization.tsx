@@ -23,6 +23,11 @@ interface PromptCustomizationProps {
   customization?: UserCustomization | null;
 }
 
+/**
+ * Renders a form for users to customize their T8 Chat preferences, including name, occupation, personality traits, and additional information.
+ *
+ * Loads existing customization data from localStorage for immediate feedback and synchronizes with Convex backend data when available. Allows users to edit and save their preferences, updating both localStorage and the backend. Displays character counts for each input and disables the save button unless changes are detected.
+ */
 export function PromptCustomization({
   customization: convexCustomization,
 }: PromptCustomizationProps) {

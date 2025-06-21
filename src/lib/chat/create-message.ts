@@ -22,7 +22,9 @@ import { CreateMessageHooks } from "@/hooks/use-create-message";
 import { getCachedPreferences } from "@/hooks/use-user-preferences";
 
 /**
- * Get user memories data - Convex authoritative, localStorage fallback only during loading
+ * Retrieves user memories, preferring Convex data if available and falling back to localStorage only while Convex is loading.
+ *
+ * @returns An array of user memory objects, each containing an `id`, `content`, and `createdAt` timestamp.
  */
 function getUserMemoriesData(
   convexMemories:
@@ -54,7 +56,11 @@ function getUserMemoriesData(
 }
 
 /**
- * Get user customization data - Convex authoritative, localStorage fallback during loading
+ * Retrieves user customization data, prioritizing Convex data if available and falling back to localStorage only while Convex is loading.
+ *
+ * Combines user customization fields with user memories. Returns `null` if no customization or memories are found.
+ *
+ * @returns The user customization object with optional memories, or `null` if unavailable.
  */
 async function getUserCustomizationData(
   convexData: UserCustomization | null | undefined,
@@ -314,7 +320,11 @@ export async function createMessage(
 }
 
 /**
- * Process chat request and handle streaming response
+ * Sends a chat request to the API, processes the streaming response, and updates message and tool states in real time.
+ *
+ * Handles user authentication, user preferences, and customization data. Updates temporary and persistent message stores with streaming content, reasoning, provider metadata, tool call states, and errors. Supports tool call streaming and result handling, and marks threads as completed upon response finalization.
+ *
+ * @param input - Contains chat messages, thread and user identifiers, model configuration, and hooks for data mutations and queries.
  */
 async function doChatFetchRequest(input: {
   coreMessages: ChatRequest["messages"];

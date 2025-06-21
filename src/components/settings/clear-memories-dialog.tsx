@@ -18,6 +18,16 @@ interface ClearMemoriesDialogProps {
   memoryCount: number;
 }
 
+/**
+ * Displays a confirmation dialog for clearing all saved memories.
+ *
+ * Renders a modal dialog prompting the user to confirm deletion of all saved memories, showing the total number to be deleted. Provides options to cancel or confirm the action.
+ *
+ * @param isOpen - Whether the dialog is visible
+ * @param onClose - Callback invoked when the dialog is closed
+ * @param onConfirmClear - Callback invoked when the user confirms clearing memories
+ * @param memoryCount - The number of memories to be cleared, displayed in the dialog message
+ */
 export function ClearMemoriesDialog({
   isOpen,
   onClose,

@@ -14,6 +14,16 @@ interface MemoryIndicatorProps {
   memoriesDeleted?: Array<{ id: string; content: string }>;
 }
 
+/**
+ * Displays an indicator for recent memory actions, such as saved, updated, or deleted memories.
+ *
+ * Shows a message and icon reflecting the most recent memory action. On mobile devices, displays a simple inline indicator. On non-mobile devices, provides a popover with a scrollable list of affected memory contents and a "Manage" button that navigates to customization settings. If no memory actions are present, renders nothing.
+ *
+ * @param memoriesSaved - Optional array of newly saved memory objects to display
+ * @param memoriesUpdated - Optional array of updated memory objects to display
+ * @param memoriesDeleted - Optional array of deleted memory objects to display
+ * @returns The rendered memory indicator component, or null if no memory actions are present
+ */
 export function MemoryIndicator({
   memoriesSaved,
   memoriesUpdated,

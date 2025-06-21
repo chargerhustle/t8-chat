@@ -16,6 +16,14 @@ interface UserStatsCardProps {
   } | null;
 }
 
+/**
+ * Displays a card with user statistics and an optional customization button.
+ *
+ * Shows information such as the user's join date, total conversations, favorite model, and last activity. Prioritizes cached statistics for immediate display and updates the cache when new data is provided. Optionally renders a button to navigate to the customization settings.
+ *
+ * @param showCustomizeButton - Whether to display the "Customize your experience" button (defaults to true)
+ * @param userStats - User statistics to display; if not provided, only cached data is shown
+ */
 export function UserStatsCard({
   showCustomizeButton = true,
   userStats,

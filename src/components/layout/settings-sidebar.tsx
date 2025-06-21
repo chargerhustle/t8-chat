@@ -18,6 +18,14 @@ interface SettingsSidebarProps {
     | undefined;
 }
 
+/**
+ * Renders a sidebar displaying the current user's profile, user statistics, and keyboard shortcuts.
+ *
+ * The sidebar includes the user's avatar, name, email (with a flip animation to reveal a copyable user ID), a "Pro Plan" badge, user statistics, and a keyboard shortcuts card. It is visible only on medium and larger screens.
+ *
+ * @param currentUser - The current user object or null/undefined if not available.
+ * @param userStats - An object containing user statistics or null/undefined if not available.
+ */
 export function SettingsSidebar({
   currentUser,
   userStats,

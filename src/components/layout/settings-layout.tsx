@@ -32,6 +32,12 @@ const SettingsDataContext = createContext<SettingsDataContextType | undefined>(
   undefined
 );
 
+/**
+ * Provides access to user-related settings data from the SettingsDataContext.
+ *
+ * Must be called within a component rendered inside a SettingsLayout. Throws an error if used outside the context provider.
+ * @returns The current settings data context, including user information, statistics, and customization.
+ */
 export function useSettingsData() {
   const context = useContext(SettingsDataContext);
   if (context === undefined) {
@@ -40,6 +46,14 @@ export function useSettingsData() {
   return context;
 }
 
+/**
+ * Provides a layout for the user settings page, fetching user data and sharing it via context to descendant components.
+ *
+ * Fetches the current user, user statistics, and customization data, then supplies them through a context provider. Renders the settings header, sidebar, and tabbed content area.
+ *
+ * @param children - The content to display within the settings tabs
+ * @param defaultTab - The tab to display by default, if specified
+ */
 export function SettingsLayout({ children, defaultTab }: SettingsLayoutProps) {
   // Lift all queries to this level to avoid duplication
   const currentUser = useQuery(api.auth.getCurrentUser);

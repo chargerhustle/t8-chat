@@ -86,6 +86,13 @@ function getStreamContext() {
   return globalStreamContext;
 }
 
+/**
+ * Handles chat POST requests, streaming AI-generated responses with support for resumable streams and memory tools.
+ *
+ * Validates the request payload, manages thread title generation, updates message status, and invokes the appropriate AI model provider using user-supplied API keys. Integrates memory management tools if enabled in user preferences. Returns a streaming response, supporting resumable streams when available, or an error response if validation or processing fails.
+ *
+ * @returns A streaming HTTP response containing AI-generated chat output, or a JSON error response on failure.
+ */
 export async function POST(req: Request) {
   console.log("[CHAT] API route called");
 

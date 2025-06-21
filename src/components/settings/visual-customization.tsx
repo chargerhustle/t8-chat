@@ -5,6 +5,11 @@ import { Label } from "@/components/ui/label";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { toast } from "sonner";
 
+/**
+ * Renders the visual customization settings UI, allowing users to toggle personal information visibility, enable detailed message statistics, and preview font selections.
+ *
+ * Provides interactive controls for user visual preferences, including toggles for hiding personal information and enabling advanced statistics, as well as a preview of main text and code fonts.
+ */
 export function VisualCustomization() {
   const { preferences, updatePreference } = useUserPreferences();
   const { hidePersonalInfo, statsForNerds } = preferences;

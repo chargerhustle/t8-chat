@@ -5,8 +5,11 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
 /**
- * Generate a short, human-readable memory ID
- * Format: mem_YYYYMMDD_XXXXX (e.g., mem_20241215_A3B7K)
+ * Generates a unique, human-readable memory ID string in the format `mem_YYYYMMDD_XXXXX`.
+ *
+ * The ID consists of the current date (YYYYMMDD) and a random 5-character uppercase alphanumeric suffix.
+ *
+ * @returns A memory ID string such as `mem_20241215_A3B7K`
  */
 function generateMemoryId(): string {
   const now = new Date();

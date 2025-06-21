@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, FileText, Zap, Trash2 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/auth/delete-account-dialog";
 
+/**
+ * Renders the main content for the account settings page, including feature highlights, user statistics, account management options, and support information.
+ *
+ * Displays a confirmation dialog when the user initiates account deletion.
+ */
 function AccountPageContent() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { userStats } = useSettingsData();
@@ -113,6 +118,11 @@ function AccountPageContent() {
   );
 }
 
+/**
+ * Renders the account settings page within the settings layout, displaying account-related features and management options.
+ *
+ * This component sets the default tab to "account" and includes the main account content.
+ */
 export default function AccountPage() {
   return (
     <SettingsLayout defaultTab="account">

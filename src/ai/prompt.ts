@@ -9,6 +9,19 @@ interface UserContext {
   occupation?: string;
 }
 
+/**
+ * Constructs a detailed system prompt string for the T8 Chat AI assistant, incorporating model details, user context, personalization, and memory management instructions.
+ *
+ * The prompt includes model-specific formatting rules, user location and profile information, memory context, and operational guidelines for memory tools based on the `memoriesEnabled` flag and available user memories.
+ *
+ * @param model - The identifier of the AI model in use.
+ * @param modelDisplayName - The human-readable name of the model.
+ * @param modelDescription - An optional description of the model.
+ * @param userContext - Optional user location and timezone information.
+ * @param userCustomization - Optional user profile, preferences, and saved memories for personalization.
+ * @param memoriesEnabled - Optional flag indicating if memory management features are enabled.
+ * @returns A comprehensive system prompt string tailored to the provided context and settings.
+ */
 export function createSystemPrompt({
   model,
   modelDisplayName,
