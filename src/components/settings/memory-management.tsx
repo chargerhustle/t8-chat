@@ -19,6 +19,13 @@ interface MemoryManagementProps {
   customization?: UserCustomization | null;
 }
 
+/**
+ * Displays and manages the user's saved conversation memories, allowing viewing, editing, deleting, and clearing of memories with synchronization between local storage and the backend.
+ *
+ * Provides controls to enable or disable memory saving, view and manage individual memories, and clear all memories with confirmation. Optimistically updates the UI and local storage, with backend synchronization and error handling.
+ *
+ * @param customization - Optional user customization data, including the authoritative list of memories from the backend.
+ */
 export function MemoryManagement({
   customization: convexCustomization,
 }: MemoryManagementProps) {

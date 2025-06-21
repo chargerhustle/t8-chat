@@ -42,7 +42,13 @@ const PreferencesContext = createContext<PreferencesContextType | undefined>(
   undefined
 );
 
-// Provider component
+/**
+ * Provides user preferences context to child components, synchronizing preferences between localStorage and the Convex backend.
+ *
+ * Initializes preferences from localStorage for immediate UI responsiveness, then updates from Convex when available. Exposes current preferences, an async update function with optimistic UI updates, and a loading state.
+ *
+ * Must wrap components that require access to user preferences.
+ */
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] =
     useState<UserPreferences>(DEFAULT_PREFERENCES);
@@ -149,7 +155,12 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to use preferences
+/**
+ * Provides access to the user preferences context.
+ *
+ * Throws an error if used outside of a PreferencesProvider.
+ * @returns The current user preferences, update function, and loading state.
+ */
 export function useUserPreferences() {
   const context = useContext(PreferencesContext);
   if (context === undefined) {
@@ -160,7 +171,13 @@ export function useUserPreferences() {
   return context;
 }
 
-// Utility function for fast synchronous access (for message creation)
+/**
+ * Retrieves user preferences from localStorage, returning defaults if unavailable or invalid.
+ *
+ * Attempts to read and validate cached preferences for immediate synchronous access. If the cache is missing or malformed, returns the default preferences.
+ *
+ * @returns The user preferences from localStorage if valid; otherwise, the default preferences
+ */
 export function getCachedPreferences(): UserPreferences {
   try {
     const saved = localStorage.getItem(PREFERENCES_STORAGE_KEY);
