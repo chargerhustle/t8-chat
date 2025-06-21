@@ -70,7 +70,13 @@ async function getUserCustomizationData(
 
   // If Convex data has loaded (not undefined), use it as authoritative
   if (convexData !== undefined) {
-    if (convexData || memories.length > 0) {
+    const hasAnyData =
+      convexData?.name ||
+      convexData?.occupation ||
+      convexData?.traits ||
+      convexData?.additionalInfo ||
+      memories.length > 0;
+    if (hasAnyData) {
       return {
         name: convexData?.name || "",
         occupation: convexData?.occupation || "",
@@ -425,7 +431,7 @@ async function doChatFetchRequest(input: {
   let messageContent = "";
   let reasoning = "";
   let providerMetadata: Record<string, unknown> | null = null;
-  const tools: Tool[] = [];
+  const tools = new Map<string, Tool>();
 
   // Process the stream data
   await processDataStream({
@@ -478,23 +484,21 @@ async function doChatFetchRequest(input: {
         timestamp: Date.now(),
       };
 
-      tools.push(newTool);
+      tools.set(part.toolCallId, newTool);
       addTool(input.assistantMessageId, newTool);
     },
     onToolCallDeltaPart: async (part) => {
       console.log("[TOOLS] Tool call delta:", part);
 
-      // Update local tools array but don't trigger React state updates
+      // Update local tools map but don't trigger React state updates
       // to avoid infinite loop during streaming
-      const toolIndex = tools.findIndex(
-        (t) => t.toolCallId === part.toolCallId
-      );
-      if (toolIndex !== -1) {
-        tools[toolIndex] = {
-          ...tools[toolIndex],
+      const existingTool = tools.get(part.toolCallId);
+      if (existingTool) {
+        tools.set(part.toolCallId, {
+          ...existingTool,
           state: "streaming-delta" as const,
           timestamp: Date.now(),
-        };
+        });
       }
 
       // Don't call updateTool here to prevent infinite React state updates
@@ -508,14 +512,12 @@ async function doChatFetchRequest(input: {
         timestamp: Date.now(),
       };
 
-      const toolIndex = tools.findIndex(
-        (t) => t.toolCallId === part.toolCallId
-      );
-      if (toolIndex !== -1) {
-        tools[toolIndex] = {
-          ...tools[toolIndex],
+      const existingTool = tools.get(part.toolCallId);
+      if (existingTool) {
+        tools.set(part.toolCallId, {
+          ...existingTool,
           ...toolUpdate,
-        };
+        });
       }
 
       updateTool(input.assistantMessageId, part.toolCallId, toolUpdate);
@@ -529,22 +531,18 @@ async function doChatFetchRequest(input: {
         timestamp: Date.now(),
       };
 
-      const toolIndex = tools.findIndex(
-        (t) => t.toolCallId === result.toolCallId
-      );
-      if (toolIndex !== -1) {
-        tools[toolIndex] = {
-          ...tools[toolIndex],
+      const existingTool = tools.get(result.toolCallId);
+      if (existingTool) {
+        tools.set(result.toolCallId, {
+          ...existingTool,
           ...toolUpdate,
-        };
+        });
       }
 
       updateTool(input.assistantMessageId, result.toolCallId, toolUpdate);
 
-      // Handle saveToMemory tool - use local tools array instead of store lookup
-      const correspondingTool = tools.find(
-        (tool) => tool.toolCallId === result.toolCallId
-      );
+      // Handle saveToMemory tool - use local tools map instead of store lookup
+      const correspondingTool = tools.get(result.toolCallId);
 
       if (correspondingTool?.toolName === "saveToMemory") {
         console.log(
@@ -563,13 +561,14 @@ async function doChatFetchRequest(input: {
       // 2. SECOND: Update Convex with final content (this was moved from API route)
       try {
         // Update message with final content, reasoning, provider metadata, tools, and stream ID
+        const toolsArray = Array.from(tools.values());
         const messageUpdate = input.hooks.mutations.updateMessage({
           messageId: input.assistantMessageId,
           content: messageContent,
           reasoning: reasoning,
           ...(providerMetadata && { providerMetadata }),
           ...(streamId && { streamId }),
-          ...(tools.length > 0 && { tools }),
+          ...(toolsArray.length > 0 && { tools: toolsArray }),
           status: "done",
         });
 

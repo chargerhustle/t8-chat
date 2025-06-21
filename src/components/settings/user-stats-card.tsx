@@ -40,16 +40,17 @@ export function UserStatsCard({
   useEffect(() => {
     if (
       userStats &&
-      (!cachedStats ||
-        userStats.joinedDate !== cachedStats.joinedDate ||
-        userStats.totalThreads !== cachedStats.totalThreads ||
-        userStats.lastActivity !== cachedStats.lastActivity ||
-        userStats.favoriteModel !== cachedStats.favoriteModel)
+      JSON.stringify(userStats) !== JSON.stringify(cachedStats)
     ) {
-      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats));
-      setCachedStats(userStats);
+      try {
+        localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats));
+        setCachedStats(userStats);
+      } catch (error) {
+        console.error("Failed to save user stats to localStorage:", error);
+      }
     }
-  }, [userStats, cachedStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userStats]);
 
   // Use cached data first, fallback to Convex, then loading state
   const displayStats = cachedStats || userStats;
