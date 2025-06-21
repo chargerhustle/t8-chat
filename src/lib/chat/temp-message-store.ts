@@ -2,6 +2,15 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { useMemo } from "react";
 
+export type Tool = {
+  toolCallId: string;
+  toolName: string;
+  args: Record<string, unknown>;
+  result?: unknown;
+  state: "streaming-start" | "streaming-delta" | "call" | "result";
+  timestamp: number;
+};
+
 export type TempMessage = {
   messageId: string;
   threadId: string;
@@ -12,6 +21,7 @@ export type TempMessage = {
   model: string; // Add model field to track which model is being used
   created_at: number;
   updated_at: number;
+  tools?: Tool[];
 };
 
 // Internal store type
@@ -25,6 +35,14 @@ type InternalTempMessageStore = {
   removeMessage: (messageId: string) => void;
   clearThread: (threadId: string) => void;
   clearAllMessages: () => void;
+
+  // Tool-specific actions
+  addTool: (messageId: string, tool: Tool) => void;
+  updateTool: (
+    messageId: string,
+    toolCallId: string,
+    updates: Partial<Tool>
+  ) => void;
 };
 
 // Public interface
@@ -36,6 +54,14 @@ export type TempMessageStore = {
   removeMessage: (messageId: string) => void;
   clearThread: (threadId: string) => void;
   clearAllMessages: () => void;
+
+  // Tool-specific actions
+  addTool: (messageId: string, tool: Tool) => void;
+  updateTool: (
+    messageId: string,
+    toolCallId: string,
+    updates: Partial<Tool>
+  ) => void;
 };
 
 export const useTempMessageStore = create<InternalTempMessageStore>()(
@@ -72,6 +98,31 @@ export const useTempMessageStore = create<InternalTempMessageStore>()(
       })),
 
     clearAllMessages: () => set({ messages: [] }),
+
+    addTool: (messageId, tool) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? { ...msg, tools: [...(msg.tools || []), tool] }
+            : msg
+        ),
+      })),
+
+    updateTool: (messageId, toolCallId, updates) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? {
+                ...msg,
+                tools: msg.tools?.map((tool) =>
+                  tool.toolCallId === toolCallId
+                    ? { ...tool, ...updates }
+                    : tool
+                ),
+              }
+            : msg
+        ),
+      })),
   }))
 );
 
@@ -109,3 +160,9 @@ export const useRemoveMessage = () =>
 
 export const useClearThread = () =>
   useTempMessageStore((state) => state.clearThread);
+
+// Tool-specific action hooks
+export const useAddTool = () => useTempMessageStore((state) => state.addTool);
+
+export const useUpdateTool = () =>
+  useTempMessageStore((state) => state.updateTool);

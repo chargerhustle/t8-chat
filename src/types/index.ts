@@ -6,7 +6,7 @@
 import type { CoreMessage } from "ai";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import type { MODEL_CONFIGS } from "@/ai/models-config";
-import type { UserCustomization } from "@/ai/prompt";
+import type { UserPreferences } from "@/hooks/use-user-preferences";
 
 // ============================================================================
 // CONVEX DOCUMENT ALIASES (for convenience only)
@@ -75,6 +75,7 @@ export interface ChatRequest {
   responseMessageId: string;
   userId?: UserId;
   userCustomization?: UserCustomization;
+  preferences?: UserPreferences;
 
   // BYOK - User API keys
   userApiKeys?: {
@@ -192,3 +193,18 @@ export type SiteConfig = {
     //x: string;
   };
 };
+
+export interface Memory {
+  id: string;
+  content: string;
+  createdAt: number;
+}
+
+export interface UserCustomization {
+  name: string;
+  occupation: string;
+  traits: string;
+  additionalInfo: string;
+  memories?: Memory[];
+  preferences?: UserPreferences;
+}

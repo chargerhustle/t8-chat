@@ -161,6 +161,23 @@ export const updateMessage = mutation({
     providerMetadata: v.optional(ProviderMetadataValidator),
     status: v.optional(MessageStatusValidator),
     streamId: v.optional(v.string()),
+    tools: v.optional(
+      v.array(
+        v.object({
+          toolCallId: v.string(),
+          toolName: v.string(),
+          args: v.any(),
+          result: v.optional(v.any()),
+          state: v.union(
+            v.literal("streaming-start"),
+            v.literal("streaming-delta"),
+            v.literal("call"),
+            v.literal("result")
+          ),
+          timestamp: v.number(),
+        })
+      )
+    ),
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -198,6 +215,14 @@ export const updateMessage = mutation({
       status?: Infer<typeof MessageStatusValidator>;
       providerMetadata?: Infer<typeof ProviderMetadataValidator>;
       resumableStreamId?: string;
+      tools?: Array<{
+        toolCallId: string;
+        toolName: string;
+        args: any;
+        result?: any;
+        state: "streaming-start" | "streaming-delta" | "call" | "result";
+        timestamp: number;
+      }>;
     } = {};
 
     if (args.content) insert.content = args.content;
@@ -205,6 +230,7 @@ export const updateMessage = mutation({
     if (args.providerMetadata) insert.providerMetadata = args.providerMetadata;
     if (args.status) insert.status = args.status;
     if (args.streamId) insert.resumableStreamId = args.streamId;
+    if (args.tools) insert.tools = args.tools;
 
     await ctx.db.patch(message._id, insert);
 

@@ -124,3 +124,142 @@ export const getMessageByStreamId = internalApiMutation({
     };
   },
 });
+
+export const saveMemory = internalApiMutation({
+  args: {
+    userId: v.id("users"),
+    memory: v.object({
+      id: v.string(),
+      content: v.string(),
+      createdAt: v.number(),
+    }),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    console.log(`[MEMORY] Saving memory for user: ${args.userId}`);
+
+    // Get or create user configuration
+    let userConfig = await ctx.db
+      .query("userConfiguration")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!userConfig) {
+      // Create new user configuration with the memory
+      await ctx.db.insert("userConfiguration", {
+        userId: args.userId,
+        memories: [args.memory],
+      });
+      console.log(`[MEMORY] Created new user config with memory`);
+    } else {
+      // Update existing user configuration by adding the memory
+      const existingMemories = userConfig.memories || [];
+
+      // Check for duplicate memory ID
+      const isDuplicate = existingMemories.some((m) => m.id === args.memory.id);
+      if (isDuplicate) {
+        console.log(`[MEMORY] Memory with ID ${args.memory.id} already exists`);
+        return {
+          success: false,
+          message: "Memory with this ID already exists",
+        };
+      }
+
+      await ctx.db.patch(userConfig._id, {
+        memories: [...existingMemories, args.memory],
+      });
+      console.log(`[MEMORY] Added memory to existing user config`);
+    }
+
+    return { success: true };
+  },
+});
+
+export const saveMemories = internalApiMutation({
+  args: {
+    userId: v.id("users"),
+    memories: v.array(
+      v.object({
+        id: v.string(),
+        content: v.string(),
+        createdAt: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    console.log(
+      `[MEMORY] Saving ${args.memories.length} memories for user: ${args.userId}`
+    );
+
+    // Get or create user configuration
+    let userConfig = await ctx.db
+      .query("userConfiguration")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!userConfig) {
+      // For new configs, only check for duplicates within the batch
+      const newIds = new Set<string>();
+      const batchDuplicates: string[] = [];
+
+      for (const memory of args.memories) {
+        if (newIds.has(memory.id)) {
+          batchDuplicates.push(memory.id);
+        }
+        newIds.add(memory.id);
+      }
+
+      if (batchDuplicates.length > 0) {
+        console.log(
+          `[MEMORY] Duplicate memory IDs in batch: ${batchDuplicates.join(", ")}`
+        );
+        return {
+          success: false,
+          message: `Duplicate memory IDs in batch: ${batchDuplicates.join(", ")}`,
+        };
+      }
+
+      // Create new user configuration with the memories
+      await ctx.db.insert("userConfiguration", {
+        userId: args.userId,
+        memories: args.memories,
+      });
+      console.log(
+        `[MEMORY] Created new user config with ${args.memories.length} memories`
+      );
+    } else {
+      // Update existing user configuration by adding all memories
+      const existingMemories = userConfig.memories || [];
+
+      // Check for duplicate memory IDs both within batch and against existing
+      const existingIds = new Set(existingMemories.map((m) => m.id));
+      const newIds = new Set<string>();
+      const duplicates: string[] = [];
+
+      for (const memory of args.memories) {
+        if (existingIds.has(memory.id) || newIds.has(memory.id)) {
+          duplicates.push(memory.id);
+        }
+        newIds.add(memory.id);
+      }
+
+      if (duplicates.length > 0) {
+        console.log(
+          `[MEMORY] Duplicate memory IDs found: ${duplicates.join(", ")}`
+        );
+        return {
+          success: false,
+          message: `Duplicate memory IDs: ${duplicates.join(", ")}`,
+        };
+      }
+
+      await ctx.db.patch(userConfig._id, {
+        memories: [...existingMemories, ...args.memories],
+      });
+      console.log(
+        `[MEMORY] Added ${args.memories.length} memories to existing user config`
+      );
+    }
+
+    return { success: true };
+  },
+});

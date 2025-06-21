@@ -1,19 +1,26 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { getModelDisplayName } from "@/ai/models-config";
 import { useNavigate } from "react-router";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface UserStatsCardProps {
+  showCustomizeButton?: boolean;
+  userStats?: {
+    joinedDate: number;
+    totalThreads: number;
+    lastActivity?: number;
+    favoriteModel?: string;
+  } | null;
+}
 
 export function UserStatsCard({
   showCustomizeButton = true,
-}: {
-  showCustomizeButton?: boolean;
-}) {
+  userStats,
+}: UserStatsCardProps) {
   const navigate = useNavigate();
-  const userStats = useQuery(api.messages.getUserStats);
 
   const STATS_STORAGE_KEY = "t8-chat-user-stats";
 
@@ -27,12 +34,23 @@ export function UserStatsCard({
     }
   };
 
-  const cachedStats = getCachedStats();
+  const [cachedStats, setCachedStats] = useState(() => getCachedStats());
 
-  // Update cache when Convex data arrives (only side effect we need)
-  if (userStats && JSON.stringify(userStats) !== JSON.stringify(cachedStats)) {
-    localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats));
-  }
+  // Update cache when Convex data arrives
+  useEffect(() => {
+    if (
+      userStats &&
+      JSON.stringify(userStats) !== JSON.stringify(cachedStats)
+    ) {
+      try {
+        localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats));
+        setCachedStats(userStats);
+      } catch (error) {
+        console.error("Failed to save user stats to localStorage:", error);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userStats]);
 
   // Use cached data first, fallback to Convex, then loading state
   const displayStats = cachedStats || userStats;

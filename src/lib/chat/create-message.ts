@@ -1,10 +1,16 @@
 import { api } from "@/convex/_generated/api";
 import { CONVEX_CLIENT } from "@/lib/convex-client";
 import { Doc, Id } from "@/convex/_generated/dataModel";
-import { AllowedModels, ChatRequest, EffortLevel, ModelParams } from "@/types";
+import {
+  AllowedModels,
+  ChatRequest,
+  EffortLevel,
+  ModelParams,
+  UserCustomization,
+} from "@/types";
 import { APIErrorResponse } from "@/types/api";
 import { processDataStream } from "ai";
-import { useTempMessageStore } from "@/lib/chat/temp-message-store";
+import { useTempMessageStore, Tool } from "@/lib/chat/temp-message-store";
 import { buildProviderOptions } from "@/lib/chat/provider-options";
 import {
   convertConvexMessagesToCoreMessages,
@@ -12,19 +18,78 @@ import {
   type APIAttachment,
 } from "@/lib/chat/message-converter";
 import { getUserApiKeys } from "@/lib/ai/byok-providers";
-import { UserCustomization } from "@/ai/prompt";
 import { CreateMessageHooks } from "@/hooks/use-create-message";
+import { getCachedPreferences } from "@/hooks/use-user-preferences";
 
 /**
- * Get user customization data - localStorage first, then Convex fallback
+ * Get user memories data - Convex authoritative, localStorage fallback only during loading
+ */
+function getUserMemoriesData(
+  convexMemories:
+    | Array<{ id: string; content: string; createdAt: number }>
+    | null
+    | undefined
+): Array<{ id: string; content: string; createdAt: number }> {
+  const STORAGE_KEY = "t8-chat-memories";
+
+  // If Convex data has loaded (not undefined), use it as authoritative
+  if (convexMemories !== undefined) {
+    return convexMemories || [];
+  }
+
+  // Only use localStorage when Convex is still loading (undefined)
+  try {
+    const localData = localStorage.getItem(STORAGE_KEY);
+    if (localData) {
+      const parsed = JSON.parse(localData);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to parse localStorage memories:", error);
+  }
+
+  return [];
+}
+
+/**
+ * Get user customization data - Convex authoritative, localStorage fallback during loading
  */
 async function getUserCustomizationData(
-  convexData: UserCustomization | null | undefined
+  convexData: UserCustomization | null | undefined,
+  convexMemories:
+    | Array<{ id: string; content: string; createdAt: number }>
+    | null
+    | undefined
 ): Promise<UserCustomization | null> {
   const STORAGE_KEY = "t8-chat-prompt-customization";
 
+  // Get memories using consistent pattern
+  const memories = getUserMemoriesData(convexMemories);
+
+  // If Convex data has loaded (not undefined), use it as authoritative
+  if (convexData !== undefined) {
+    const hasAnyData =
+      convexData?.name ||
+      convexData?.occupation ||
+      convexData?.traits ||
+      convexData?.additionalInfo ||
+      memories.length > 0;
+    if (hasAnyData) {
+      return {
+        name: convexData?.name || "",
+        occupation: convexData?.occupation || "",
+        traits: convexData?.traits || "",
+        additionalInfo: convexData?.additionalInfo || "",
+        memories: memories.length > 0 ? memories : undefined,
+      };
+    }
+    return null;
+  }
+
+  // Only use localStorage when Convex is still loading (undefined)
   try {
-    // Try localStorage first for immediate response
     const localData = localStorage.getItem(STORAGE_KEY);
     if (localData) {
       const parsed = JSON.parse(localData);
@@ -32,23 +97,20 @@ async function getUserCustomizationData(
         parsed.name ||
         parsed.occupation ||
         parsed.traits ||
-        parsed.additionalInfo
+        parsed.additionalInfo ||
+        memories.length > 0
       ) {
         return {
           name: parsed.name || "",
           occupation: parsed.occupation || "",
           traits: parsed.traits || "",
           additionalInfo: parsed.additionalInfo || "",
+          memories: memories.length > 0 ? memories : undefined,
         };
       }
     }
   } catch (error) {
     console.error("Failed to parse localStorage customization:", error);
-  }
-
-  // Use the Convex data passed from the hook
-  if (convexData) {
-    return convexData;
   }
 
   return null;
@@ -276,9 +338,14 @@ async function doChatFetchRequest(input: {
   // Get user API keys for BYOK
   const userApiKeys = getUserApiKeys();
 
+  // Get user preferences (fast, synchronous)
+  const userPreferences = getCachedPreferences();
+
   // Get user customization data
-  const userCustomizationData =
-    await getUserCustomizationData(userCustomization);
+  const userCustomizationData = await getUserCustomizationData(
+    userCustomization,
+    userCustomization?.memories
+  );
 
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
@@ -311,10 +378,12 @@ async function doChatFetchRequest(input: {
         input.modelParams.includeSearch
       ),
     }),
-    // preferences: input.preferences ?? {},
+    // User preferences for tool enabling/disabling
+    preferences: userPreferences,
   };
 
-  const { updateMessage, removeMessage } = useTempMessageStore.getState();
+  const { updateMessage, removeMessage, addTool, updateTool } =
+    useTempMessageStore.getState();
 
   const response = await fetch("/api/chat", {
     method: "POST",
@@ -362,6 +431,7 @@ async function doChatFetchRequest(input: {
   let messageContent = "";
   let reasoning = "";
   let providerMetadata: Record<string, unknown> | null = null;
+  const tools = new Map<string, Tool>();
 
   // Process the stream data
   await processDataStream({
@@ -377,7 +447,6 @@ async function doChatFetchRequest(input: {
     onReasoningPart: async (text: string) => {
       reasoning += text;
 
-      // OPTIMAL: Direct method call, no repeated getState()
       updateMessage(input.assistantMessageId, {
         reasoning: reasoning,
         status: "streaming",
@@ -404,6 +473,83 @@ async function doChatFetchRequest(input: {
         }
       }
     },
+    onToolCallStreamingStartPart: async (part) => {
+      console.log("[TOOLS] Tool streaming start:", part);
+
+      const newTool = {
+        toolCallId: part.toolCallId,
+        toolName: part.toolName,
+        args: {},
+        state: "streaming-start" as const,
+        timestamp: Date.now(),
+      };
+
+      tools.set(part.toolCallId, newTool);
+      addTool(input.assistantMessageId, newTool);
+    },
+    onToolCallDeltaPart: async (part) => {
+      console.log("[TOOLS] Tool call delta:", part);
+
+      // Update local tools map but don't trigger React state updates
+      // to avoid infinite loop during streaming
+      const existingTool = tools.get(part.toolCallId);
+      if (existingTool) {
+        tools.set(part.toolCallId, {
+          ...existingTool,
+          state: "streaming-delta" as const,
+          timestamp: Date.now(),
+        });
+      }
+
+      // Don't call updateTool here to prevent infinite React state updates
+    },
+    onToolCallPart: async (part) => {
+      console.log("[TOOLS] Tool call complete:", part);
+
+      const toolUpdate = {
+        args: part.args,
+        state: "call" as const,
+        timestamp: Date.now(),
+      };
+
+      const existingTool = tools.get(part.toolCallId);
+      if (existingTool) {
+        tools.set(part.toolCallId, {
+          ...existingTool,
+          ...toolUpdate,
+        });
+      }
+
+      updateTool(input.assistantMessageId, part.toolCallId, toolUpdate);
+    },
+    onToolResultPart: async (result) => {
+      console.log("[TOOLS] Tool result received:", result);
+
+      const toolUpdate = {
+        result: result.result,
+        state: "result" as const,
+        timestamp: Date.now(),
+      };
+
+      const existingTool = tools.get(result.toolCallId);
+      if (existingTool) {
+        tools.set(result.toolCallId, {
+          ...existingTool,
+          ...toolUpdate,
+        });
+      }
+
+      updateTool(input.assistantMessageId, result.toolCallId, toolUpdate);
+
+      // Handle saveToMemory tool - use local tools map instead of store lookup
+      const correspondingTool = tools.get(result.toolCallId);
+
+      if (correspondingTool?.toolName === "saveToMemory") {
+        console.log(
+          "[MEMORY] saveToMemory tool completed - Memory Management component will handle localStorage sync"
+        );
+      }
+    },
     onFinishMessagePart: async () => {
       // 1. FIRST: Update temp store to "done" status (immediate UI feedback)
       updateMessage(input.assistantMessageId, {
@@ -414,13 +560,15 @@ async function doChatFetchRequest(input: {
 
       // 2. SECOND: Update Convex with final content (this was moved from API route)
       try {
-        // Update message with final content, reasoning, provider metadata, and stream ID
+        // Update message with final content, reasoning, provider metadata, tools, and stream ID
+        const toolsArray = Array.from(tools.values());
         const messageUpdate = input.hooks.mutations.updateMessage({
           messageId: input.assistantMessageId,
           content: messageContent,
           reasoning: reasoning,
           ...(providerMetadata && { providerMetadata }),
           ...(streamId && { streamId }),
+          ...(toolsArray.length > 0 && { tools: toolsArray }),
           status: "done",
         });
 
@@ -449,7 +597,6 @@ async function doChatFetchRequest(input: {
       // Handle errors
       console.error("Stream error:", error);
 
-      // OPTIMAL: Direct method call, no repeated getState()
       updateMessage(input.assistantMessageId, {
         status: "error",
         content: `Error: ${error || "Unknown error"}`,

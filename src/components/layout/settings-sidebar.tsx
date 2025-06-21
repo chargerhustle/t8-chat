@@ -2,13 +2,26 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CopyButton } from "@/components/copy-button";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { UserStatsCard, KeyboardShortcutsCard } from "@/components/settings";
+import type { Doc } from "@/convex/_generated/dataModel";
 
-export function SettingsSidebar() {
-  const currentUser = useQuery(api.auth.getCurrentUser);
+interface SettingsSidebarProps {
+  currentUser: Doc<"users"> | null | undefined;
+  userStats:
+    | {
+        joinedDate: number;
+        totalThreads: number;
+        lastActivity?: number;
+        favoriteModel?: string;
+      }
+    | null
+    | undefined;
+}
 
+export function SettingsSidebar({
+  currentUser,
+  userStats,
+}: SettingsSidebarProps) {
   return (
     <div className="hidden space-y-8 md:block md:w-1/4">
       {/* Profile Section */}
@@ -57,7 +70,7 @@ export function SettingsSidebar() {
       </div>
 
       {/* User Stats */}
-      <UserStatsCard />
+      <UserStatsCard userStats={userStats} />
 
       {/* Keyboard Shortcuts */}
       <KeyboardShortcutsCard />

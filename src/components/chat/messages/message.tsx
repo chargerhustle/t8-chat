@@ -9,12 +9,32 @@ import { MessageLoading } from "./message-loading";
 import { MessageAttachments } from "../attachments";
 import { getModelDisplayName } from "@/ai/models-config";
 import { ApiKeyError } from "@/components/error/api-key-error";
+import { MemoryIndicator } from "../memory-indicator";
 
 interface MessageProps {
   message: Doc<"messages"> & {
     attachments: Doc<"attachments">[];
   };
 }
+
+// Helper function to extract memory tool results
+const extractMemoryToolResults = (
+  tools: Doc<"messages">["tools"],
+  toolName: string,
+  resultKey: string
+) => {
+  if (!tools) return [];
+
+  return tools
+    .filter(
+      (tool) =>
+        tool.toolName === toolName &&
+        tool.state === "result" &&
+        tool.result?.success &&
+        tool.result?.[resultKey]
+    )
+    .flatMap((tool) => tool.result[resultKey]);
+};
 
 // Use memo to prevent re-renders when other messages are added
 const MessageComponent = memo(({ message }: MessageProps) => {
@@ -32,6 +52,19 @@ const MessageComponent = memo(({ message }: MessageProps) => {
   const modelDisplayName = !isUser
     ? getModelDisplayName(message.model)
     : undefined;
+
+  // Extract completed memory tool invocations for memory indicator
+  const memoriesSaved = !isUser
+    ? extractMemoryToolResults(message.tools, "saveToMemory", "memories")
+    : [];
+
+  const memoriesUpdated = !isUser
+    ? extractMemoryToolResults(message.tools, "updateMemory", "updatedMemories")
+    : [];
+
+  const memoriesDeleted = !isUser
+    ? extractMemoryToolResults(message.tools, "deleteMemory", "deletedMemories")
+    : [];
 
   // Check if this is an API key related error (missing or invalid)
   const isApiKeyError =
@@ -70,6 +103,13 @@ const MessageComponent = memo(({ message }: MessageProps) => {
       ) : (
         // Assistant message
         <div className="group relative w-full max-w-full break-words">
+          {/* Memory indicator for assistant messages with memory actions */}
+          <MemoryIndicator
+            memoriesSaved={memoriesSaved}
+            memoriesUpdated={memoriesUpdated}
+            memoriesDeleted={memoriesDeleted}
+          />
+
           <div
             role="article"
             aria-label="Assistant message"
@@ -91,6 +131,7 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               </Markdown>
             )}
           </div>
+
           {/* Assistant message toolbar - positioned absolutely to the left */}
           <div className="absolute left-0 -ml-0.5 mt-2 flex w-full flex-row justify-start gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-focus:opacity-100">
             <MessageToolbar

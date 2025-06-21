@@ -1,3 +1,5 @@
+import type { UserCustomization } from "@/types";
+
 interface UserContext {
   city?: string;
   country?: string;
@@ -7,25 +9,20 @@ interface UserContext {
   occupation?: string;
 }
 
-export interface UserCustomization {
-  name?: string;
-  occupation?: string;
-  traits?: string;
-  additionalInfo?: string;
-}
-
 export function createSystemPrompt({
   model,
   modelDisplayName,
   modelDescription,
   userContext,
   userCustomization,
+  memoriesEnabled,
 }: {
   model: string;
   modelDisplayName: string;
   modelDescription?: string;
   userContext?: UserContext;
   userCustomization?: UserCustomization;
+  memoriesEnabled?: boolean;
 }): string {
   const parts: string[] = [];
 
@@ -90,7 +87,7 @@ export function createSystemPrompt({
     if (userCustomization.name) {
       parts.push(`  - User's preferred name: ${userCustomization.name}`);
       parts.push(
-        "    Use this name naturally in conversation when appropriate, but don't overuse it."
+        "    Use this name sparingly and naturally, like a real person would - only when it feels organic to the conversation (greetings, getting attention, or personal moments). Avoid using it in every response or multiple times per response."
       );
     }
 
@@ -126,6 +123,69 @@ export function createSystemPrompt({
       "    • Reference their context when it adds value to your responses",
       "    • Maintain a natural, conversational tone that feels personal but not overly familiar",
       "    • Use their professional background to gauge appropriate technical complexity"
+    );
+  }
+
+  // User memories section
+  if (userCustomization?.memories && userCustomization.memories.length > 0) {
+    parts.push("- User Memory & Context:");
+    parts.push(
+      "  The following information has been saved from previous conversations with this user. Use this context to provide more personalized and relevant responses (do not push them):"
+    );
+
+    userCustomization.memories.forEach((memory) => {
+      const memoryDate = new Date(memory.createdAt).toLocaleDateString();
+      parts.push(
+        `  • [ID: ${memory.id}] ${memory.content} (saved ${memoryDate})`
+      );
+    });
+
+    parts.push(
+      "  - Reference this information naturally when relevant to the conversation. Do not overuse them.",
+      "  - Don't explicitly mention that you're using saved memories unless asked",
+      "  - Use this context to provide more personalized assistance"
+    );
+  }
+
+  // Memory management information
+  if (memoriesEnabled !== false) {
+    const hasMemories =
+      userCustomization?.memories && userCustomization.memories.length > 0;
+
+    parts.push("- Memory Management Status:");
+    parts.push(
+      "  Memory management is currently ENABLED and you have access to memory tools. Users can manage their memory settings in [Settings > Customization](/settings/customization)"
+    );
+
+    if (hasMemories) {
+      parts.push(
+        "  - Available Memory Tools (YOU CAN USE THESE):",
+        "    • saveToMemory: Save NEW important information from conversations (supports multiple memories)",
+        "    • updateMemory: Update one or more existing memories when explicitly requested by user",
+        "    • deleteMemory: Delete one or more memories when explicitly requested by user",
+        "  - Memory Management Guidelines:",
+        "    • ONLY use updateMemory/deleteMemory tools when the user explicitly asks",
+        "    • These tools support batch operations - you can update/delete multiple memories in one call",
+        "    • When using saveToMemory, check existing memories first to avoid duplicates",
+        "    • Only save genuinely NEW information that isn't already captured",
+        "    • Reference existing memories naturally when relevant to the conversation"
+      );
+    } else {
+      parts.push(
+        "  - Available Memory Tools (YOU CAN USE THESE):",
+        "    • saveToMemory: Save important information from conversations for future reference",
+        "  - Memory Saving Guidelines:",
+        "    • Save genuinely useful information that would be helpful in future conversations",
+        "    • Focus on user preferences, important facts, and contextual information",
+        "    • Don't save temporary or trivial information"
+      );
+    }
+  } else {
+    parts.push("- Memory Management Status:");
+    parts.push(
+      "  Memory management is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
+      "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to memory when this feature is disabled. Be honest that memory management is turned off.",
+      "  If the user wants to enable memory management, they can toggle on this feature in [Settings > Customization](/settings/customization)."
     );
   }
 

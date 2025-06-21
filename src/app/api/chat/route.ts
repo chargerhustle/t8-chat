@@ -1,4 +1,4 @@
-import { streamText, createDataStream, smoothStream } from "ai";
+import { streamText, createDataStream, smoothStream, type Tool } from "ai";
 import { waitUntil } from "@vercel/functions";
 import { api } from "@/convex/_generated/api";
 import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client";
@@ -10,6 +10,9 @@ import {
 import { MODEL_CONFIGS, getModelStreamingType } from "@/ai/models-config";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
 import { getBYOKProvider, type BYOKError } from "@/lib/ai/byok-providers";
+import { createSaveToMemoryTool } from "@/ai/save-to-memory-tool";
+import { createUpdateMemoryTool } from "@/ai/update-memory-tool";
+import { createDeleteMemoryTool } from "@/ai/delete-memory-tool";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
@@ -17,7 +20,13 @@ export const maxDuration = 59;
 
 // Environment variables
 const env = {
-  CONVEX_BRIDGE_API_KEY: process.env.CONVEX_BRIDGE_API_KEY || "dummy-key",
+  CONVEX_BRIDGE_API_KEY: (() => {
+    const apiKey = process.env.CONVEX_BRIDGE_API_KEY;
+    if (!apiKey) {
+      throw new Error("CONVEX_BRIDGE_API_KEY environment variable is not set");
+    }
+    return apiKey;
+  })(),
 };
 
 // Create optimized O(1) lookup map for model configs
@@ -210,6 +219,7 @@ export async function POST(req: Request) {
       modelDescription,
       userContext,
       userCustomization: requestData.userCustomization,
+      memoriesEnabled: requestData.preferences?.memoriesEnabled,
     });
 
     // Debug log provider options
@@ -244,10 +254,24 @@ export async function POST(req: Request) {
           streamId: streamId,
         });
 
+        // Conditionally add tools based on user preferences
+        const tools: Record<string, Tool> = {};
+
+        // Only add memory tools if memories are enabled
+        if (requestData.preferences?.memoriesEnabled !== false) {
+          tools.saveToMemory = createSaveToMemoryTool(requestData.userId);
+          tools.updateMemory = createUpdateMemoryTool(requestData.userId);
+          tools.deleteMemory = createDeleteMemoryTool(requestData.userId);
+        }
+
         const result = streamText({
           model: modelProvider,
           messages: requestData.messages,
           system: systemPrompt,
+          tools,
+          maxSteps: 5,
+          toolCallStreaming: true,
+          experimental_continueSteps: true,
           experimental_transform: smoothStream({
             delayInMs: 20,
             chunking: streamingType,

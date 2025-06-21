@@ -86,6 +86,23 @@ const applicationTables = {
     providerMetadata: v.optional(ProviderMetadataValidator),
     resumableStreamId: v.optional(v.string()),
     backfill: v.optional(v.boolean()),
+    tools: v.optional(
+      v.array(
+        v.object({
+          toolCallId: v.string(),
+          toolName: v.string(),
+          args: v.any(), // Tool arguments
+          result: v.optional(v.any()), // Tool result
+          state: v.union(
+            v.literal("streaming-start"), // Tool call started
+            v.literal("streaming-delta"), // Tool args streaming
+            v.literal("call"), // Tool call complete
+            v.literal("result") // Tool result received
+          ),
+          timestamp: v.number(),
+        })
+      )
+    ),
   })
     .index("by_threadId", ["threadId"])
     .index("by_thread_and_userid", ["threadId", "userId"])
@@ -122,6 +139,22 @@ const applicationTables = {
         occupation: v.string(),
         traits: v.string(),
         additionalInfo: v.string(),
+      })
+    ),
+    memories: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          content: v.string(),
+          createdAt: v.number(),
+        })
+      )
+    ),
+    preferences: v.optional(
+      v.object({
+        memoriesEnabled: v.boolean(),
+        hidePersonalInfo: v.boolean(),
+        statsForNerds: v.boolean(),
       })
     ),
   }).index("by_userId", ["userId"]),
