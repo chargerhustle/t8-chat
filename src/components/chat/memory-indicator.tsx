@@ -1,4 +1,4 @@
-import { BookCheck, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { LibraryBig, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import {
   Popover,
@@ -33,25 +33,23 @@ export function MemoryIndicator({
     return null;
   }
 
-  // Determine icon and message based on action type
-  let icon, message, memories;
+  // Use LibraryBig icon for all memory operations
+  const icon = <LibraryBig className="h-4 w-4" />;
+  let message, memories;
 
   if (hasDeleted) {
-    icon = <Trash2 className="h-4 w-4" />;
     message =
       memoriesDeleted!.length === 1
         ? "Memory deleted"
         : `${memoriesDeleted!.length} memories deleted`;
     memories = memoriesDeleted!;
   } else if (hasUpdated) {
-    icon = <Pencil className="h-4 w-4" />;
     message =
       memoriesUpdated!.length === 1
         ? "Memory updated"
         : `${memoriesUpdated!.length} memories updated`;
     memories = memoriesUpdated!;
   } else {
-    icon = <BookCheck className="h-4 w-4" />;
     message =
       memoriesSaved!.length === 1
         ? "Memory saved"

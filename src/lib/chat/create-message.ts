@@ -22,7 +22,7 @@ import { CreateMessageHooks } from "@/hooks/use-create-message";
 import { getCachedPreferences } from "@/hooks/use-user-preferences";
 
 /**
- * Get user memories data - localStorage first, then Convex fallback
+ * Get user memories data - Convex authoritative, localStorage fallback only during loading
  */
 function getUserMemoriesData(
   convexMemories:
@@ -32,22 +32,22 @@ function getUserMemoriesData(
 ): Array<{ id: string; content: string; createdAt: number }> {
   const STORAGE_KEY = "t8-chat-memories";
 
+  // If Convex data has loaded (not undefined), use it as authoritative
+  if (convexMemories !== undefined) {
+    return convexMemories || [];
+  }
+
+  // Only use localStorage when Convex is still loading (undefined)
   try {
-    // Try localStorage first for immediate response
     const localData = localStorage.getItem(STORAGE_KEY);
     if (localData) {
       const parsed = JSON.parse(localData);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
   } catch (error) {
     console.error("Failed to parse localStorage memories:", error);
-  }
-
-  // Use the Convex data passed from the hook
-  if (convexMemories && Array.isArray(convexMemories)) {
-    return convexMemories;
   }
 
   return [];
