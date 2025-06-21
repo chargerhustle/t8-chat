@@ -10,6 +10,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ClearMemoriesDialog } from "./clear-memories-dialog";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
+import { CopyButton } from "@/components/copy-button";
 import type { UserCustomization, Memory } from "@/types";
 
 const STORAGE_KEY = "t8-chat-memories";
@@ -245,7 +246,7 @@ export function MemoryManagement({
                   {showMemories ? (
                     <>
                       <EyeOff className="h-4 w-4" />
-                      Hide Memories
+                      Hide Memories ({memories.length})
                     </>
                   ) : (
                     <>
@@ -336,6 +337,13 @@ export function MemoryManagement({
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
+                      <CopyButton
+                        text={memory.content}
+                        size="md"
+                        variant="ghost"
+                        className="flex-shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+                        ariaLabel="Copy memory content"
+                      />
                       <Button
                         variant="destructive"
                         size="sm"
