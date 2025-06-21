@@ -150,6 +150,9 @@ export function MemoryManagement({
   };
 
   const handleConfirmClear = async () => {
+    // Save current state before optimistic update for potential rollback
+    const previousMemories = [...memories];
+
     try {
       // Optimistic update - update UI immediately
       setMemories([]);
@@ -162,16 +165,9 @@ export function MemoryManagement({
 
       toast.success(`All ${result.deletedCount} memories cleared`);
     } catch (error) {
-      // Revert optimistic update on error
-      const savedMemories = localStorage.getItem(STORAGE_KEY);
-      if (savedMemories) {
-        try {
-          const parsedMemories = JSON.parse(savedMemories);
-          setMemories(parsedMemories);
-        } catch {
-          setMemories([]);
-        }
-      }
+      // Revert optimistic update using saved state
+      setMemories(previousMemories);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(previousMemories));
 
       console.error("Failed to clear memories:", error);
       toast.error("Failed to clear memories");
@@ -265,7 +261,7 @@ export function MemoryManagement({
             <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-3 pr-2">
               {memories.map((memory, index) => (
                 <div
-                  key={index}
+                  key={memory.id}
                   className="flex items-start justify-between gap-3 p-3 rounded-md bg-background/50 border border-secondary/30"
                 >
                   <div className="flex-1 min-w-0">

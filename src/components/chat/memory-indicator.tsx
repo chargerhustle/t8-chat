@@ -100,7 +100,7 @@ export function MemoryIndicator({
           <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-2 pr-1">
             {memories.map((memory, index) => (
               <div
-                key={index}
+                key={memory.id}
                 className="text-sm text-foreground bg-transparent p-2 rounded-md"
               >
                 {memory.content.length > 200
