@@ -259,7 +259,7 @@ export function MemoryManagement({
         {memoriesEnabled && showMemories && memories.length > 0 && (
           <div className="rounded-lg border border-secondary/50 bg-secondary/20 p-4">
             <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-3 pr-2">
-              {memories.map((memory, index) => (
+              {memories.map((memory) => (
                 <div
                   key={memory.id}
                   className="flex items-start justify-between gap-3 p-3 rounded-md bg-background/50 border border-secondary/30"
