@@ -39,7 +39,12 @@ export const createSaveToMemoryTool = (userId: string) =>
         console.log("[MEMORY] Memories:", memories);
 
         // Get environment variable for API key
-        const apiKey = process.env.CONVEX_BRIDGE_API_KEY || "dummy-key";
+        const apiKey = process.env.CONVEX_BRIDGE_API_KEY;
+        if (!apiKey) {
+          throw new Error(
+            "CONVEX_BRIDGE_API_KEY environment variable is not set"
+          );
+        }
 
         // Create memory objects for each piece of information
         const memoryObjects = memories.map((content) => ({

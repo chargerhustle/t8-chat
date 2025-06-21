@@ -90,16 +90,7 @@ export function MemoryManagement({
     } catch (error) {
       // Revert optimistic update on error
       setMemories(memories);
-      const savedMemories = localStorage.getItem(STORAGE_KEY);
-      if (savedMemories) {
-        try {
-          const parsedMemories = JSON.parse(savedMemories);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedMemories));
-        } catch {
-          // If parsing fails, restore original memories
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
-        }
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
       console.error("Failed to delete memory:", error);
       toast.error("Failed to delete memory");
     }
@@ -142,15 +133,7 @@ export function MemoryManagement({
     } catch (error) {
       // Revert optimistic update on error
       setMemories(memories);
-      const savedMemories = localStorage.getItem(STORAGE_KEY);
-      if (savedMemories) {
-        try {
-          const parsedMemories = JSON.parse(savedMemories);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedMemories));
-        } catch {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
-        }
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
       console.error("Failed to update memory:", error);
       toast.error("Failed to update memory");
     }

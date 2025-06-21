@@ -154,6 +154,16 @@ export const saveMemory = internalApiMutation({
       // Update existing user configuration by adding the memory
       const existingMemories = userConfig.memories || [];
 
+      // Check for duplicate memory ID
+      const isDuplicate = existingMemories.some((m) => m.id === args.memory.id);
+      if (isDuplicate) {
+        console.log(`[MEMORY] Memory with ID ${args.memory.id} already exists`);
+        return {
+          success: false,
+          message: "Memory with this ID already exists",
+        };
+      }
+
       await ctx.db.patch(userConfig._id, {
         memories: [...existingMemories, args.memory],
       });
@@ -187,6 +197,27 @@ export const saveMemories = internalApiMutation({
       .first();
 
     if (!userConfig) {
+      // For new configs, only check for duplicates within the batch
+      const newIds = new Set<string>();
+      const batchDuplicates: string[] = [];
+
+      for (const memory of args.memories) {
+        if (newIds.has(memory.id)) {
+          batchDuplicates.push(memory.id);
+        }
+        newIds.add(memory.id);
+      }
+
+      if (batchDuplicates.length > 0) {
+        console.log(
+          `[MEMORY] Duplicate memory IDs in batch: ${batchDuplicates.join(", ")}`
+        );
+        return {
+          success: false,
+          message: `Duplicate memory IDs in batch: ${batchDuplicates.join(", ")}`,
+        };
+      }
+
       // Create new user configuration with the memories
       await ctx.db.insert("userConfiguration", {
         userId: args.userId,
@@ -198,6 +229,28 @@ export const saveMemories = internalApiMutation({
     } else {
       // Update existing user configuration by adding all memories
       const existingMemories = userConfig.memories || [];
+
+      // Check for duplicate memory IDs both within batch and against existing
+      const existingIds = new Set(existingMemories.map((m) => m.id));
+      const newIds = new Set<string>();
+      const duplicates: string[] = [];
+
+      for (const memory of args.memories) {
+        if (existingIds.has(memory.id) || newIds.has(memory.id)) {
+          duplicates.push(memory.id);
+        }
+        newIds.add(memory.id);
+      }
+
+      if (duplicates.length > 0) {
+        console.log(
+          `[MEMORY] Duplicate memory IDs found: ${duplicates.join(", ")}`
+        );
+        return {
+          success: false,
+          message: `Duplicate memory IDs: ${duplicates.join(", ")}`,
+        };
+      }
 
       await ctx.db.patch(userConfig._id, {
         memories: [...existingMemories, ...args.memories],

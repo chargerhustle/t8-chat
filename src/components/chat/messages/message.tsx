@@ -17,6 +17,25 @@ interface MessageProps {
   };
 }
 
+// Helper function to extract memory tool results
+const extractMemoryToolResults = (
+  tools: Doc<"messages">["tools"],
+  toolName: string,
+  resultKey: string
+) => {
+  if (!tools) return [];
+
+  return tools
+    .filter(
+      (tool) =>
+        tool.toolName === toolName &&
+        tool.state === "result" &&
+        tool.result?.success &&
+        tool.result?.[resultKey]
+    )
+    .flatMap((tool) => tool.result[resultKey]);
+};
+
 // Use memo to prevent re-renders when other messages are added
 const MessageComponent = memo(({ message }: MessageProps) => {
   const isUser = message.role === "user";
@@ -35,51 +54,17 @@ const MessageComponent = memo(({ message }: MessageProps) => {
     : undefined;
 
   // Extract completed memory tool invocations for memory indicator
-  const memoriesSaved =
-    !isUser && message.tools
-      ? message.tools
-          .filter(
-            (tool) =>
-              tool.toolName === "saveToMemory" &&
-              tool.state === "result" &&
-              tool.result?.success &&
-              (tool.result?.memory || tool.result?.memories)
-          )
-          .flatMap(
-            (tool) =>
-              // Handle both old format (single memory) and new format (array of memories)
-              tool.result.memories ||
-              (tool.result.memory ? [tool.result.memory] : [])
-          )
-      : [];
+  const memoriesSaved = !isUser
+    ? extractMemoryToolResults(message.tools, "saveToMemory", "memories")
+    : [];
 
-  // Extract completed updateMemory tool invocations
-  const memoriesUpdated =
-    !isUser && message.tools
-      ? message.tools
-          .filter(
-            (tool) =>
-              tool.toolName === "updateMemory" &&
-              tool.state === "result" &&
-              tool.result?.success &&
-              tool.result?.updatedMemories
-          )
-          .flatMap((tool) => tool.result.updatedMemories)
-      : [];
+  const memoriesUpdated = !isUser
+    ? extractMemoryToolResults(message.tools, "updateMemory", "updatedMemories")
+    : [];
 
-  // Extract completed deleteMemory tool invocations
-  const memoriesDeleted =
-    !isUser && message.tools
-      ? message.tools
-          .filter(
-            (tool) =>
-              tool.toolName === "deleteMemory" &&
-              tool.state === "result" &&
-              tool.result?.success &&
-              tool.result?.deletedMemories
-          )
-          .flatMap((tool) => tool.result.deletedMemories)
-      : [];
+  const memoriesDeleted = !isUser
+    ? extractMemoryToolResults(message.tools, "deleteMemory", "deletedMemories")
+    : [];
 
   // Check if this is an API key related error (missing or invalid)
   const isApiKeyError =

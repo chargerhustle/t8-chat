@@ -40,7 +40,11 @@ export function UserStatsCard({
   useEffect(() => {
     if (
       userStats &&
-      JSON.stringify(userStats) !== JSON.stringify(cachedStats)
+      (!cachedStats ||
+        userStats.joinedDate !== cachedStats.joinedDate ||
+        userStats.totalThreads !== cachedStats.totalThreads ||
+        userStats.lastActivity !== cachedStats.lastActivity ||
+        userStats.favoriteModel !== cachedStats.favoriteModel)
     ) {
       localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats));
       setCachedStats(userStats);

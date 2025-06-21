@@ -54,7 +54,7 @@ function getUserMemoriesData(
 }
 
 /**
- * Get user customization data - localStorage first, then Convex fallback
+ * Get user customization data - Convex authoritative, localStorage fallback during loading
  */
 async function getUserCustomizationData(
   convexData: UserCustomization | null | undefined,
@@ -65,11 +65,25 @@ async function getUserCustomizationData(
 ): Promise<UserCustomization | null> {
   const STORAGE_KEY = "t8-chat-prompt-customization";
 
-  // Get memories using the same localStorage-first pattern
+  // Get memories using consistent pattern
   const memories = getUserMemoriesData(convexMemories);
 
+  // If Convex data has loaded (not undefined), use it as authoritative
+  if (convexData !== undefined) {
+    if (convexData || memories.length > 0) {
+      return {
+        name: convexData?.name || "",
+        occupation: convexData?.occupation || "",
+        traits: convexData?.traits || "",
+        additionalInfo: convexData?.additionalInfo || "",
+        memories: memories.length > 0 ? memories : undefined,
+      };
+    }
+    return null;
+  }
+
+  // Only use localStorage when Convex is still loading (undefined)
   try {
-    // Try localStorage first for immediate response
     const localData = localStorage.getItem(STORAGE_KEY);
     if (localData) {
       const parsed = JSON.parse(localData);
@@ -91,17 +105,6 @@ async function getUserCustomizationData(
     }
   } catch (error) {
     console.error("Failed to parse localStorage customization:", error);
-  }
-
-  // Use the Convex data passed from the hook
-  if (convexData || memories.length > 0) {
-    return {
-      name: convexData?.name || "",
-      occupation: convexData?.occupation || "",
-      traits: convexData?.traits || "",
-      additionalInfo: convexData?.additionalInfo || "",
-      memories: memories.length > 0 ? memories : undefined,
-    };
   }
 
   return null;

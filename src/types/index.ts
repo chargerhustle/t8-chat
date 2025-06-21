@@ -206,9 +206,5 @@ export interface UserCustomization {
   traits: string;
   additionalInfo: string;
   memories?: Memory[];
-  preferences?: {
-    memoriesEnabled: boolean;
-    hidePersonalInfo: boolean;
-    statsForNerds: boolean;
-  };
+  preferences?: UserPreferences;
 }

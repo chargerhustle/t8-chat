@@ -20,7 +20,13 @@ export const maxDuration = 59;
 
 // Environment variables
 const env = {
-  CONVEX_BRIDGE_API_KEY: process.env.CONVEX_BRIDGE_API_KEY || "dummy-key",
+  CONVEX_BRIDGE_API_KEY: (() => {
+    const apiKey = process.env.CONVEX_BRIDGE_API_KEY;
+    if (!apiKey) {
+      throw new Error("CONVEX_BRIDGE_API_KEY environment variable is not set");
+    }
+    return apiKey;
+  })(),
 };
 
 // Create optimized O(1) lookup map for model configs

@@ -30,9 +30,10 @@ export function ClearMemoriesDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Clear All Memories</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete all {memoryCount} saved memories?
-            This action cannot be undone and T8 Chat will lose all the important
-            information it has learned about you from your conversations.
+            Are you sure you want to delete all {memoryCount} saved memor
+            {memoryCount === 1 ? "y" : "ies"}? This action cannot be undone and
+            T8 Chat will lose all the important information it has learned about
+            you from your conversations.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -35,26 +35,30 @@ export function MemoryIndicator({
 
   // Use LibraryBig icon for all memory operations
   const icon = <LibraryBig className="h-4 w-4" />;
-  let message, memories;
+  let message: string;
+  let memories: Array<{ id: string; content: string }>;
 
   if (hasDeleted) {
+    const deletedMemories = memoriesDeleted || [];
     message =
-      memoriesDeleted!.length === 1
+      deletedMemories.length === 1
         ? "Memory deleted"
-        : `${memoriesDeleted!.length} memories deleted`;
-    memories = memoriesDeleted!;
+        : `${deletedMemories.length} memories deleted`;
+    memories = deletedMemories;
   } else if (hasUpdated) {
+    const updatedMemories = memoriesUpdated || [];
     message =
-      memoriesUpdated!.length === 1
+      updatedMemories.length === 1
         ? "Memory updated"
-        : `${memoriesUpdated!.length} memories updated`;
-    memories = memoriesUpdated!;
+        : `${updatedMemories.length} memories updated`;
+    memories = updatedMemories;
   } else {
+    const savedMemories = memoriesSaved || [];
     message =
-      memoriesSaved!.length === 1
+      savedMemories.length === 1
         ? "Memory saved"
-        : `${memoriesSaved!.length} memories saved`;
-    memories = memoriesSaved!;
+        : `${savedMemories.length} memories saved`;
+    memories = savedMemories;
   }
 
   const handleManageClick = () => {

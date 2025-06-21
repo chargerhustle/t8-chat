@@ -128,14 +128,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       // Save to Convex in the background
       await savePreferencesMutation(newPreferences);
     } catch (error) {
-      // Revert optimistic update on error
-      setPreferences(preferences);
-
-      // Revert localStorage
-      localStorage.setItem(
-        PREFERENCES_STORAGE_KEY,
-        JSON.stringify(preferences)
-      );
+      // On error, preferences might be stale - let the useEffect sync from Convex
+      // which will update both state and localStorage with the latest data
 
       console.error("Failed to save preference:", error);
       throw error; // Re-throw so components can handle the error
