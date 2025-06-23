@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarFloatingToolbar } from "@/components/sidebar/sidebar-floating-toolbar";
 import { SearchDialog } from "@/components/sidebar/search-dialog";
 import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
+import { SettingsToolbar } from "@/components/layout/settings-toolbar";
 
 export function AppLayout() {
   const navigate = useNavigate();
@@ -41,6 +42,9 @@ export function AppLayout() {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
       />
+
+      {/* Settings Toolbar */}
+      <SettingsToolbar />
     </SidebarProvider>
   );
 }
