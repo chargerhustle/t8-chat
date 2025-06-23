@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
 import { useCreateMessage } from "@/hooks/use-create-message";
+import { useTemporaryMode } from "@/hooks/use-temporary-mode";
 import { ModelConfig } from "@/ai/models-config";
 import { ChatWelcome } from "@/components/chat/chat-welcome";
 import { EffortLevel } from "@/types";
@@ -17,6 +18,9 @@ export default function LaunchChat() {
 
   // Hook for creating messages with proper React integration
   const createMessageHooks = useCreateMessage();
+
+  // Use hook to detect temporary mode
+  const temporary = useTemporaryMode();
 
   const handleSubmit = async (
     message: string,
@@ -35,7 +39,7 @@ export default function LaunchChat() {
     setIsNavigating(true);
 
     // 1. Navigate FIRST (instant feedback)
-    navigate(`/chat/${threadId}`);
+    navigate(temporary ? `/temporary/chat/${threadId}` : `/chat/${threadId}`);
 
     // 2. Call createMessage with everything (it handles thread creation)
     createMessage(
@@ -49,6 +53,7 @@ export default function LaunchChat() {
           includeSearch,
         },
         attachments,
+        temporary, // Pass temporary mode
       },
       createMessageHooks
     ).catch((error) => {

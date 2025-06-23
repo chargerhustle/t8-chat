@@ -15,7 +15,7 @@ export type TempMessage = {
   messageId: string;
   threadId: string;
   content: string;
-  role: "assistant";
+  role: "assistant" | "user";
   status: "streaming" | "done" | "error";
   reasoning?: string;
   model: string; // Add model field to track which model is being used

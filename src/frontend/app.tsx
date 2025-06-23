@@ -23,6 +23,7 @@ export default function App() {
             element={<AppLayout />}
             errorElement={<ErrorBoundary />}
           >
+            {/* Normal routes */}
             <Route
               index
               element={<LaunchChat />}
@@ -33,6 +34,19 @@ export default function App() {
               element={<Chat />}
               errorElement={<ErrorBoundary />}
             />
+
+            {/* Temporary routes */}
+            <Route
+              path="temporary"
+              element={<LaunchChat />}
+              errorElement={<ErrorBoundary />}
+            />
+            <Route
+              path="temporary/chat/:threadId"
+              element={<Chat />}
+              errorElement={<ErrorBoundary />}
+            />
+
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Settings routes - each page handles its own layout */}

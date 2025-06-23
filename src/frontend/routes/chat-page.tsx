@@ -6,6 +6,7 @@ import MessageComponent from "@/components/chat/messages/message";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
 import { useCreateMessage } from "@/hooks/use-create-message";
+import { useTemporaryMode } from "@/hooks/use-temporary-mode";
 import { useHybridMessages } from "@/hooks/use-hybrid-messages";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { ModelConfig } from "@/ai/models-config";
@@ -18,6 +19,9 @@ export default function Chat() {
 
   // Hook for creating messages with proper React integration
   const createMessageHooks = useCreateMessage();
+
+  // Use hook to detect temporary mode
+  const temporary = useTemporaryMode();
 
   // Use hybrid messages hook for real-time streaming + Convex data
   const messages = useHybridMessages(threadId || "");
@@ -71,6 +75,7 @@ export default function Chat() {
             includeSearch,
           },
           attachments,
+          temporary, // Pass temporary mode
         },
         createMessageHooks
       );

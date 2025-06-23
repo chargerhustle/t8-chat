@@ -170,6 +170,7 @@ export async function createMessage(
       fileSize?: number;
       status: "uploading" | "uploaded";
     }>;
+    temporary?: boolean;
   },
   hooks: CreateMessageHooks
 ) {
