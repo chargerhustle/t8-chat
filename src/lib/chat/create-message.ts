@@ -181,7 +181,7 @@ export async function createMessage(
   }
 
   // Create thread if this is a new thread
-  if (input.newThread) {
+  if (input.newThread && !input.temporary) {
     try {
       await hooks.mutations.createThread({
         threadId: input.threadId,
@@ -221,9 +221,13 @@ export async function createMessage(
   // Note: This query needs threadId at runtime, so we keep using CONVEX_CLIENT for now
   const allMessages = input.newThread
     ? []
-    : (await CONVEX_CLIENT.query(api.messages.getByThreadId, {
-        threadId: input.threadId,
-      })) || []; // Handle null case
+    : input.temporary
+      ? // Get messages from temp store for temporary mode
+        useTempMessageStore.getState().getMessagesByThreadId(input.threadId)
+      : // Get messages from Convex for persistent mode
+        (await CONVEX_CLIENT.query(api.messages.getByThreadId, {
+          threadId: input.threadId,
+        })) || [];
 
   const userMessageId = crypto.randomUUID();
   const assistantMessageId = crypto.randomUUID();
@@ -231,11 +235,23 @@ export async function createMessage(
   // Create all attachments in a single batch operation with messageId
   if (attachmentsToCreate.length > 0) {
     try {
-      const createdAttachments = await hooks.mutations.createAttachments({
-        attachments: attachmentsToCreate,
-        messageId: userMessageId, // Pass the user message ID (string UUID)
-      });
-      persistedAttachments.push(...createdAttachments);
+      if (input.temporary) {
+        // Same logic but save to temp store instead of Convex
+        const createdAttachments = await useTempMessageStore
+          .getState()
+          .createAttachments({
+            attachments: attachmentsToCreate,
+            messageId: userMessageId,
+          });
+        persistedAttachments.push(...createdAttachments);
+      } else {
+        // Existing Convex logic
+        const createdAttachments = await hooks.mutations.createAttachments({
+          attachments: attachmentsToCreate,
+          messageId: userMessageId, // Pass the user message ID (string UUID)
+        });
+        persistedAttachments.push(...createdAttachments);
+      }
     } catch (error) {
       console.error("Failed to persist attachments:", error);
     }
@@ -268,7 +284,7 @@ export async function createMessage(
     modelParams: input.modelParams,
   };
 
-  // Add ONLY assistant message to temp store (user is already in Convex)
+  // Add assistant message to temp store for streaming
   useTempMessageStore.getState().addMessage({
     messageId: assistantMessageId,
     threadId: input.threadId,
@@ -280,11 +296,26 @@ export async function createMessage(
     updated_at: now + 1,
   });
 
-  // Add messages to database
-  await hooks.mutations.addMessagesToThread({
-    threadId: input.threadId,
-    messages: [userMessage, assistantMessage],
-  });
+  if (input.temporary) {
+    // Add user message to temp store as well for temporary mode
+    useTempMessageStore.getState().addMessage({
+      messageId: userMessageId,
+      threadId: input.threadId,
+      content: input.userContent,
+      role: "user",
+      status: "done",
+      model: input.model,
+      created_at: now,
+      updated_at: now,
+      attachmentIds: persistedAttachments.map((a) => a._id),
+    });
+  } else {
+    // Add messages to database
+    await hooks.mutations.addMessagesToThread({
+      threadId: input.threadId,
+      messages: [userMessage, assistantMessage],
+    });
+  }
 
   // Convert to AI SDK's CoreMessage format using optimized single-pass conversion
   const coreMessages = convertConvexMessagesToCoreMessages(
@@ -311,6 +342,7 @@ export async function createMessage(
     modelParams: input.modelParams,
     userId: currentUser._id, // Pass the authenticated user ID
     isNewThread: input.newThread,
+    temporary: input.temporary,
     hooks,
   });
 
@@ -338,6 +370,7 @@ async function doChatFetchRequest(input: {
   };
   userId: Id<"users">;
   isNewThread?: boolean;
+  temporary?: boolean;
   hooks: CreateMessageHooks;
 }) {
   // Get current user from hooks (already authenticated in main function)
@@ -373,6 +406,8 @@ async function doChatFetchRequest(input: {
     userApiKeys,
     // User customization data
     userCustomization: userCustomizationData || undefined,
+    // Temporary mode flag
+    temporary: input.temporary,
     // Spread modelParams into individual fields that ChatRequest expects
     ...(input.modelParams && {
       temperature: input.modelParams.temperature,
@@ -422,12 +457,14 @@ async function doChatFetchRequest(input: {
         content: `Error: ${errorBody.error.message}`,
       });
 
-      // 2. CONVEX SECOND (persistence)
-      await input.hooks.mutations.setErrorMessage({
-        messageId: input.assistantMessageId,
-        errorMessage: errorBody.error.message,
-        errorType: errorBody.error.type,
-      });
+      // 2. CONVEX SECOND (persistence) - only if not temporary
+      if (!input.temporary) {
+        await input.hooks.mutations.setErrorMessage({
+          messageId: input.assistantMessageId,
+          errorMessage: errorBody.error.message,
+          errorType: errorBody.error.type,
+        });
+      }
     } catch (error) {
       console.error("Unable to parse error from server", error);
     }
@@ -569,40 +606,42 @@ async function doChatFetchRequest(input: {
         status: "done",
       });
 
-      // 2. SECOND: Update Convex with final content (this was moved from API route)
-      try {
-        // Update message with final content, reasoning, provider metadata, tools, and stream ID
-        const toolsArray = Array.from(tools.values());
-        const messageUpdate = input.hooks.mutations.updateMessage({
-          messageId: input.assistantMessageId,
-          content: messageContent,
-          reasoning: reasoning,
-          ...(providerMetadata && { providerMetadata }),
-          ...(streamId && { streamId }),
-          ...(toolsArray.length > 0 && { tools: toolsArray }),
-          status: "done",
-        });
+      // 2. SECOND: Update Convex with final content (this was moved from API route) - only if not temporary
+      if (!input.temporary) {
+        try {
+          // Update message with final content, reasoning, provider metadata, tools, and stream ID
+          const toolsArray = Array.from(tools.values());
+          const messageUpdate = input.hooks.mutations.updateMessage({
+            messageId: input.assistantMessageId,
+            content: messageContent,
+            reasoning: reasoning,
+            ...(providerMetadata && { providerMetadata }),
+            ...(streamId && { streamId }),
+            ...(toolsArray.length > 0 && { tools: toolsArray }),
+            status: "done",
+          });
 
-        // Update thread status to completed
-        const threadUpdate = input.hooks.mutations.updateThread({
-          threadId: input.threadId,
-          generationStatus: "completed",
-        });
+          // Update thread status to completed
+          const threadUpdate = input.hooks.mutations.updateThread({
+            threadId: input.threadId,
+            generationStatus: "completed",
+          });
 
-        await Promise.all([messageUpdate, threadUpdate]);
+          await Promise.all([messageUpdate, threadUpdate]);
 
-        console.log(
-          "[CHAT] Client updated Convex with final content, metadata, and thread status"
-        );
-      } catch (error) {
-        console.error(
-          "[CHAT] Error updating Convex with final content:",
-          error
-        );
+          console.log(
+            "[CHAT] Client updated Convex with final content, metadata, and thread status"
+          );
+        } catch (error) {
+          console.error(
+            "[CHAT] Error updating Convex with final content:",
+            error
+          );
+        }
+
+        // 3. FINALLY: Remove from temp store (UI will now show Convex version)
+        removeMessage(input.assistantMessageId);
       }
-
-      // 3. FINALLY: Remove from temp store (UI will now show Convex version)
-      removeMessage(input.assistantMessageId);
     },
     onErrorPart: async (error) => {
       // Handle errors

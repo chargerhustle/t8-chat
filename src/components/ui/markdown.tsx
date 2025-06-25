@@ -40,14 +40,16 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     const language = extractLanguage(className);
 
     return (
-      <CodeBlock className={className}>
-        <CodeBlockCode
-          code={children as string}
-          language={language}
-          theme="github-dark"
-          showHeader={true}
-        />
-      </CodeBlock>
+      <div className="not-prose">
+        <CodeBlock className={className}>
+          <CodeBlockCode
+            code={children as string}
+            language={language}
+            theme="github-dark"
+            showHeader={true}
+          />
+        </CodeBlock>
+      </div>
     );
   },
   pre: function PreComponent({ children }) {

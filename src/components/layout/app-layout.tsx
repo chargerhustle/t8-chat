@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Outlet, useNavigate } from "react-router";
+import { Outlet, useNavigate, useLocation } from "react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarFloatingToolbar } from "@/components/sidebar/sidebar-floating-toolbar";
@@ -11,6 +11,7 @@ import { SettingsToolbar } from "@/components/layout/settings-toolbar";
 
 export function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Global keyboard shortcuts using custom hook
@@ -26,6 +27,19 @@ export function AppLayout() {
       ctrlOrCmd: true,
       shift: true,
       callback: () => navigate("/"),
+    },
+    {
+      key: "j",
+      ctrlOrCmd: true,
+      shift: true,
+      callback: () => {
+        // Toggle between temporary mode and home
+        if (location.pathname.startsWith("/temporary")) {
+          navigate("/");
+        } else {
+          navigate("/temporary");
+        }
+      },
     },
   ]);
 

@@ -133,7 +133,6 @@ export function ChatInput({
           />
           <ChatInputActions
             canSend={canSend}
-            currentValue={currentValue}
             models={MODEL_CONFIGS}
             selectedModel={selectedModel}
             onSelectModel={setSelectedModel}

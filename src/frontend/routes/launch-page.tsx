@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
@@ -22,46 +22,49 @@ export default function LaunchChat() {
   // Use hook to detect temporary mode
   const temporary = useTemporaryMode();
 
-  const handleSubmit = async (
-    message: string,
-    model: ModelConfig,
-    reasoningEffort: EffortLevel,
-    includeSearch: boolean,
-    attachments: ReturnType<
-      typeof import("@/hooks/use-attachments").useAttachments
-    >["attachments"]
-  ) => {
-    if (!message.trim()) return;
+  const handleSubmit = useCallback(
+    async (
+      message: string,
+      model: ModelConfig,
+      reasoningEffort: EffortLevel,
+      includeSearch: boolean,
+      attachments: ReturnType<
+        typeof import("@/hooks/use-attachments").useAttachments
+      >["attachments"]
+    ) => {
+      if (!message.trim()) return;
 
-    const threadId = crypto.randomUUID();
+      const threadId = crypto.randomUUID();
 
-    // Set navigating state to prevent welcome message from showing
-    setIsNavigating(true);
+      // Set navigating state to prevent welcome message from showing
+      setIsNavigating(true);
 
-    // 1. Navigate FIRST (instant feedback)
-    navigate(temporary ? `/temporary/chat/${threadId}` : `/chat/${threadId}`);
+      // 1. Navigate FIRST (instant feedback)
+      navigate(temporary ? `/temporary/chat/${threadId}` : `/chat/${threadId}`);
 
-    // 2. Call createMessage with everything (it handles thread creation)
-    createMessage(
-      {
-        newThread: true, // createMessage will create the thread
-        threadId,
-        userContent: message,
-        model: model.model, // Use the selected model from dropdown
-        modelParams: {
-          reasoningEffort,
-          includeSearch,
+      // 2. Call createMessage with everything (it handles thread creation)
+      createMessage(
+        {
+          newThread: true, // createMessage will create the thread
+          threadId,
+          userContent: message,
+          model: model.model, // Use the selected model from dropdown
+          modelParams: {
+            reasoningEffort,
+            includeSearch,
+          },
+          attachments,
+          temporary, // Pass temporary mode
         },
-        attachments,
-        temporary, // Pass temporary mode
-      },
-      createMessageHooks
-    ).catch((error) => {
-      console.error("Failed to create thread:", error);
-    });
-  };
+        createMessageHooks
+      ).catch((error) => {
+        console.error("Failed to create thread:", error);
+      });
+    },
+    [navigate, temporary, createMessageHooks]
+  );
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = useCallback((suggestion: string) => {
     setInputValue(suggestion);
     setHasInputText(true);
 
@@ -78,15 +81,15 @@ export default function LaunchChat() {
         );
       }
     }, 100);
-  };
+  }, []);
 
-  const handleInputChange = (hasText: boolean) => {
+  const handleInputChange = useCallback((hasText: boolean) => {
     setHasInputText(hasText);
-  };
+  }, []);
 
-  const handleValueChange = (value: string) => {
+  const handleValueChange = useCallback((value: string) => {
     setInputValue(value);
-  };
+  }, []);
 
   return (
     <div className="relative h-full">

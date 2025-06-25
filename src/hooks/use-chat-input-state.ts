@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ModelConfig, MODEL_CONFIGS, DEFAULT_MODEL } from "@/ai/models-config";
 import { EffortLevel } from "@/types";
 
@@ -71,31 +71,31 @@ export function useChatInputState() {
   });
 
   // Wrapper function to save to localStorage when model changes
-  const handleSetSelectedModel = (model: ModelConfig) => {
+  const handleSetSelectedModel = useCallback((model: ModelConfig) => {
     setSelectedModel(model);
     saveSettings({ selectedModelId: model.id });
-  };
+  }, []);
 
   // Wrapper function to save reasoning effort to localStorage
-  const handleSetReasoningEffort = (effort: EffortLevel) => {
+  const handleSetReasoningEffort = useCallback((effort: EffortLevel) => {
     setReasoningEffort(effort);
     saveSettings({ reasoningEffort: effort });
-  };
+  }, []);
 
   // Wrapper function to save search setting to localStorage
-  const handleSetIncludeSearch = (include: boolean) => {
+  const handleSetIncludeSearch = useCallback((include: boolean) => {
     setIncludeSearch(include);
     saveSettings({ includeSearch: include });
-  };
+  }, []);
 
   // Check if current model supports search
   const modelSupportsSearch = selectedModel.features.includes("search");
   // Check if current model supports reasoning (for models like o1, o3, etc.)
   const modelSupportsReasoning = selectedModel.features.includes("reasoning");
 
-  const toggleSearch = () => {
+  const toggleSearch = useCallback(() => {
     handleSetIncludeSearch(!includeSearch);
-  };
+  }, [includeSearch, handleSetIncludeSearch]);
 
   // Accept string for file input (comma-separated)
   const acceptMimes = selectedModel.allowedMIMETypes.join(",");

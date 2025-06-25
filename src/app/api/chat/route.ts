@@ -176,7 +176,11 @@ export async function POST(req: Request) {
 
     // Auto-generate thread title from first message if it's a new thread
     // Only generate title if explicitly set to "New Thread" (not just missing)
-    if (requestData.threadMetadata?.title === "New Thread") {
+    // Skip for temporary mode since thread doesn't exist in Convex
+    if (
+      requestData.threadMetadata?.title === "New Thread" &&
+      !requestData.temporary
+    ) {
       const titleGenPromise = generateTitleFromUserMessage({
         messageContent: requestData.messages[0].content,
         uniqueIdentifier: requestData.responseMessageId,
@@ -195,20 +199,23 @@ export async function POST(req: Request) {
     }
 
     // Set up database updates - Initial update: Set streamId so other devices can find and resume this stream
-    const initialUpdate = SERVER_CONVEX_CLIENT.mutation(
-      api.internal.chat.updateMessage,
-      {
-        messageId: requestData.responseMessageId,
-        userId: requestData.userId,
-        status: "streaming",
-        streamId: streamId, // Critical: Other devices use this to resume
-        apiKey: env.CONVEX_BRIDGE_API_KEY,
-      }
-    );
+    // Skip for temporary mode since message doesn't exist in Convex
+    if (!requestData.temporary) {
+      const initialUpdate = SERVER_CONVEX_CLIENT.mutation(
+        api.internal.chat.updateMessage,
+        {
+          messageId: requestData.responseMessageId,
+          userId: requestData.userId,
+          status: "streaming",
+          streamId: streamId, // Critical: Other devices use this to resume
+          apiKey: env.CONVEX_BRIDGE_API_KEY,
+        }
+      );
 
-    initialUpdate.catch((e: Error) => {
-      console.error("[CHAT] Error setting initial stream ID", e);
-    });
+      initialUpdate.catch((e: Error) => {
+        console.error("[CHAT] Error setting initial stream ID", e);
+      });
+    }
 
     // Get user context from headers
     const userContext = extractUserContextFromHeaders(req.headers);
@@ -227,6 +234,7 @@ export async function POST(req: Request) {
       userContext,
       userCustomization: requestData.userCustomization,
       memoriesEnabled: requestData.preferences?.memoriesEnabled,
+      temporary: requestData.temporary,
     });
 
     // Debug log provider options
