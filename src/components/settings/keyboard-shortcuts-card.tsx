@@ -53,6 +53,10 @@ export function KeyboardShortcutsCard() {
           <KeyboardShortcut keys={["Ctrl", "Shift", "O"]} />
         </div>
         <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">Temporary Chat</span>
+          <KeyboardShortcut keys={["Ctrl", "Shift", "J"]} />
+        </div>
+        <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Toggle Sidebar</span>
           <KeyboardShortcut keys={["Ctrl", "B"]} />
         </div>
