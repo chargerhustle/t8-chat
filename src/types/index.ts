@@ -76,6 +76,7 @@ export interface ChatRequest {
   userId?: UserId;
   userCustomization?: UserCustomization;
   preferences?: UserPreferences;
+  temporary?: boolean;
 
   // BYOK - User API keys
   userApiKeys?: {

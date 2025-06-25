@@ -10,6 +10,12 @@ export const CHAT_SUGGESTIONS: Record<string, string[]> = {
     'How many Rs are in the word "strawberry"? ',
     "What is the meaning of life? ",
   ],
+  temporary: [
+    "I accidentally sent a text to the wrong person ",
+    "What should I do in this awkward situation? ",
+    "I hate my job but need the money ",
+    "My roommate is driving me insane ",
+  ],
   create: [
     "Write a short story about a robot discovering emotions ",
     "Help me outline a sci-fi novel set in a post-apocalyptic world ",

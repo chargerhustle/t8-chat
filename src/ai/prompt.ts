@@ -20,6 +20,7 @@ interface UserContext {
  * @param userContext - Optional user location and timezone information.
  * @param userCustomization - Optional user profile, preferences, and saved memories for personalization.
  * @param memoriesEnabled - Optional flag indicating if memory management features are enabled.
+ * @param temporary - Optional flag indicating if this is a temporary chat session.
  * @returns A comprehensive system prompt string tailored to the provided context and settings.
  */
 export function createSystemPrompt({
@@ -29,6 +30,7 @@ export function createSystemPrompt({
   userContext,
   userCustomization,
   memoriesEnabled,
+  temporary,
 }: {
   model: string;
   modelDisplayName: string;
@@ -36,6 +38,7 @@ export function createSystemPrompt({
   userContext?: UserContext;
   userCustomization?: UserCustomization;
   memoriesEnabled?: boolean;
+  temporary?: boolean;
 }): string {
   const parts: string[] = [];
 
@@ -61,12 +64,26 @@ export function createSystemPrompt({
     )}.`
   );
 
+  // Temporary mode context
+  if (temporary) {
+    parts.push(
+      "- Session Mode: TEMPORARY",
+      "  This is a temporary chat session. Important details:",
+      "  • Messages are NOT saved to our servers or database - they exist only locally",
+      "  • All conversation data will be permanently deleted when the page is refreshed or closed",
+      "  • This provides enhanced privacy for sensitive conversations",
+      "  • This temporary mode is COMPLETELY SEPARATE from the 'Memories' feature - temporary mode affects message storage, while Memories is a different feature for saving user preferences",
+      "  • Only mention this temporary nature if the user specifically asks about data persistence, privacy, or session storage",
+      "  • Do not proactively mention the temporary nature unless directly relevant to the user's question"
+    );
+  }
+
   // Math formatting section
   parts.push(
-    "- Always use LaTeX for mathematical expressions:",
-    "  - Inline math must be wrapped in escaped parentheses: \\( content \\)",
-    "  - Do not use single dollar signs for inline math",
-    "  - Display math must be wrapped in double dollar signs: $$ content $$"
+    "- Always use Markdown math syntax for mathematical expressions:",
+    "  - Inline math must be wrapped in single dollar signs: $ content $",
+    "  - Display math must be wrapped in double dollar signs: $$ content $$",
+    "  - Do NOT use LaTeX escaped parentheses \\( \\) for inline math"
   );
 
   // Gemini-specific instructions
@@ -167,7 +184,7 @@ export function createSystemPrompt({
 
     parts.push("- Memory Management Status:");
     parts.push(
-      "  Memory management is currently ENABLED and you have access to memory tools. Users can manage their memory settings in [Settings > Customization](/settings/customization)"
+      "  The 'Memories' feature is currently ENABLED and you have access to memory tools. Users can manage their Memories settings in Settings > Customization"
     );
 
     if (hasMemories) {
@@ -196,9 +213,9 @@ export function createSystemPrompt({
   } else {
     parts.push("- Memory Management Status:");
     parts.push(
-      "  Memory management is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
-      "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to memory when this feature is disabled. Be honest that memory management is turned off.",
-      "  If the user wants to enable memory management, they can toggle on this feature in [Settings > Customization](/settings/customization)."
+      "  The 'Memories' feature is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
+      "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to the Memories feature when this feature is disabled. Be honest that the Memories feature is turned off.",
+      "  If the user wants to enable the Memories feature, they can toggle it on in Settings > Customization."
     );
   }
 

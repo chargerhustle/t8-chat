@@ -1,26 +1,45 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useParams } from "react-router";
+import { useState, useCallback, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
 import MessageComponent from "@/components/chat/messages/message";
 import { ChatInput } from "@/components/chat/chat-input/chat-input";
 import { createMessage } from "@/lib/chat/create-message";
 import { useCreateMessage } from "@/hooks/use-create-message";
+import { useTemporaryMode } from "@/hooks/use-temporary-mode";
 import { useHybridMessages } from "@/hooks/use-hybrid-messages";
+import { useThreadMessages } from "@/lib/chat/temp-message-store";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { ModelConfig } from "@/ai/models-config";
 import { EffortLevel } from "@/types";
 
 export default function Chat() {
   const { threadId } = useParams<{ threadId: string }>();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatInputHeight, setChatInputHeight] = useState(141);
+  const [chatInputValue, setChatInputValue] = useState("");
 
   // Hook for creating messages with proper React integration
   const createMessageHooks = useCreateMessage();
 
-  // Use hybrid messages hook for real-time streaming + Convex data
-  const messages = useHybridMessages(threadId || "");
+  // Use hook to detect temporary mode
+  const temporary = useTemporaryMode();
+
+  // Get messages from temp and hybrid stores depending on mode
+  const tempMessages = useThreadMessages(threadId || "");
+  const hybridMessages = useHybridMessages(threadId || "");
+
+  // Use the appropriate messages based on mode
+  const messages = temporary ? tempMessages : hybridMessages;
+
+  // Redirect to home if temporary mode and no messages (e.g., after page refresh)
+  // Don't redirect if user is actively submitting to avoid race conditions
+  useEffect(() => {
+    if (temporary && messages.length === 0 && !isSubmitting) {
+      navigate("/", { replace: true });
+    }
+  }, [temporary, messages.length, isSubmitting, navigate]);
 
   // Use scroll to bottom hook
   const {
@@ -42,47 +61,55 @@ export default function Chat() {
     [updateScrollPosition]
   );
 
-  const handleSubmit = async (
-    message: string,
-    model: ModelConfig,
-    reasoningEffort: EffortLevel,
-    includeSearch: boolean,
-    attachments: ReturnType<
-      typeof import("@/hooks/use-attachments").useAttachments
-    >["attachments"]
-  ) => {
-    if (!threadId || isSubmitting || !message.trim()) return;
+  const handleSubmit = useCallback(
+    async (
+      message: string,
+      model: ModelConfig,
+      reasoningEffort: EffortLevel,
+      includeSearch: boolean,
+      attachments: ReturnType<
+        typeof import("@/hooks/use-attachments").useAttachments
+      >["attachments"]
+    ) => {
+      if (!threadId || isSubmitting || !message.trim()) return;
 
-    setIsSubmitting(true);
+      setIsSubmitting(true);
 
-    try {
-      console.log(
-        `[CHAT] Adding user message to thread ${threadId}: ${message}`
-      );
+      try {
+        console.log(
+          `[CHAT] Adding user message to thread ${threadId}: ${message}`
+        );
 
-      await createMessage(
-        {
-          newThread: false, // Thread already exists
-          threadId,
-          userContent: message,
-          model: model.model, // Use the selected model from dropdown
-          modelParams: {
-            reasoningEffort,
-            includeSearch,
+        await createMessage(
+          {
+            newThread: false, // Thread already exists
+            threadId,
+            userContent: message,
+            model: model.model, // Use the selected model from dropdown
+            modelParams: {
+              reasoningEffort,
+              includeSearch,
+            },
+            attachments,
+            temporary, // Pass temporary mode
           },
-          attachments,
-        },
-        createMessageHooks
-      );
-    } catch (error) {
-      console.error("[CHAT] Failed to send message:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+          createMessageHooks
+        );
+      } catch (error) {
+        console.error("[CHAT] Failed to send message:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [threadId, isSubmitting, temporary, createMessageHooks]
+  );
 
   const handleChatInputHeightChange = useCallback((height: number) => {
     setChatInputHeight(height);
+  }, []);
+
+  const handleValueChange = useCallback((value: string) => {
+    setChatInputValue(value);
   }, []);
 
   return (
@@ -124,6 +151,8 @@ export default function Chat() {
         showScrollToBottom={showScrollToBottom}
         onScrollToBottom={scrollToBottom}
         onHeightChange={handleChatInputHeightChange}
+        value={chatInputValue}
+        onValueChange={handleValueChange}
       />
     </div>
   );

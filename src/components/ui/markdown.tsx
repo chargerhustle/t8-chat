@@ -3,6 +3,8 @@ import { memo, useId, useMemo } from "react";
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { CodeBlock, CodeBlockCode } from "./code-block";
 
 export type MarkdownProps = {
@@ -40,14 +42,16 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     const language = extractLanguage(className);
 
     return (
-      <CodeBlock className={className}>
-        <CodeBlockCode
-          code={children as string}
-          language={language}
-          theme="github-dark"
-          showHeader={true}
-        />
-      </CodeBlock>
+      <div className="not-prose">
+        <CodeBlock className={className}>
+          <CodeBlockCode
+            code={children as string}
+            language={language}
+            theme="github-dark"
+            showHeader={true}
+          />
+        </CodeBlock>
+      </div>
     );
   },
   pre: function PreComponent({ children }) {
@@ -65,7 +69,8 @@ const MemoizedMarkdownBlock = memo(
   }) {
     return (
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
+        remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
         components={components}
       >
         {content}
