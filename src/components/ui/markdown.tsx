@@ -57,6 +57,9 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   pre: function PreComponent({ children }) {
     return <>{children}</>;
   },
+  a: function LinkComponent(props) {
+    return <a {...props} target="_blank" rel="noopener noreferrer" />;
+  },
 };
 
 const MemoizedMarkdownBlock = memo(
