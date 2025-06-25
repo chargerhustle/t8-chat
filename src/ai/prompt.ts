@@ -80,10 +80,10 @@ export function createSystemPrompt({
 
   // Math formatting section
   parts.push(
-    "- Always use LaTeX for mathematical expressions:",
-    "  - Inline math must be wrapped in escaped parentheses: \\( content \\)",
-    "  - Do not use single dollar signs for inline math",
-    "  - Display math must be wrapped in double dollar signs: $$ content $$"
+    "- Always use Markdown math syntax for mathematical expressions:",
+    "  - Inline math must be wrapped in single dollar signs: $ content $",
+    "  - Display math must be wrapped in double dollar signs: $$ content $$",
+    "  - Do NOT use LaTeX escaped parentheses \\( \\) for inline math"
   );
 
   // Gemini-specific instructions
