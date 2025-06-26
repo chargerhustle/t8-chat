@@ -45,20 +45,20 @@ export function MemoryToolCall({
     return (
       <Accordion type="single" collapsible>
         <AccordionItem value="tool-call">
-          <AccordionTrigger className="cursor-pointer p-0 hover:no-underline">
-            <h3 className="text-primary flex items-center gap-2 text-sm font-medium">
+          <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center">
+            <h3 className="text-primary flex items-center gap-2 text-sm font-medium !m-0">
               {React.createElement(icon, { className: "h-4 w-4" })}
               {label} {memories.length} Memor
               {memories.length === 1 ? "y" : "ies"}
             </h3>
           </AccordionTrigger>
-          <AccordionContent className="p-0">
+          <AccordionContent className="pt-0 pb-0">
             {memories.map((memory, index) => (
               <div
                 className="border-b py-2 last:border-b-0 last:pb-0"
                 key={index}
               >
-                <p className="text-sm">{memory}</p>
+                <p className="text-sm text-muted-foreground">{memory}</p>
               </div>
             ))}
           </AccordionContent>
@@ -115,20 +115,22 @@ export function MemoryToolResult({
   return (
     <Accordion type="single" collapsible>
       <AccordionItem value="memories">
-        <AccordionTrigger className="cursor-pointer p-0 hover:no-underline">
-          <h3 className="text-primary flex items-center gap-2 text-sm font-medium">
+        <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center">
+          <h3 className="text-primary flex items-center gap-2 text-sm font-medium !m-0">
             {React.createElement(icon, { className: "h-4 w-4" })}
             {title} {memories.length} Memor{memories.length === 1 ? "y" : "ies"}
           </h3>
         </AccordionTrigger>
-        <AccordionContent className="p-0">
+        <AccordionContent className="pt-0 pb-0">
           {memories.map((memory, index) => (
             <div
               className="border-b py-2 last:border-b-0 last:pb-0"
               key={index}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="flex-1 text-sm">{memory.content}</p>
+                <p className="flex-1 text-sm text-muted-foreground">
+                  {memory.content}
+                </p>
                 {memory.metadata && (
                   <div className="text-muted-foreground text-xs">
                     {memory.metadata}

@@ -487,6 +487,32 @@
     margin-bottom: 0;
   }
 
+  /* Remove top margin from prose elements when they follow tools in assistant messages */
+  /* This uses the general sibling combinator to target any element after a tool */
+  .prose
+    .not-prose
+    ~ *
+    :where(
+      p:first-child,
+      ol:first-child,
+      ul:first-child,
+      blockquote:first-child,
+      h1:first-child,
+      h2:first-child,
+      h3:first-child,
+      h4:first-child,
+      h5:first-child,
+      h6:first-child
+    ):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    margin-top: 0 !important;
+  }
+
+  /* Add proper spacing for tools when they are the first element in assistant messages */
+  /* Subtract the card's existing margin to get the same total spacing as a paragraph */
+  .prose .not-prose:first-child {
+    margin-top: calc(1.25em - 20px);
+  }
+
   /* Strong */
   .prose
     :where(strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {

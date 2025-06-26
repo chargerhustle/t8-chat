@@ -9,16 +9,35 @@ export const DeleteMemoryToolConfigClient: ClientToolConfig<
   typeof baseDeleteMemoryTool.inputSchema.shape,
   typeof baseDeleteMemoryTool.outputSchema.shape
 > = {
-  CallComponent: ({ args }) => {
+  CallComponent: ({ args, isPartial }) => {
     const memoryIds = (args.memoryIds || []).filter((id): id is string =>
       Boolean(id)
     );
+
+    if (isPartial) {
+      return (
+        <MemoryToolCall
+          icon={Trash2}
+          label="Receiving"
+          value={
+            memoryIds.length > 0
+              ? `${memoryIds.length} ${memoryIds.length === 1 ? "ID" : "IDs"}...`
+              : "Streaming..."
+          }
+          memories={memoryIds}
+        />
+      );
+    }
 
     return (
       <MemoryToolCall
         icon={Trash2}
         label="Deleting"
-        value={memoryIds.length > 0 ? `${memoryIds.length} memories` : "..."}
+        value={
+          memoryIds.length > 0
+            ? `${memoryIds.length} ${memoryIds.length === 1 ? "memory" : "memories"}`
+            : "0 memories"
+        }
         memories={memoryIds}
       />
     );

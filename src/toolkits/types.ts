@@ -1,5 +1,6 @@
 import type { CreateMessage, DeepPartial } from "ai";
 import type { z, ZodObject, ZodRawShape } from "zod";
+import type { Toolkits } from "@/toolkits/toolkits/shared";
 
 // ------------------------------------------------------------
 // Toolkits
@@ -98,7 +99,7 @@ export type ClientTool<
 // ------------------------------------------------------------
 
 export type SelectedToolkit = {
-  id: string;
+  id: Toolkits;
   toolkit: ClientToolkit;
   parameters: z.infer<ClientToolkit["parameters"]>;
 };

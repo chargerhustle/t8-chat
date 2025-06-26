@@ -9,17 +9,36 @@ export const UpdateMemoryToolConfigClient: ClientToolConfig<
   typeof baseUpdateMemoryTool.inputSchema.shape,
   typeof baseUpdateMemoryTool.outputSchema.shape
 > = {
-  CallComponent: ({ args }) => {
+  CallComponent: ({ args, isPartial }) => {
     const updates = args.updates || [];
     const memories = updates
       .map((update) => update?.newContent || "")
       .filter(Boolean);
 
+    if (isPartial) {
+      return (
+        <MemoryToolCall
+          icon={Pencil}
+          label="Receiving"
+          value={
+            updates.length > 0
+              ? `${updates.length} ${updates.length === 1 ? "update" : "updates"}...`
+              : "Streaming..."
+          }
+          memories={memories}
+        />
+      );
+    }
+
     return (
       <MemoryToolCall
         icon={Pencil}
         label="Updating"
-        value={updates.length > 0 ? `${updates.length} memories` : "..."}
+        value={
+          updates.length > 0
+            ? `${updates.length} ${updates.length === 1 ? "memory" : "memories"}`
+            : "0 memories"
+        }
         memories={memories}
       />
     );

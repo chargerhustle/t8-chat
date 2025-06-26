@@ -9,16 +9,35 @@ export const SaveToMemoryToolConfigClient: ClientToolConfig<
   typeof baseSaveToMemoryTool.inputSchema.shape,
   typeof baseSaveToMemoryTool.outputSchema.shape
 > = {
-  CallComponent: ({ args }) => {
+  CallComponent: ({ args, isPartial }) => {
     const memories = (args.memories || []).filter((m): m is string =>
       Boolean(m)
     );
+
+    if (isPartial) {
+      return (
+        <MemoryToolCall
+          icon={Plus}
+          label="Receiving"
+          value={
+            memories.length > 0
+              ? `${memories.length} ${memories.length === 1 ? "memory" : "memories"}...`
+              : "Streaming..."
+          }
+          memories={memories}
+        />
+      );
+    }
 
     return (
       <MemoryToolCall
         icon={Plus}
         label="Saving"
-        value={memories.length > 0 ? `${memories.length} memories` : "..."}
+        value={
+          memories.length > 0
+            ? `${memories.length} ${memories.length === 1 ? "memory" : "memories"}`
+            : "0 memories"
+        }
         memories={memories}
       />
     );
