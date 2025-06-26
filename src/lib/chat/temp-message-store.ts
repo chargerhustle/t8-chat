@@ -27,6 +27,23 @@ export type TempAttachment = {
   status?: "deleted" | "uploaded";
 };
 
+// Part types matching the Convex schema
+export type TempPart =
+  | {
+      type: "text";
+      text: string;
+      timestamp: number;
+    }
+  | {
+      type: "tool";
+      toolCallId: string;
+      toolName: string;
+      args: Record<string, unknown>;
+      result?: unknown;
+      state: "streaming-start" | "streaming-delta" | "call" | "result";
+      timestamp: number;
+    };
+
 export type TempMessage = {
   messageId: string;
   threadId: string;
@@ -38,6 +55,7 @@ export type TempMessage = {
   created_at: number;
   updated_at: number;
   tools?: Tool[];
+  parts?: TempPart[]; // New parts array
   attachmentIds?: string[]; // Array of attachment IDs
 };
 
@@ -66,6 +84,22 @@ type InternalTempMessageStore = {
     messageId: string,
     toolCallId: string,
     updates: Partial<Tool>
+  ) => void;
+
+  // Parts-specific actions
+  addPart: (messageId: string, part: TempPart) => void;
+  addTextPart: (messageId: string, text: string) => void;
+  updateTextPart: (messageId: string, text: string) => void;
+  addToolPart: (
+    messageId: string,
+    toolPart: Omit<TempPart & { type: "tool" }, "timestamp">
+  ) => void;
+  updateToolPart: (
+    messageId: string,
+    toolCallId: string,
+    updates: Partial<
+      Omit<TempPart & { type: "tool" }, "type" | "toolCallId" | "timestamp">
+    >
   ) => void;
 
   // Convex-compatible attachment creation
@@ -122,6 +156,22 @@ export type TempMessageStore = {
     messageId: string,
     toolCallId: string,
     updates: Partial<Tool>
+  ) => void;
+
+  // Parts-specific actions
+  addPart: (messageId: string, part: TempPart) => void;
+  addTextPart: (messageId: string, text: string) => void;
+  updateTextPart: (messageId: string, text: string) => void;
+  addToolPart: (
+    messageId: string,
+    toolPart: Omit<TempPart & { type: "tool" }, "timestamp">
+  ) => void;
+  updateToolPart: (
+    messageId: string,
+    toolCallId: string,
+    updates: Partial<
+      Omit<TempPart & { type: "tool" }, "type" | "toolCallId" | "timestamp">
+    >
   ) => void;
 
   // Convex-compatible attachment creation
@@ -312,6 +362,107 @@ export const useTempMessageStore = create<InternalTempMessageStore>()(
             : msg
         ),
       })),
+
+    // Parts-specific actions
+    addPart: (messageId, part) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? { ...msg, parts: [...(msg.parts || []), part] }
+            : msg
+        ),
+      })),
+
+    addTextPart: (messageId, text) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? {
+                ...msg,
+                parts: [
+                  ...(msg.parts || []),
+                  {
+                    type: "text" as const,
+                    text,
+                    timestamp: Date.now(),
+                  },
+                ],
+              }
+            : msg
+        ),
+      })),
+
+    updateTextPart: (messageId, text) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? {
+                ...msg,
+                parts: (() => {
+                  const parts = msg.parts || [];
+                  // Find the last text part and update it, or create one if none exists
+                  const lastTextIndex = parts.findLastIndex(
+                    (part) => part.type === "text"
+                  );
+
+                  if (lastTextIndex >= 0) {
+                    // Update the last text part
+                    const newParts = [...parts];
+                    const existingPart = parts[lastTextIndex];
+                    if (existingPart.type === "text") {
+                      newParts[lastTextIndex] = { ...existingPart, text };
+                    }
+                    return newParts;
+                  } else {
+                    // No text part exists, create one
+                    return [
+                      ...parts,
+                      {
+                        type: "text" as const,
+                        text,
+                        timestamp: Date.now(),
+                      },
+                    ];
+                  }
+                })(),
+              }
+            : msg
+        ),
+      })),
+
+    addToolPart: (messageId, toolPart) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? {
+                ...msg,
+                parts: [
+                  ...(msg.parts || []),
+                  {
+                    ...toolPart,
+                    timestamp: Date.now(),
+                  },
+                ],
+              }
+            : msg
+        ),
+      })),
+
+    updateToolPart: (messageId, toolCallId, updates) =>
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.messageId === messageId
+            ? {
+                ...msg,
+                parts: msg.parts?.map((part) =>
+                  part.type === "tool" && part.toolCallId === toolCallId
+                    ? { ...part, ...updates, timestamp: Date.now() }
+                    : part
+                ),
+              }
+            : msg
+        ),
+      })),
   }))
 );
 
@@ -338,7 +489,11 @@ const createMessageHash = (
     .map((att) => `${att._id}:${att.fileName}`)
     .join("|");
 
-  return `${tempMsg.content}:${tempMsg.status}:${tempMsg.updated_at}:${attachmentIds}:${relevantAttachments}`;
+  const partsHash = tempMsg.parts
+    ? tempMsg.parts.map((part) => `${part.type}:${part.timestamp}`).join("|")
+    : "";
+
+  return `${tempMsg.content}:${tempMsg.status}:${tempMsg.updated_at}:${attachmentIds}:${relevantAttachments}:${partsHash}`;
 };
 
 // temp→temp "convert" helper for streaming messages with caching
@@ -390,6 +545,7 @@ const convertTempToFullMessage = (
     created_at: tempMsg.created_at,
     updated_at: tempMsg.updated_at,
     tools: tempMsg.tools,
+    parts: tempMsg.parts,
     attachmentIds: (tempMsg.attachmentIds || []) as Id<"attachments">[],
     attachments: messageAttachments,
     modelParams: undefined,
@@ -598,6 +754,21 @@ export const useAddTool = () => useTempMessageStore((state) => state.addTool);
 
 export const useUpdateTool = () =>
   useTempMessageStore((state) => state.updateTool);
+
+// Parts-specific action hooks
+export const useAddPart = () => useTempMessageStore((state) => state.addPart);
+
+export const useAddTextPart = () =>
+  useTempMessageStore((state) => state.addTextPart);
+
+export const useUpdateTextPart = () =>
+  useTempMessageStore((state) => state.updateTextPart);
+
+export const useAddToolPart = () =>
+  useTempMessageStore((state) => state.addToolPart);
+
+export const useUpdateToolPart = () =>
+  useTempMessageStore((state) => state.updateToolPart);
 
 // Attachment hooks
 export const useThreadAttachments = (threadId: string) => {

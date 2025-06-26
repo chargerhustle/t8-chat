@@ -178,6 +178,31 @@ export const updateMessage = mutation({
         })
       )
     ),
+    parts: v.optional(
+      v.array(
+        v.union(
+          v.object({
+            type: v.literal("text"),
+            text: v.string(),
+            timestamp: v.number(),
+          }),
+          v.object({
+            type: v.literal("tool"),
+            toolCallId: v.string(),
+            toolName: v.string(),
+            args: v.any(),
+            result: v.optional(v.any()),
+            state: v.union(
+              v.literal("streaming-start"),
+              v.literal("streaming-delta"),
+              v.literal("call"),
+              v.literal("result")
+            ),
+            timestamp: v.number(),
+          })
+        )
+      )
+    ),
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -223,6 +248,22 @@ export const updateMessage = mutation({
         state: "streaming-start" | "streaming-delta" | "call" | "result";
         timestamp: number;
       }>;
+      parts?: Array<
+        | {
+            type: "text";
+            text: string;
+            timestamp: number;
+          }
+        | {
+            type: "tool";
+            toolCallId: string;
+            toolName: string;
+            args: any;
+            result?: any;
+            state: "streaming-start" | "streaming-delta" | "call" | "result";
+            timestamp: number;
+          }
+      >;
     } = {};
 
     if (args.content) insert.content = args.content;
@@ -231,6 +272,7 @@ export const updateMessage = mutation({
     if (args.status) insert.status = args.status;
     if (args.streamId) insert.resumableStreamId = args.streamId;
     if (args.tools) insert.tools = args.tools;
+    if (args.parts) insert.parts = args.parts;
 
     await ctx.db.patch(message._id, insert);
 

@@ -103,6 +103,31 @@ const applicationTables = {
         })
       )
     ),
+    parts: v.optional(
+      v.array(
+        v.union(
+          v.object({
+            type: v.literal("text"),
+            text: v.string(),
+            timestamp: v.number(),
+          }),
+          v.object({
+            type: v.literal("tool"),
+            toolCallId: v.string(),
+            toolName: v.string(),
+            args: v.any(), // Tool arguments
+            result: v.optional(v.any()), // Tool result
+            state: v.union(
+              v.literal("streaming-start"), // Tool call started
+              v.literal("streaming-delta"), // Tool args streaming
+              v.literal("call"), // Tool call complete
+              v.literal("result") // Tool result received
+            ),
+            timestamp: v.number(),
+          })
+        )
+      )
+    ),
   })
     .index("by_threadId", ["threadId"])
     .index("by_thread_and_userid", ["threadId", "userId"])

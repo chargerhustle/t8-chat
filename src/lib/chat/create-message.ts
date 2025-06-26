@@ -428,8 +428,15 @@ async function doChatFetchRequest(input: {
     preferences: userPreferences,
   };
 
-  const { updateMessage, removeMessage, addTool, updateTool } =
-    useTempMessageStore.getState();
+  const {
+    updateMessage,
+    removeMessage,
+    addTool,
+    updateTool,
+    updateTextPart,
+    addToolPart,
+    updateToolPart,
+  } = useTempMessageStore.getState();
 
   const response = await fetch("/api/chat", {
     method: "POST",
@@ -480,12 +487,40 @@ async function doChatFetchRequest(input: {
   let reasoning = "";
   let providerMetadata: Record<string, unknown> | null = null;
   const tools = new Map<string, Tool>();
+  const parts: Array<{
+    type: "text" | "tool";
+    text?: string;
+    toolCallId?: string;
+    toolName?: string;
+    args?: Record<string, unknown>;
+    result?: unknown;
+    state?: "streaming-start" | "streaming-delta" | "call" | "result";
+    timestamp: number;
+  }> = [];
 
   // Process the stream data
   await processDataStream({
     stream: response.body!,
     onTextPart: async (text: string) => {
       messageContent += text;
+
+      // Update the last text part or create a new one
+      updateTextPart(input.assistantMessageId, messageContent);
+
+      // Also update the parts array for final Convex sync
+      const lastPartIndex = parts.findLastIndex((part) => part.type === "text");
+      if (lastPartIndex >= 0) {
+        parts[lastPartIndex] = {
+          ...parts[lastPartIndex],
+          text: messageContent,
+        };
+      } else {
+        parts.push({
+          type: "text",
+          text: messageContent,
+          timestamp: Date.now(),
+        });
+      }
 
       updateMessage(input.assistantMessageId, {
         content: messageContent,
@@ -534,6 +569,19 @@ async function doChatFetchRequest(input: {
 
       tools.set(part.toolCallId, newTool);
       addTool(input.assistantMessageId, newTool);
+
+      // Add to parts system
+      const newToolPart = {
+        type: "tool" as const,
+        toolCallId: part.toolCallId,
+        toolName: part.toolName,
+        args: {},
+        state: "streaming-start" as const,
+        timestamp: Date.now(),
+      };
+
+      parts.push(newToolPart);
+      addToolPart(input.assistantMessageId, newToolPart);
     },
     onToolCallDeltaPart: async (part) => {
       console.log("[TOOLS] Tool call delta:", part);
@@ -547,6 +595,18 @@ async function doChatFetchRequest(input: {
           state: "streaming-delta" as const,
           timestamp: Date.now(),
         });
+      }
+
+      // Update parts array
+      const partIndex = parts.findIndex(
+        (p) => p.type === "tool" && p.toolCallId === part.toolCallId
+      );
+      if (partIndex >= 0) {
+        parts[partIndex] = {
+          ...parts[partIndex],
+          state: "streaming-delta" as const,
+          timestamp: Date.now(),
+        };
       }
 
       // Don't call updateTool here to prevent infinite React state updates
@@ -569,6 +629,25 @@ async function doChatFetchRequest(input: {
       }
 
       updateTool(input.assistantMessageId, part.toolCallId, toolUpdate);
+
+      // Update parts array
+      const partIndex = parts.findIndex(
+        (p) => p.type === "tool" && p.toolCallId === part.toolCallId
+      );
+      if (partIndex >= 0) {
+        parts[partIndex] = {
+          ...parts[partIndex],
+          args: part.args,
+          state: "call" as const,
+          timestamp: Date.now(),
+        };
+      }
+
+      // Update parts in temp store
+      updateToolPart(input.assistantMessageId, part.toolCallId, {
+        args: part.args,
+        state: "call",
+      });
     },
     onToolResultPart: async (result) => {
       console.log("[TOOLS] Tool result received:", result);
@@ -588,6 +667,25 @@ async function doChatFetchRequest(input: {
       }
 
       updateTool(input.assistantMessageId, result.toolCallId, toolUpdate);
+
+      // Update parts array
+      const partIndex = parts.findIndex(
+        (p) => p.type === "tool" && p.toolCallId === result.toolCallId
+      );
+      if (partIndex >= 0) {
+        parts[partIndex] = {
+          ...parts[partIndex],
+          result: result.result,
+          state: "result" as const,
+          timestamp: Date.now(),
+        };
+      }
+
+      // Update parts in temp store
+      updateToolPart(input.assistantMessageId, result.toolCallId, {
+        result: result.result,
+        state: "result",
+      });
 
       // Handle saveToMemory tool - use local tools map instead of store lookup
       const correspondingTool = tools.get(result.toolCallId);
@@ -609,8 +707,30 @@ async function doChatFetchRequest(input: {
       // 2. SECOND: Update Convex with final content (this was moved from API route) - only if not temporary
       if (!input.temporary) {
         try {
-          // Update message with final content, reasoning, provider metadata, tools, and stream ID
+          // Update message with final content, reasoning, provider metadata, tools, parts, and stream ID
           const toolsArray = Array.from(tools.values());
+
+          // Convert parts array to proper format for Convex
+          const partsArray = parts.map((part) => {
+            if (part.type === "text") {
+              return {
+                type: "text" as const,
+                text: part.text!,
+                timestamp: part.timestamp,
+              };
+            } else {
+              return {
+                type: "tool" as const,
+                toolCallId: part.toolCallId!,
+                toolName: part.toolName!,
+                args: part.args || {},
+                result: part.result,
+                state: part.state!,
+                timestamp: part.timestamp,
+              };
+            }
+          });
+
           const messageUpdate = input.hooks.mutations.updateMessage({
             messageId: input.assistantMessageId,
             content: messageContent,
@@ -618,6 +738,7 @@ async function doChatFetchRequest(input: {
             ...(providerMetadata && { providerMetadata }),
             ...(streamId && { streamId }),
             ...(toolsArray.length > 0 && { tools: toolsArray }),
+            ...(partsArray.length > 0 && { parts: partsArray }),
             status: "done",
           });
 
