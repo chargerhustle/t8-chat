@@ -10,6 +10,7 @@ import { MessageAttachments } from "../attachments";
 import { getModelDisplayName } from "@/ai/models-config";
 import { ApiKeyError } from "@/components/error/api-key-error";
 import { MemoryIndicator } from "../memory-indicator";
+import { MessageTool } from "./message-tool";
 
 interface MessageProps {
   message: Doc<"messages"> & {
@@ -41,12 +42,14 @@ const MessageComponent = memo(({ message }: MessageProps) => {
   const isUser = message.role === "user";
 
   // Check if we should show loading animation for assistant messages
+  // Only show loading if there's no content AND no parts (tools)
   const isAssistantLoading =
     !isUser &&
     (message.status === "streaming" || message.status === "waiting") &&
     (!message.content ||
       message.content.trim().length === 0 ||
-      message.content === "...");
+      message.content === "...") &&
+    (!message.parts || message.parts.length === 0);
 
   // Get model display name for assistant messages
   const modelDisplayName = !isUser
@@ -126,9 +129,47 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               <ApiKeyError />
             ) : (
               // Show actual content when available
-              <Markdown id={`${message.messageId}-content`}>
-                {message.content}
-              </Markdown>
+              <div className="flex flex-col gap-4">
+                {/* Render parts array */}
+                {message.parts && message.parts.length > 0
+                  ? message.parts.map((part, index) => {
+                      const key = `${message.messageId}-part-${index}`;
+
+                      if (part.type === "text") {
+                        return (
+                          <Markdown
+                            key={key}
+                            id={`${message.messageId}-content-${index}`}
+                          >
+                            {part.text}
+                          </Markdown>
+                        );
+                      }
+
+                      if (part.type === "tool") {
+                        return (
+                          <MessageTool
+                            key={key}
+                            toolInvocation={{
+                              toolCallId: part.toolCallId,
+                              toolName: part.toolName,
+                              args: part.args,
+                              state: part.state,
+                              result: part.result,
+                            }}
+                          />
+                        );
+                      }
+
+                      return null;
+                    })
+                  : // Fallback to message.content if no parts
+                    message.content && (
+                      <Markdown id={`${message.messageId}-content`}>
+                        {message.content}
+                      </Markdown>
+                    )}
+              </div>
             )}
           </div>
 

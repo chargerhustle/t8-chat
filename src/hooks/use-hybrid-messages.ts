@@ -21,6 +21,9 @@ const convertTempToFullMessage = (
   _creationTime: tempMsg!.created_at,
   userId: "temp-user" as Id<"users">,
   model: tempMsg!.model, // Use the actual model from temp message
+  // Preserve parts and tools from temp message
+  parts: tempMsg!.parts,
+  tools: tempMsg!.tools,
   attachmentIds: [],
   attachments: [],
   modelParams: undefined,

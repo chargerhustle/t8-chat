@@ -177,43 +177,14 @@ export function createSystemPrompt({
     );
   }
 
-  // Memory management information
+  // Simple memory status (toolkit handles tool instructions)
   if (memoriesEnabled !== false) {
-    const hasMemories =
-      userCustomization?.memories && userCustomization.memories.length > 0;
-
-    parts.push("- Memory Management Status:");
     parts.push(
-      "  The 'Memories' feature is currently ENABLED and you have access to memory tools. Users can manage their Memories settings in Settings > Customization"
+      "- Memory Management: The 'Memories' feature is ENABLED. You may have access to memory management tools depending on your toolkit configuration. Users can manage their Memories settings in Settings > Customization"
     );
-
-    if (hasMemories) {
-      parts.push(
-        "  - Available Memory Tools (YOU CAN USE THESE):",
-        "    • saveToMemory: Save NEW important information from conversations (supports multiple memories)",
-        "    • updateMemory: Update one or more existing memories when explicitly requested by user",
-        "    • deleteMemory: Delete one or more memories when explicitly requested by user",
-        "  - Memory Management Guidelines:",
-        "    • ONLY use updateMemory/deleteMemory tools when the user explicitly asks",
-        "    • These tools support batch operations - you can update/delete multiple memories in one call",
-        "    • When using saveToMemory, check existing memories first to avoid duplicates",
-        "    • Only save genuinely NEW information that isn't already captured",
-        "    • Reference existing memories naturally when relevant to the conversation"
-      );
-    } else {
-      parts.push(
-        "  - Available Memory Tools (YOU CAN USE THESE):",
-        "    • saveToMemory: Save important information from conversations for future reference",
-        "  - Memory Saving Guidelines:",
-        "    • Save genuinely useful information that would be helpful in future conversations",
-        "    • Focus on user preferences, important facts, and contextual information",
-        "    • Don't save temporary or trivial information"
-      );
-    }
   } else {
-    parts.push("- Memory Management Status:");
     parts.push(
-      "  The 'Memories' feature is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
+      "- Memory Management: The 'Memories' feature is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
       "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to the Memories feature when this feature is disabled. Be honest that the Memories feature is turned off.",
       "  If the user wants to enable the Memories feature, they can toggle it on in Settings > Customization."
     );
