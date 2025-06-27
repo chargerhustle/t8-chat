@@ -4,7 +4,7 @@ import type {
   ClientTool,
   ClientToolConfig,
   ClientToolkit,
-  ClientToolkitConifg,
+  ClientToolkitConfig,
   ServerTool,
   ServerToolConfig,
   ServerToolkit,
@@ -16,7 +16,7 @@ export const createClientToolkit = <
   Parameters extends ZodRawShape = ZodRawShape,
 >(
   toolkitConfig: ToolkitConfig<ToolNames, Parameters>,
-  clientToolkitConfig: ClientToolkitConifg<Parameters>,
+  clientToolkitConfig: ClientToolkitConfig<Parameters>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toolConfigs: Record<ToolNames, ClientToolConfig<any, any>>
 ): ClientToolkit<ToolNames, Parameters> => {

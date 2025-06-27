@@ -295,15 +295,7 @@ export async function POST(req: Request) {
       })
     );
 
-    const tools = toolkitTools.reduce(
-      (acc, toolkitTools) => {
-        return {
-          ...acc,
-          ...toolkitTools,
-        };
-      },
-      {} as Record<string, Tool>
-    );
+    const tools = Object.assign({}, ...toolkitTools) as Record<string, Tool>;
 
     // Create enhanced system prompt with toolkit instructions
     const baseSystemPrompt = createSystemPrompt({

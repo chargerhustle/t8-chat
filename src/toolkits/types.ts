@@ -15,7 +15,7 @@ export type ToolkitConfig<
   parameters: z.ZodObject<Parameters>;
 };
 
-export type ClientToolkitConifg<Parameters extends ZodRawShape = ZodRawShape> =
+export type ClientToolkitConfig<Parameters extends ZodRawShape = ZodRawShape> =
   {
     name: string;
     description: string;
@@ -34,7 +34,7 @@ export type ClientToolkit<
   ToolNames extends string = string,
   Parameters extends ZodRawShape = ZodRawShape,
 > = ToolkitConfig<ToolNames, Parameters, ClientTool> &
-  ClientToolkitConifg<Parameters>;
+  ClientToolkitConfig<Parameters>;
 
 export type ServerToolkit<
   ToolNames extends string = string,
