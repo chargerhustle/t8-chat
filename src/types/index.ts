@@ -7,6 +7,9 @@ import type { CoreMessage } from "ai";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import type { MODEL_CONFIGS } from "@/ai/models-config";
 import type { UserPreferences } from "@/hooks/use-user-preferences";
+import type { Toolkits } from "@/toolkits/toolkits/shared";
+import type { memoryParameters } from "@/toolkits/toolkits/memory/base";
+import { z } from "zod";
 
 // ============================================================================
 // CONVEX DOCUMENT ALIASES (for convenience only)
@@ -44,6 +47,33 @@ export interface ModelParams {
 }
 
 // ============================================================================
+// TOOLKIT TYPES (based on existing shared types)
+// ============================================================================
+
+/**
+ * Inferred toolkit parameters (actual TypeScript types from Zod schemas)
+ */
+export type ToolkitParameters = {
+  [Toolkits.Memory]: z.infer<typeof memoryParameters>;
+  // Add new toolkits here when they're created
+};
+
+/**
+ * Toolkit configuration for requests
+ */
+export interface ToolkitConfig<T extends Toolkits = Toolkits> {
+  id: T;
+  parameters: ToolkitParameters[T];
+}
+
+/**
+ * Union type of all possible toolkit configurations
+ */
+export type AnyToolkitConfig = {
+  [K in Toolkits]: ToolkitConfig<K>;
+}[Toolkits];
+
+// ============================================================================
 // CHAT REQUEST TYPES (AI SDK Compatible)
 // ============================================================================
 
@@ -77,6 +107,9 @@ export interface ChatRequest {
   userCustomization?: UserCustomization;
   preferences?: UserPreferences;
   temporary?: boolean;
+
+  // Toolkits configuration - properly typed
+  toolkits?: AnyToolkitConfig[];
 
   // BYOK - User API keys
   userApiKeys?: {

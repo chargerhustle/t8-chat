@@ -20,6 +20,8 @@ import {
 import { getUserApiKeys } from "@/lib/ai/byok-providers";
 import { CreateMessageHooks } from "@/hooks/use-create-message";
 import { getCachedPreferences } from "@/hooks/use-user-preferences";
+import { Toolkits } from "@/toolkits/toolkits/shared";
+import type { AnyToolkitConfig } from "@/types";
 
 /**
  * Retrieves user memories, preferring Convex data if available and falling back to localStorage only while Convex is loading.
@@ -391,6 +393,17 @@ async function doChatFetchRequest(input: {
     userCustomization?.memories
   );
 
+  // Build toolkits array based on user preferences
+  const toolkits: AnyToolkitConfig[] = [];
+  if (userPreferences?.memoriesEnabled !== false) {
+    toolkits.push({
+      id: Toolkits.Memory,
+      parameters: {
+        userId: input.userId,
+      },
+    });
+  }
+
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
     threadMetadata: {
@@ -408,6 +421,8 @@ async function doChatFetchRequest(input: {
     userCustomization: userCustomizationData || undefined,
     // Temporary mode flag
     temporary: input.temporary,
+    // Toolkits configuration
+    toolkits,
     // Spread modelParams into individual fields that ChatRequest expects
     ...(input.modelParams && {
       temperature: input.modelParams.temperature,

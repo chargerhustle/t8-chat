@@ -1,4 +1,10 @@
-import { streamText, createDataStream, smoothStream, type Tool } from "ai";
+import {
+  streamText,
+  createDataStream,
+  smoothStream,
+  type Tool,
+  tool,
+} from "ai";
 import { waitUntil } from "@vercel/functions";
 import { api } from "@/convex/_generated/api";
 import { SERVER_CONVEX_CLIENT } from "@/lib/server-convex-client";
@@ -10,9 +16,9 @@ import {
 import { MODEL_CONFIGS, getModelStreamingType } from "@/ai/models-config";
 import { createSystemPrompt, extractUserContextFromHeaders } from "@/ai/prompt";
 import { getBYOKProvider, type BYOKError } from "@/lib/ai/byok-providers";
-import { createSaveToMemoryTool } from "@/ai/save-to-memory-tool";
-import { createUpdateMemoryTool } from "@/ai/update-memory-tool";
-import { createDeleteMemoryTool } from "@/ai/delete-memory-tool";
+import { type AnyToolkitConfig } from "@/types";
+
+import { getServerToolkit } from "@/toolkits/toolkits/server";
 // import { trackUsage } from "@/lib/analytics"
 
 export const runtime = "nodejs";
@@ -87,9 +93,9 @@ function getStreamContext() {
 }
 
 /**
- * Handles chat POST requests, streaming AI-generated responses with support for resumable streams and memory tools.
+ * Handles chat POST requests, streaming AI-generated responses with support for resumable streams, memory tools, and custom toolkits.
  *
- * Validates the request payload, manages thread title generation, updates message status, and invokes the appropriate AI model provider using user-supplied API keys. Integrates memory management tools if enabled in user preferences. Returns a streaming response, supporting resumable streams when available, or an error response if validation or processing fails.
+ * Validates the request payload, manages thread title generation, updates message status, processes custom toolkits, and invokes the appropriate AI model provider using user-supplied API keys. Integrates memory management tools if enabled in user preferences and custom toolkit tools if provided. Returns a streaming response, supporting resumable streams when available, or an error response if validation or processing fails.
  *
  * @returns A streaming HTTP response containing AI-generated chat output, or a JSON error response on failure.
  */
@@ -105,6 +111,10 @@ export async function POST(req: Request) {
     console.log(
       "[CHAT] Provider options in request:",
       requestData.providerOptions
+    );
+    console.log(
+      "[CHAT] Toolkits in request:",
+      requestData.toolkits?.length || 0
     );
 
     // Validate required fields
@@ -226,8 +236,76 @@ export async function POST(req: Request) {
     const modelDescription = modelConfig?.description;
     const streamingType = getModelStreamingType(requestData.model);
 
-    // Create system prompt
-    const systemPrompt = createSystemPrompt({
+    // Process toolkits if provided
+    const toolkits: AnyToolkitConfig[] = requestData.toolkits || [];
+
+    const toolkitTools = await Promise.all(
+      toolkits.map(async (toolkit: AnyToolkitConfig) => {
+        const serverToolkit = getServerToolkit(toolkit.id);
+        const tools = await serverToolkit.tools(toolkit.parameters);
+        return Object.keys(tools).reduce(
+          (acc, toolName) => {
+            const serverTool = tools[toolName as keyof typeof tools];
+            acc[`${toolkit.id}_${toolName}`] = tool({
+              description: serverTool.description,
+              parameters: serverTool.inputSchema,
+              execute: async (args) => {
+                try {
+                  const result = await serverTool.callback(args);
+                  if (serverTool.message) {
+                    return {
+                      result,
+                      message:
+                        typeof serverTool.message === "function"
+                          ? serverTool.message(result)
+                          : serverTool.message,
+                    };
+                  } else {
+                    return {
+                      result,
+                    };
+                  }
+                } catch (error) {
+                  console.error(error);
+                  return {
+                    isError: true,
+                    result: {
+                      error:
+                        error instanceof Error
+                          ? error.message
+                          : "An error occurred while executing the tool",
+                    },
+                  };
+                }
+              },
+            });
+            return acc;
+          },
+          {} as Record<string, Tool>
+        );
+      })
+    );
+
+    // Collect toolkit system prompts
+    const toolkitSystemPrompts = await Promise.all(
+      toolkits.map(async (toolkit: AnyToolkitConfig) => {
+        const serverToolkit = getServerToolkit(toolkit.id);
+        return serverToolkit.systemPrompt;
+      })
+    );
+
+    const tools = toolkitTools.reduce(
+      (acc, toolkitTools) => {
+        return {
+          ...acc,
+          ...toolkitTools,
+        };
+      },
+      {} as Record<string, Tool>
+    );
+
+    // Create enhanced system prompt with toolkit instructions
+    const baseSystemPrompt = createSystemPrompt({
       model: requestData.model,
       modelDisplayName,
       modelDescription,
@@ -237,13 +315,13 @@ export async function POST(req: Request) {
       temporary: requestData.temporary,
     });
 
-    // Debug log provider options
-    if (requestData.providerOptions) {
-      console.log(
-        "[CHAT] Provider options:",
-        JSON.stringify(requestData.providerOptions, null, 2)
-      );
-    }
+    // Build comprehensive system prompt with toolkit instructions
+    const toolkitInstructions =
+      toolkitSystemPrompts.length > 0
+        ? `\n\n## Available Toolkits\n\nYou have access to the following toolkits and their capabilities:\n\n${toolkitSystemPrompts.join("\n\n---\n\n")}`
+        : "";
+
+    const enhancedSystemPrompt = baseSystemPrompt + toolkitInstructions;
 
     // Get the appropriate model provider using BYOK system
     const providerResult = getBYOKProvider(
@@ -269,22 +347,14 @@ export async function POST(req: Request) {
           streamId: streamId,
         });
 
-        // Conditionally add tools based on user preferences
-        const tools: Record<string, Tool> = {};
-
-        // Only add memory tools if memories are enabled
-        if (requestData.preferences?.memoriesEnabled !== false) {
-          tools.saveToMemory = createSaveToMemoryTool(requestData.userId);
-          tools.updateMemory = createUpdateMemoryTool(requestData.userId);
-          tools.deleteMemory = createDeleteMemoryTool(requestData.userId);
-        }
+        console.log(`[CHAT] Available tools: ${Object.keys(tools).join(", ")}`);
 
         const result = streamText({
           model: modelProvider,
           messages: requestData.messages,
-          system: systemPrompt,
+          system: enhancedSystemPrompt,
           tools,
-          maxSteps: 5,
+          maxSteps: 15,
           toolCallStreaming: true,
           experimental_continueSteps: true,
           experimental_transform: smoothStream({

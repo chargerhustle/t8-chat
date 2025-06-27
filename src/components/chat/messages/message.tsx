@@ -42,12 +42,14 @@ const MessageComponent = memo(({ message }: MessageProps) => {
   const isUser = message.role === "user";
 
   // Check if we should show loading animation for assistant messages
+  // Only show loading if there's no content AND no parts (tools)
   const isAssistantLoading =
     !isUser &&
     (message.status === "streaming" || message.status === "waiting") &&
     (!message.content ||
       message.content.trim().length === 0 ||
-      message.content === "...");
+      message.content === "...") &&
+    (!message.parts || message.parts.length === 0);
 
   // Get model display name for assistant messages
   const modelDisplayName = !isUser
