@@ -13,11 +13,26 @@ export const memoryToolkitServer = createServerToolkit(
 - **Update Memory**: Modify existing memories when information changes or needs correction
 - **Delete Memory**: Remove memories that are no longer relevant or accurate
 
+**Available Memory Tools (YOU CAN USE THESE):**
+• memory_save-to-memory: Save NEW important information from conversations (supports multiple memories)
+• memory_update-memory: Update one or more existing memories when explicitly requested by user
+• memory_delete-memory: Delete one or more memories when explicitly requested by user
+
+**Memory Management Guidelines:**
+• ONLY use memory_update-memory/memory_delete-memory tools when the user explicitly asks
+• These tools support batch operations - you can update/delete multiple memories in one call
+• When using memory_save-to-memory, check existing memories first to avoid duplicates
+• Only save genuinely NEW information that isn't already captured
+• Reference existing memories naturally when relevant to the conversation
+• Save genuinely useful information that would be helpful in future conversations
+• Focus on user preferences, important facts, and contextual information
+• Don't save temporary or trivial information
+
 **Tool Sequencing Workflows:**
-1. **Information Capture**: Use Save Memory to store important details, user preferences, or key facts from conversations
-2. **Information Maintenance**: Use Update Memory to correct or enhance existing information
-3. **Information Cleanup**: Use Delete Memory to remove outdated or incorrect information
-4. **Continuous Learning**: Save Memory for new insights or corrections to build upon previous knowledge
+1. **Information Capture**: Use memory_save-to-memory to store important details, user preferences, or key facts from conversations
+2. **Information Maintenance**: Use memory_update-memory to correct or enhance existing information
+3. **Information Cleanup**: Use memory_delete-memory to remove outdated or incorrect information
+4. **Continuous Learning**: Use memory_save-to-memory for new insights or corrections to build upon previous knowledge
 
 **Best Practices:**
 - Store specific, actionable information rather than generic facts
