@@ -20,11 +20,7 @@ export const UpdateMemoryToolConfigClient: ClientToolConfig<
         <MemoryToolCall
           icon={Pencil}
           label="Receiving"
-          value={
-            updates.length > 0
-              ? `${updates.length} ${updates.length === 1 ? "update" : "updates"}...`
-              : "Streaming..."
-          }
+          value="memory data to update"
           memories={memories}
         />
       );

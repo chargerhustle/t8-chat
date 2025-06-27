@@ -135,7 +135,7 @@ export const saveMemory = internalApiMutation({
     }),
   },
   handler: async (ctx: MutationCtx, args) => {
-    console.log(`[MEMORY] Saving memory for user: ${args.userId}`);
+    console.log(`[MEMORY] Saving 1 memory`);
 
     // Get or create user configuration
     let userConfig = await ctx.db
@@ -149,7 +149,7 @@ export const saveMemory = internalApiMutation({
         userId: args.userId,
         memories: [args.memory],
       });
-      console.log(`[MEMORY] Created new user config with memory`);
+      console.log(`[MEMORY] Created new user config with 1 memory`);
     } else {
       // Update existing user configuration by adding the memory
       const existingMemories = userConfig.memories || [];
@@ -167,7 +167,7 @@ export const saveMemory = internalApiMutation({
       await ctx.db.patch(userConfig._id, {
         memories: [...existingMemories, args.memory],
       });
-      console.log(`[MEMORY] Added memory to existing user config`);
+      console.log(`[MEMORY] Added 1 memory to existing user config`);
     }
 
     return { success: true };
@@ -187,7 +187,7 @@ export const saveMemories = internalApiMutation({
   },
   handler: async (ctx: MutationCtx, args) => {
     console.log(
-      `[MEMORY] Saving ${args.memories.length} memories for user: ${args.userId}`
+      `[MEMORY] Saving ${args.memories.length} ${args.memories.length === 1 ? "memory" : "memories"}`
     );
 
     // Get or create user configuration
@@ -224,7 +224,7 @@ export const saveMemories = internalApiMutation({
         memories: args.memories,
       });
       console.log(
-        `[MEMORY] Created new user config with ${args.memories.length} memories`
+        `[MEMORY] Created new user config with ${args.memories.length} ${args.memories.length === 1 ? "memory" : "memories"}`
       );
     } else {
       // Update existing user configuration by adding all memories
@@ -256,7 +256,7 @@ export const saveMemories = internalApiMutation({
         memories: [...existingMemories, ...args.memories],
       });
       console.log(
-        `[MEMORY] Added ${args.memories.length} memories to existing user config`
+        `[MEMORY] Added ${args.memories.length} ${args.memories.length === 1 ? "memory" : "memories"} to existing user config`
       );
     }
 

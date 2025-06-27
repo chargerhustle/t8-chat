@@ -45,11 +45,13 @@ export function MemoryToolCall({
     return (
       <Accordion type="single" collapsible>
         <AccordionItem value="tool-call">
-          <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center">
-            <h3 className="text-primary flex items-center gap-2 text-sm font-medium !m-0">
+          <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center !font-normal">
+            <h3 className="text-muted-foreground flex items-center gap-2 text-sm !m-0">
               {React.createElement(icon, { className: "h-4 w-4" })}
-              {label} {memories.length} Memor
-              {memories.length === 1 ? "y" : "ies"}
+              <>
+                <strong>{label}:</strong> {memories.length} memor
+                {memories.length === 1 ? "y" : "ies"}
+              </>
             </h3>
           </AccordionTrigger>
           <AccordionContent className="pt-0 pb-0">
@@ -118,7 +120,10 @@ export function MemoryToolResult({
         <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center">
           <h3 className="text-primary flex items-center gap-2 text-sm font-medium !m-0">
             {React.createElement(icon, { className: "h-4 w-4" })}
-            {title} {memories.length} Memor{memories.length === 1 ? "y" : "ies"}
+            <span>
+              <strong>{title}:</strong> {memories.length} memor
+              {memories.length === 1 ? "y" : "ies"}
+            </span>
           </h3>
         </AccordionTrigger>
         <AccordionContent className="pt-0 pb-0">

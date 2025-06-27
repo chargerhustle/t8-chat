@@ -12,8 +12,9 @@ export const deleteMemoryToolConfigServer = (
 > => ({
   callback: async ({ memoryIds }) => {
     try {
-      console.log("[MEMORY] Deleting memories for user:", userId);
-      console.log("[MEMORY] Memory IDs:", memoryIds.join(", "));
+      console.log(
+        `[MEMORY] Deleting ${memoryIds.length} ${memoryIds.length === 1 ? "memory" : "memories"}`
+      );
 
       // Get environment variable for API key
       const apiKey = process.env.CONVEX_BRIDGE_API_KEY;
@@ -33,7 +34,9 @@ export const deleteMemoryToolConfigServer = (
         }
       );
 
-      console.log("[MEMORY] Successfully deleted memories from Convex");
+      console.log(
+        `[MEMORY] Successfully deleted ${memoryIds.length} ${memoryIds.length === 1 ? "memory" : "memories"}`
+      );
 
       return {
         success: result.success,

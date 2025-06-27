@@ -12,12 +12,8 @@ export const updateMemoryToolConfigServer = (
 > => ({
   callback: async ({ updates }) => {
     try {
-      console.log("[MEMORY] Updating memories for user:", userId);
       console.log(
-        "[MEMORY] Updates:",
-        updates
-          .map((u) => `${u.memoryId}: ${u.newContent.slice(0, 50)}...`)
-          .join(", ")
+        `[MEMORY] Updating ${updates.length} ${updates.length === 1 ? "memory" : "memories"}`
       );
 
       // Get environment variable for API key
@@ -38,7 +34,9 @@ export const updateMemoryToolConfigServer = (
         }
       );
 
-      console.log("[MEMORY] Successfully updated memories in Convex");
+      console.log(
+        `[MEMORY] Successfully updated ${updates.length} ${updates.length === 1 ? "memory" : "memories"}`
+      );
 
       return {
         success: result.success,

@@ -70,7 +70,7 @@ export const updateMemories = internalApiMutation({
     });
 
     console.log(
-      `[MEMORY] Internal API: Updated ${args.updates.length} memories for user: ${args.userId}`
+      `[MEMORY] Internal API: Updated ${args.updates.length} ${args.updates.length === 1 ? "memory" : "memories"}`
     );
 
     return {
@@ -130,7 +130,7 @@ export const deleteMemories = internalApiMutation({
     });
 
     console.log(
-      `[MEMORY] Internal API: Deleted ${args.memoryIds.length} memories for user: ${args.userId}`
+      `[MEMORY] Internal API: Deleted ${args.memoryIds.length} ${args.memoryIds.length === 1 ? "memory" : "memories"}`
     );
 
     return {

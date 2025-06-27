@@ -33,8 +33,9 @@ export const saveToMemoryToolConfigServer = (
 > => ({
   callback: async ({ memories }) => {
     try {
-      console.log("[MEMORY] Saving memories for user:", userId);
-      console.log("[MEMORY] Memories:", memories);
+      console.log(
+        `[MEMORY] Saving ${memories.length} ${memories.length === 1 ? "memory" : "memories"}`
+      );
 
       // Get environment variable for API key
       const apiKey = process.env.CONVEX_BRIDGE_API_KEY;
@@ -58,7 +59,9 @@ export const saveToMemoryToolConfigServer = (
         apiKey,
       });
 
-      console.log("[MEMORY] Successfully saved memories to Convex");
+      console.log(
+        `[MEMORY] Successfully saved ${memories.length} ${memories.length === 1 ? "memory" : "memories"}`
+      );
 
       return {
         success: true,

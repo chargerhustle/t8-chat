@@ -104,6 +104,7 @@ export async function POST(req: Request) {
 
   try {
     const requestData = await req.json();
+    console.log("[CHAT] UserID:", requestData.userId);
     console.log(
       `[CHAT] Processing ${requestData.messages?.length || 0} messages with model: ${requestData.model}`
     );

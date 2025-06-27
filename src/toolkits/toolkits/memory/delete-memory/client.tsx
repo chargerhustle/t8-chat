@@ -19,11 +19,7 @@ export const DeleteMemoryToolConfigClient: ClientToolConfig<
         <MemoryToolCall
           icon={Trash2}
           label="Receiving"
-          value={
-            memoryIds.length > 0
-              ? `${memoryIds.length} ${memoryIds.length === 1 ? "ID" : "IDs"}...`
-              : "Streaming..."
-          }
+          value="memory data to delete"
           memories={memoryIds}
         />
       );

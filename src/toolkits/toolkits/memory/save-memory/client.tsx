@@ -19,11 +19,7 @@ export const SaveToMemoryToolConfigClient: ClientToolConfig<
         <MemoryToolCall
           icon={Plus}
           label="Receiving"
-          value={
-            memories.length > 0
-              ? `${memories.length} ${memories.length === 1 ? "memory" : "memories"}...`
-              : "Streaming..."
-          }
+          value="memory data to save"
           memories={memories}
         />
       );

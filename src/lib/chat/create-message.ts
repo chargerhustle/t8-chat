@@ -572,7 +572,7 @@ async function doChatFetchRequest(input: {
       }
     },
     onToolCallStreamingStartPart: async (part) => {
-      console.log("[TOOLS] Tool streaming start:", part);
+      console.log("[TOOLS] Tool streaming start:", part.toolName);
 
       const newTool = {
         toolCallId: part.toolCallId,
@@ -599,7 +599,7 @@ async function doChatFetchRequest(input: {
       addToolPart(input.assistantMessageId, newToolPart);
     },
     onToolCallDeltaPart: async (part) => {
-      console.log("[TOOLS] Tool call delta:", part);
+      console.log("[TOOLS] Tool call arg deltas being streamed");
 
       // Update local tools map but don't trigger React state updates
       // to avoid infinite loop during streaming
@@ -627,7 +627,7 @@ async function doChatFetchRequest(input: {
       // Don't call updateTool here to prevent infinite React state updates
     },
     onToolCallPart: async (part) => {
-      console.log("[TOOLS] Tool call complete:", part);
+      console.log("[TOOLS] Tool call complete:", part.toolName);
 
       const toolUpdate = {
         args: part.args,
@@ -665,7 +665,7 @@ async function doChatFetchRequest(input: {
       });
     },
     onToolResultPart: async (result) => {
-      console.log("[TOOLS] Tool result received:", result);
+      console.log("[TOOLS] Tool result received for:", result.toolCallId);
 
       const toolUpdate = {
         result: result.result,
