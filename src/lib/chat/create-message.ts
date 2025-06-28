@@ -404,6 +404,11 @@ async function doChatFetchRequest(input: {
     });
   }
 
+  toolkits.push({
+    id: Toolkits.Exa,
+    parameters: {},
+  });
+
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
     threadMetadata: {
