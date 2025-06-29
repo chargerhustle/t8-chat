@@ -16,9 +16,8 @@ export const baseSearchTool = createBaseTool({
       .number()
       .min(1)
       .max(10)
-      .default(3)
       .describe(
-        "Number of search results to return. Use more results (5-10) for comprehensive research, fewer (1-3) for quick answers"
+        "Number of search results to return. Use more results (5-10) for comprehensive research, fewer (1-3) for quick answers. Default: 3"
       ),
     category: z
       .enum([
@@ -32,21 +31,21 @@ export const baseSearchTool = createBaseTool({
         "linkedin profile",
         "financial report",
       ])
-      .optional()
+      .nullable()
       .describe(
-        "ALWAYS use category when query relates to specific content types: 'github' for GitHub repos/stars/issues, 'news' for current events/breaking news, 'research paper' for academic/scientific content, 'company' for business/corporate info, 'tweet' for social media content, 'pdf' for documents, etc."
+        "ALWAYS use category when query relates to specific content types: 'github' for GitHub repos/stars/issues, 'news' for current events/breaking news, 'research paper' for academic/scientific content, 'company' for business/corporate info, 'tweet' for social media content, 'pdf' for documents, etc. Don NOT limit yourself to one category if the discussion requires broader discovery across different content types. Use null if no specific category applies."
       ),
     includeDomains: z
       .array(z.string())
-      .optional()
+      .nullable()
       .describe(
-        "Use when user mentions specific websites or when query is about a particular platform. Examples: ['github.com'] for GitHub questions, ['arxiv.org'] for academic papers, ['reuters.com', 'bbc.com'] for news, ['stackoverflow.com'] for coding help. Also use when user provides a URL or asks about a specific site. Note: if specied, the result will be limited to these domains only."
+        "Use when user mentions specific websites or when query is about a particular platform. Examples: ['github.com'] for GitHub questions, ['arxiv.org'] for academic papers, ['reuters.com', 'bbc.com'] for news, ['stackoverflow.com'] for coding help. Also use when user provides a URL or asks about a specific site. Note: if specified, the result will be limited to these domains only. Use null if no domain filtering needed."
       ),
     excludeDomains: z
       .array(z.string())
-      .optional()
+      .nullable()
       .describe(
-        "Use sparingly and only when you have a specific reason to exclude domains. Good cases: exclude ['reddit.com', 'quora.com'] for authoritative factual queries, or exclude competitor sites when researching a specific company. Avoid excluding major sites unless user specifically requests it. Don't exclude domains just because they might have some irrelevant content."
+        "Use sparingly and only when you have a specific reason to exclude domains. Good cases: exclude ['reddit.com', 'quora.com'] for authoritative factual queries, or exclude competitor sites when researching a specific company. Avoid excluding major sites unless user specifically requests it. Don't exclude domains just because they might have some irrelevant content. Use null if no domain exclusion needed."
       ),
   }),
   outputSchema: z.object({

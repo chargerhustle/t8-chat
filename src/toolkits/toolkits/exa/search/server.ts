@@ -67,41 +67,47 @@ export const exaSearchToolConfigServer: ServerToolConfig<
 
     const exa = new Exa(process.env.EXA_API_KEY);
 
+    const finalNumResults = numResults ?? 3;
+
     // Build search options
     const searchOptions: Record<string, unknown> = {
       livecrawl: "always",
-      numResults,
+      numResults: finalNumResults,
       type: "auto",
     };
 
-    // Add optional parameters if provided
-    if (category) {
+    // Add optional parameters if provided (treat null as not provided)
+    if (category && category !== null) {
       searchOptions.category = category;
     }
 
     const filteredIncludeDomains =
-      includeDomains?.filter(
-        (domain) =>
-          domain !== null &&
-          domain !== "null" &&
-          domain !== "undefined" &&
-          domain !== "" &&
-          domain.trim() !== "" &&
-          typeof domain === "string" &&
-          domain.length > 0
-      ) ?? [];
+      includeDomains && includeDomains !== null
+        ? includeDomains.filter(
+            (domain) =>
+              domain !== null &&
+              domain !== "null" &&
+              domain !== "undefined" &&
+              domain !== "" &&
+              domain.trim() !== "" &&
+              typeof domain === "string" &&
+              domain.length > 0
+          )
+        : [];
 
     const filteredExcludeDomains =
-      excludeDomains?.filter(
-        (domain) =>
-          domain !== null &&
-          domain !== "null" &&
-          domain !== "undefined" &&
-          domain !== "" &&
-          domain.trim() !== "" &&
-          typeof domain === "string" &&
-          domain.length > 0
-      ) ?? [];
+      excludeDomains && excludeDomains !== null
+        ? excludeDomains.filter(
+            (domain) =>
+              domain !== null &&
+              domain !== "null" &&
+              domain !== "undefined" &&
+              domain !== "" &&
+              domain.trim() !== "" &&
+              typeof domain === "string" &&
+              domain.length > 0
+          )
+        : [];
 
     if (filteredIncludeDomains.length > 0) {
       searchOptions.includeDomains = filteredIncludeDomains;
