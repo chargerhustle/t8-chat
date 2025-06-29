@@ -416,6 +416,11 @@ async function doChatFetchRequest(input: {
   const modelConfig = MODEL_CONFIGS.find(
     (config) => config.model === input.model
   );
+  if (!modelConfig) {
+    throw new Error(
+      `Unrecognized model "${input.model}". Update MODEL_CONFIGS in src/ai/models-config.ts.`
+    );
+  }
 
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,

@@ -55,7 +55,7 @@ export const ResultItem: React.FC<ResultItemProps> = ({
               {result.author && <> • {result.author}</>}
             </p>
           </VStack>
-          {result.image && result.image.startsWith("http") && (
+          {result.image?.startsWith("http") && (
             <div className="h-10 shrink-0 overflow-hidden rounded-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

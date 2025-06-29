@@ -8,7 +8,7 @@ export const baseSearchTool = createBaseTool({
     query: z
       .string()
       .min(1)
-      .max(100)
+      .max(200)
       .describe(
         "The search query. Be proactive and make reasonable assumptions. For ambiguous queries, search for the most popular/relevant option. Don't ask for clarification - search and provide results."
       ),

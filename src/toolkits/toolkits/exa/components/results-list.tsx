@@ -22,7 +22,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
   linkText,
 }) => {
   if (!results.length) {
-    return <div className="text-gray-500">{emptyMessage}</div>;
+    return <div className="text-muted-foreground">{emptyMessage}</div>;
   }
 
   return (
@@ -44,7 +44,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
           <div className="flex flex-col pl-6">
             {results.map((result, index) => (
               <ResultItem
-                key={index}
+                key={`${result.url}-${index}`}
                 result={result}
                 index={index}
                 linkText={linkText}

@@ -28,14 +28,6 @@ export const exaToolkitServer = createServerToolkit(
 
 **Remember:** The user cannot see the search results - only your response. You are their window into the current web information.
 
-**Response Quality Standards:**
-- Comprehensive coverage of the topic
-- Multiple perspectives when relevant  
-- Specific data, statistics, or examples from sources
-- Clear structure with headings or bullet points
-- Actionable insights or recommendations when appropriate
-- Professional, informative tone like a subject matter expert
-
 Remember: The user enabled search because they want detailed, well-researched answers. Always deliver comprehensive value.
 
 **Your Search Tool Capabilities:**
