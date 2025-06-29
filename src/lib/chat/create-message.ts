@@ -12,6 +12,7 @@ import { APIErrorResponse } from "@/types/api";
 import { processDataStream } from "ai";
 import { useTempMessageStore, Tool } from "@/lib/chat/temp-message-store";
 import { buildProviderOptions } from "@/lib/chat/provider-options";
+import { MODEL_CONFIGS } from "@/ai/models-config";
 import {
   convertConvexMessagesToCoreMessages,
   validateCoreMessage,
@@ -404,6 +405,23 @@ async function doChatFetchRequest(input: {
     });
   }
 
+  if (input.modelParams?.includeSearch) {
+    toolkits.push({
+      id: Toolkits.Exa,
+      parameters: {},
+    });
+  }
+
+  // Get model config to check if it supports reasoning
+  const modelConfig = MODEL_CONFIGS.find(
+    (config) => config.model === input.model
+  );
+  if (!modelConfig) {
+    throw new Error(
+      `Unrecognized model "${input.model}". Update MODEL_CONFIGS in src/ai/models-config.ts.`
+    );
+  }
+
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,
     threadMetadata: {
@@ -435,8 +453,10 @@ async function doChatFetchRequest(input: {
       seed: input.modelParams.seed,
       providerOptions: buildProviderOptions(
         input.model,
-        input.modelParams.reasoningEffort,
-        input.modelParams.includeSearch
+
+        modelConfig?.features.includes("reasoning")
+          ? input.modelParams.reasoningEffort
+          : undefined
       ),
     }),
     // User preferences for tool enabling/disabling

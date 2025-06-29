@@ -9,6 +9,7 @@ import type { MODEL_CONFIGS } from "@/ai/models-config";
 import type { UserPreferences } from "@/hooks/use-user-preferences";
 import type { Toolkits } from "@/toolkits/toolkits/shared";
 import type { memoryParameters } from "@/toolkits/toolkits/memory/base";
+import type { exaParameters } from "@/toolkits/toolkits/exa/base";
 import { z } from "zod";
 
 // ============================================================================
@@ -55,6 +56,7 @@ export interface ModelParams {
  */
 export type ToolkitParameters = {
   [Toolkits.Memory]: z.infer<typeof memoryParameters>;
+  [Toolkits.Exa]: z.infer<typeof exaParameters>;
   // Add new toolkits here when they're created
 };
 

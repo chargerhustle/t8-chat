@@ -36,6 +36,7 @@
     "convex": "^1.24.6",
     "convex-helpers": "^0.1.90",
     "date-fns": "^4.1.0",
+    "exa-js": "^1.8.17",
     "katex": "^0.16.22",
     "lucide-react": "^0.511.0",
     "marked": "^15.0.12",
