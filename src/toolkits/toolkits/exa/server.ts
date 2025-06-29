@@ -6,25 +6,21 @@ import { exaSearchToolConfigServer } from "./search/server";
 
 export const exaToolkitServer = createServerToolkit(
   baseExaToolkitConfig,
-  `You have access to the Exa search toolkit, which provides web search capabilities across different domains and platforms. This toolkit contains the following tools:
+  `The user has specifically enabled the Search toolkit by clicking the "Search" button, which means they want and expect you to search the web for current, accurate information. This is very important - the user chose this toolkit because they need web search capabilities Dont ignore it.
 
-- **Search**: General web search with neural ranking
-- **Research Paper Search**: Specialized academic paper search  
-- **Company Research**: Search for company information and profiles
-- **Crawling**: Extract content from specific URLs
-- **Competitor Finder**: Find competitors for a given company
-- **LinkedIn Search**: Search LinkedIn profiles and company pages
-- **Wikipedia Search**: Search Wikipedia articles
-- **GitHub Search**: Search GitHub repositories and code
+**Your Search Tool Capabilities:**
+- **Web Search**: Intelligent web search with neural ranking and filtering
+- **Category Filtering**: Search specific content types (news, research papers, GitHub repos, companies, PDFs, tweets, etc.)
+- **Domain Filtering**: Include/exclude specific websites for targeted results
+- **Flexible Results**: Choose 1-10 results based on query complexity
 
-**Tool Sequencing Guidelines:**
-1. Start with broad searches (Search, Research Paper Search, Company Research) to gather initial information
-2. Use specialized searches (LinkedIn, Wikipedia, GitHub) to get domain-specific details
-3. Use Crawling to extract detailed content from specific URLs found in previous searches
-4. Use Competitor Finder after Company Research to get comprehensive market analysis
-5. Combine multiple search results to provide comprehensive answers
+**Critical Guidelines:**
+1. **Always search when relevant** - The user enabled this toolkit because they expect web search functionality
+2. **Be proactive** - Don't ask for clarification on ambiguous queries; make reasonable assumptions and search
+3. **Use appropriate filters** - Apply category and domain filters when the query clearly relates to specific platforms (GitHub, news sites, academic sources, etc.)
+4. **Respond naturally** - After getting search results, answer in your normal conversational style. Don't be short or robotic. Provide comprehensive, helpful responses just like you would in regular conversation.
 
-When using these tools, always consider the user's context and use the most appropriate search tool first, then follow up with complementary searches as needed.`,
+The user expects you to leverage current web information to provide accurate, up-to-date answers. Use the search tool confidently and respond in your natural, helpful manner.`,
   async () => {
     return {
       [ExaTools.Search]: exaSearchToolConfigServer,

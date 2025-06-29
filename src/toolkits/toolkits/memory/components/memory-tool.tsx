@@ -1,5 +1,5 @@
 import React from "react";
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon, ChevronDown } from "lucide-react";
 
 import {
   Accordion,
@@ -45,24 +45,27 @@ export function MemoryToolCall({
     return (
       <Accordion type="single" collapsible>
         <AccordionItem value="tool-call">
-          <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center !font-normal">
-            <h3 className="text-muted-foreground flex items-center gap-2 text-sm !m-0">
+          <AccordionTrigger className="py-0 hover:no-underline justify-start [&>svg:last-child]:hidden [&[data-state=open]_.chevron]:rotate-180">
+            <div className="flex items-center gap-2">
               {React.createElement(icon, { className: "h-4 w-4" })}
-              <>
+              <span className="text-sm text-muted-foreground">
                 <strong>{label}:</strong> {memories.length} memor
                 {memories.length === 1 ? "y" : "ies"}
-              </>
-            </h3>
+              </span>
+              <ChevronDown className="chevron text-muted-foreground pointer-events-none size-4 shrink-0 transition-transform duration-200" />
+            </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-0 pb-0">
-            {memories.map((memory, index) => (
-              <div
-                className="border-b py-2 last:border-b-0 last:pb-0"
-                key={index}
-              >
-                <p className="text-sm text-muted-foreground">{memory}</p>
-              </div>
-            ))}
+          <AccordionContent>
+            <div className="flex flex-col pl-6">
+              {memories.map((memory, index) => (
+                <div
+                  className="border-b py-2 last:border-b-0 last:pb-0"
+                  key={index}
+                >
+                  <p className="text-sm text-muted-foreground">{memory}</p>
+                </div>
+              ))}
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -117,33 +120,36 @@ export function MemoryToolResult({
   return (
     <Accordion type="single" collapsible>
       <AccordionItem value="memories">
-        <AccordionTrigger className="cursor-pointer p-0 hover:no-underline items-center">
-          <h3 className="text-primary flex items-center gap-2 text-sm font-medium !m-0">
+        <AccordionTrigger className="py-0 hover:no-underline justify-start [&>svg:last-child]:hidden [&[data-state=open]_.chevron]:rotate-180">
+          <div className="flex items-center gap-2">
             {React.createElement(icon, { className: "h-4 w-4" })}
-            <span>
+            <span className="text-sm font-medium">
               <strong>{title}:</strong> {memories.length} memor
               {memories.length === 1 ? "y" : "ies"}
             </span>
-          </h3>
+            <ChevronDown className="chevron text-muted-foreground pointer-events-none size-4 shrink-0 transition-transform duration-200" />
+          </div>
         </AccordionTrigger>
-        <AccordionContent className="pt-0 pb-0">
-          {memories.map((memory, index) => (
-            <div
-              className="border-b py-2 last:border-b-0 last:pb-0"
-              key={index}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className="flex-1 text-sm text-muted-foreground">
-                  {memory.content}
-                </p>
-                {memory.metadata && (
-                  <div className="text-muted-foreground text-xs">
-                    {memory.metadata}
-                  </div>
-                )}
+        <AccordionContent>
+          <div className="flex flex-col pl-6">
+            {memories.map((memory, index) => (
+              <div
+                className="border-b py-2 last:border-b-0 last:pb-0"
+                key={index}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="flex-1 text-sm text-muted-foreground">
+                    {memory.content}
+                  </p>
+                  {memory.metadata && (
+                    <div className="text-muted-foreground text-xs">
+                      {memory.metadata}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -47,9 +47,7 @@ export const ResultItem: React.FC<ResultItemProps> = ({
             )}
           </div>
           <VStack className="flex w-full cursor-pointer items-start gap-0">
-            <h3 className="group-hover/result:text-primary line-clamp-2 transition-colors">
-              {result.title}
-            </h3>
+            <h3 className="line-clamp-2">{result.title}</h3>
             <p className="text-muted-foreground text-xs">
               {result.publishedDate
                 ? new Date(result.publishedDate).toLocaleDateString()

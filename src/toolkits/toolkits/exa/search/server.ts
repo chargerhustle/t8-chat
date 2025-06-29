@@ -54,17 +54,63 @@ export const exaSearchToolConfigServer: ServerToolConfig<
   typeof baseSearchTool.inputSchema.shape,
   typeof baseSearchTool.outputSchema.shape
 > = {
-  callback: async ({ query }) => {
+  callback: async ({
+    query,
+    numResults,
+    category,
+    includeDomains,
+    excludeDomains,
+  }) => {
     if (!process.env.EXA_API_KEY) {
       throw new Error("EXA_API_KEY is not set");
     }
 
     const exa = new Exa(process.env.EXA_API_KEY);
 
-    const { results } = await exa.searchAndContents(query, {
+    // Build search options
+    const searchOptions: Record<string, unknown> = {
       livecrawl: "always",
-      numResults: 3,
-    });
+      numResults,
+      type: "auto",
+    };
+
+    // Add optional parameters if provided
+    if (category) {
+      searchOptions.category = category;
+    }
+
+    const filteredIncludeDomains =
+      includeDomains?.filter(
+        (domain) =>
+          domain !== null &&
+          domain !== "null" &&
+          domain !== "undefined" &&
+          domain !== "" &&
+          domain.trim() !== "" &&
+          typeof domain === "string" &&
+          domain.length > 0
+      ) ?? [];
+
+    const filteredExcludeDomains =
+      excludeDomains?.filter(
+        (domain) =>
+          domain !== null &&
+          domain !== "null" &&
+          domain !== "undefined" &&
+          domain !== "" &&
+          domain.trim() !== "" &&
+          typeof domain === "string" &&
+          domain.length > 0
+      ) ?? [];
+
+    if (filteredIncludeDomains.length > 0) {
+      searchOptions.includeDomains = filteredIncludeDomains;
+    }
+    if (filteredExcludeDomains.length > 0) {
+      searchOptions.excludeDomains = filteredExcludeDomains;
+    }
+
+    const { results } = await exa.searchAndContents(query, searchOptions);
 
     return {
       results: results.map((result) => ({
@@ -79,6 +125,6 @@ export const exaSearchToolConfigServer: ServerToolConfig<
       })),
     };
   },
-  message:
-    "The user is shown the article in three cards. Do not list the sources again. Just give a 1-2 sentence summary response to their question and ask what else they would like to know.",
+  message: (result) =>
+    `The user is shown ${result.results.length} article${result.results.length === 1 ? "" : "s"} in cards. Do not list the sources again. Just give a 1-2 sentence summary response to their question and ask what else they would like to know.`,
 };
