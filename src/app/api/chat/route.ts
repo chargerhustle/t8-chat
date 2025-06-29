@@ -3,6 +3,7 @@ import {
   createDataStream,
   smoothStream,
   type Tool,
+  type ToolChoice,
   tool,
 } from "ai";
 import { waitUntil } from "@vercel/functions";
@@ -342,11 +343,15 @@ export async function POST(req: Request) {
 
         console.log(`[CHAT] Available tools: ${Object.keys(tools).join(", ")}`);
 
+        // Let AI choose tools automatically
+        const toolChoice: ToolChoice<typeof tools> = "auto";
+
         const result = streamText({
           model: modelProvider,
           messages: requestData.messages,
           system: enhancedSystemPrompt,
           tools,
+          toolChoice,
           maxSteps: 15,
           toolCallStreaming: true,
           experimental_continueSteps: true,

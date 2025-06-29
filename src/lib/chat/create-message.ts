@@ -404,10 +404,12 @@ async function doChatFetchRequest(input: {
     });
   }
 
-  toolkits.push({
-    id: Toolkits.Exa,
-    parameters: {},
-  });
+  if (input.modelParams?.includeSearch) {
+    toolkits.push({
+      id: Toolkits.Exa,
+      parameters: {},
+    });
+  }
 
   const chatRequest: ChatRequest = {
     messages: input.coreMessages,

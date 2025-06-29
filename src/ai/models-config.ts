@@ -33,7 +33,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "openai",
     model: "gpt-4.1-2025-04-14",
     displayName: "GPT-4.1",
-    features: ["vision", "documents"],
+    features: ["vision", "documents", "search"],
     allowedAttachmentTypes: ["image", "pdf", "docx"],
     allowedMIMETypes: [
       "image/png",
@@ -57,7 +57,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "openai",
     model: "gpt-4.1-mini-2025-04-14",
     displayName: "GPT-4.1 Mini",
-    features: ["vision", "documents"],
+    features: ["vision", "documents", "search"],
     allowedAttachmentTypes: ["image", "pdf", "docx"],
     allowedMIMETypes: [
       "image/png",
@@ -81,7 +81,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "openai",
     model: "gpt-4o-2024-08-06",
     displayName: "GPT-4o",
-    features: ["vision", "documents"],
+    features: ["vision", "documents", "search"],
     allowedAttachmentTypes: ["image", "pdf", "docx"],
     allowedMIMETypes: [
       "image/png",
@@ -105,7 +105,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "openai",
     model: "o4-mini-2025-04-16",
     displayName: "o4-mini",
-    features: ["vision", "documents", "reasoning"],
+    features: ["vision", "documents", "reasoning", "search"],
     allowedAttachmentTypes: ["image", "pdf", "docx"],
     allowedMIMETypes: [
       "image/png",
@@ -180,7 +180,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "google",
     model: "gemini-2.0-flash-lite",
     displayName: "Gemini 2.0 Flash Lite",
-    features: ["vision", "documents"],
+    features: ["vision", "documents", "search"],
     allowedAttachmentTypes: ["image", "pdf"],
     allowedMIMETypes: [
       "image/png",
