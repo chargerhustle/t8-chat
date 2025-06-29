@@ -126,5 +126,13 @@ export const exaSearchToolConfigServer: ServerToolConfig<
     };
   },
   message: (result) =>
-    `The user is shown ${result.results.length} article${result.results.length === 1 ? "" : "s"} in cards. Do not list the sources again. Just give a 1-2 sentence summary response to their question and ask what else they would like to know.`,
+    `Search completed successfully. You now have access to ${result.results.length} relevant source${result.results.length === 1 ? "" : "s"} with current information.
+
+IMPORTANT: The user cannot see these search results - only your response. Analyze their question type and respond appropriately:
+
+• **Brief factual questions** → Provide concise, direct answers (1-3 sentences) with key facts
+• **Complex or research questions** → Provide comprehensive analysis (200-500+ words) with detailed insights
+• **"Tell me about" or explanatory requests** → Give thorough, well-structured responses with multiple sources
+
+Always ensure your response adds value beyond what a simple search would provide. Even brief answers should include relevant context, not just bare facts.`,
 };

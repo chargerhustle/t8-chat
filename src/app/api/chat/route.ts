@@ -268,14 +268,19 @@ export async function POST(req: Request) {
                     };
                   }
                 } catch (error) {
-                  console.error(error);
+                  console.error(
+                    `[TOOL] Error executing ${toolkit.id}_${toolName}:`,
+                    error
+                  );
                   return {
                     isError: true,
                     result: {
                       error:
                         error instanceof Error
-                          ? error.message
-                          : "An error occurred while executing the tool",
+                          ? `${error.name}: ${error.message}${error.stack ? `\n\nStack:\n${error.stack}` : ""}`
+                          : `Tool execution error: ${JSON.stringify(error, null, 2)}`,
+                      toolName: `${toolkit.id}_${toolName}`,
+                      timestamp: new Date().toISOString(),
                     },
                   };
                 }
@@ -371,8 +376,14 @@ export async function POST(req: Request) {
           sendReasoning: true,
         });
       },
-      onError: () => {
-        return "Oops, an error occurred!";
+      onError: (error) => {
+        console.error("[CHAT] Stream error:", error);
+        // Return detailed error information
+        if (error instanceof Error) {
+          return `Error: ${error.name}: ${error.message}${error.stack ? `\n\nStack trace:\n${error.stack}` : ""}`;
+        }
+        // For non-Error objects, stringify them
+        return `Error: ${JSON.stringify(error, null, 2)}`;
       },
     });
 
@@ -404,8 +415,16 @@ export async function POST(req: Request) {
     return new Response(
       JSON.stringify({
         error: {
-          message: "Failed to process chat request",
+          message:
+            error instanceof Error
+              ? `${error.name}: ${error.message}`
+              : "Failed to process chat request",
           type: "internal_error",
+          details:
+            error instanceof Error
+              ? { name: error.name, message: error.message, stack: error.stack }
+              : { raw: error },
+          timestamp: new Date().toISOString(),
         },
       }),
       {

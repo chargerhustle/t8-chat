@@ -77,9 +77,11 @@ interface FeatureBadgesProps {
 export const FeatureBadges: React.FC<FeatureBadgesProps> = ({ features }) => {
   return (
     <div className="flex flex-wrap gap-1 sm:gap-2">
-      {features.map((feature) => (
-        <FeatureBadge key={feature} feature={feature} />
-      ))}
+      {features
+        .filter((feature) => feature !== "search")
+        .map((feature) => (
+          <FeatureBadge key={feature} feature={feature} />
+        ))}
     </div>
   );
 };

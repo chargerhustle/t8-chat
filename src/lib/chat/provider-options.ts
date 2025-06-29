@@ -34,10 +34,9 @@ const ANTHROPIC_THINKING_BUDGETS: Record<EffortLevel, number> = {
  */
 export function buildProviderOptions(
   model: AllowedModels,
-  reasoningEffort?: EffortLevel,
-  includeSearch?: boolean
+  reasoningEffort?: EffortLevel
 ): ProviderOptions | undefined {
-  if (!reasoningEffort && !includeSearch) {
+  if (!reasoningEffort) {
     return undefined;
   }
 
@@ -52,7 +51,6 @@ export function buildProviderOptions(
 
   const provider = modelConfig.provider;
   const supportsReasoning = modelConfig.features.includes("reasoning");
-  const supportsSearch = modelConfig.features.includes("search");
   const providerOptions: ProviderOptions = {};
 
   switch (provider) {
@@ -68,12 +66,6 @@ export function buildProviderOptions(
         );
       }
 
-      // OpenAI doesn't support search grounding as a provider option
-      if (includeSearch) {
-        console.log(
-          `[PROVIDER_OPTIONS] Search requested for OpenAI model: ${model} - not supported as provider option`
-        );
-      }
       break;
 
     case "google":
@@ -87,14 +79,6 @@ export function buildProviderOptions(
       } else if (reasoningEffort && !supportsReasoning) {
         console.log(
           `[PROVIDER_OPTIONS] Reasoning effort requested for Google model: ${model} - not supported, skipping`
-        );
-      }
-
-      if (includeSearch && supportsSearch) {
-        googleOptions.useSearchGrounding = true;
-      } else if (includeSearch && !supportsSearch) {
-        console.log(
-          `[PROVIDER_OPTIONS] Search requested for Google model: ${model} - not supported, skipping`
         );
       }
 
@@ -115,12 +99,6 @@ export function buildProviderOptions(
       } else if (reasoningEffort && !supportsReasoning) {
         console.log(
           `[PROVIDER_OPTIONS] Reasoning effort requested for Anthropic model: ${model} - not supported, skipping`
-        );
-      }
-
-      if (includeSearch) {
-        console.log(
-          `[PROVIDER_OPTIONS] Search requested for Anthropic model: ${model} - not supported as provider option`
         );
       }
 

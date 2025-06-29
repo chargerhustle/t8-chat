@@ -1,5 +1,5 @@
 import React from "react";
-import { Search } from "lucide-react";
+import { Globe } from "lucide-react";
 
 import type { baseSearchTool } from "./base";
 import type { ClientToolConfig } from "@/toolkits/types";
@@ -35,7 +35,7 @@ export const exaSearchToolConfigClient: ClientToolConfig<
     return (
       <div className="space-y-2">
         <ToolCallDisplay
-          icon={Search}
+          icon={Globe}
           label="Search Query"
           value={args.query ?? "..."}
         />

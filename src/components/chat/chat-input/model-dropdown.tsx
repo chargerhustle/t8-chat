@@ -117,9 +117,11 @@ export function ModelDropdown({
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  {model.features.map((feature) => (
-                    <FeatureIcon key={feature} feature={feature} />
-                  ))}
+                  {model.features
+                    .filter((feature) => feature !== "search")
+                    .map((feature) => (
+                      <FeatureIcon key={feature} feature={feature} />
+                    ))}
                 </div>
               </div>
             </DropdownMenuItem>
