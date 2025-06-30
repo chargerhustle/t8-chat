@@ -74,9 +74,12 @@ export function ModelDropdown({
           className={cn(
             "h-8 text-xs gap-2 px-2 py-1.5 -mb-2 text-muted-foreground",
             "hover:bg-muted/40 hover:text-foreground",
-            "!focus-visible:outline-none !focus-visible:ring-0 !focus-visible:ring-offset-0 !focus:outline-none !focus:ring-0"
+            "!focus:outline-none !focus-visible:outline-none !focus-visible:ring-0 !focus-visible:ring-offset-0",
+            "!ring-offset-0 !ring-0 !outline-0 !outline-none",
+            "[&:focus]:outline-none [&:focus-visible]:outline-none [&:focus]:ring-0 [&:focus-visible]:ring-0"
           )}
           id="radix-model-dropdown"
+          style={{ outline: "none", boxShadow: "none" }}
         >
           {/* Show premium gem icon only */}
           {selectedModel.premium && (
@@ -156,8 +159,8 @@ export function ModelDropdown({
         ) : (
           /* Row-based List */
           <div
-            className="max-h-full overflow-y-scroll px-1.5 pb-3 scrollbar-hide"
-            data-shadow="false"
+            className="max-h-[calc(100vh-200px)] overflow-y-auto px-1.5 pb-3 scrollbar-hide scroll-shadow"
+            data-shadow="true"
           >
             {displayedModels.map((model) => (
               <DropdownMenuItem
@@ -210,7 +213,7 @@ export function ModelDropdown({
         )}
 
         {/* Footer */}
-        <div className="fixed inset-x-4 bottom-0 flex items-center justify-between rounded-b-lg bg-popover pb-1 pl-1 pr-2.5 pt-1.5 sm:inset-x-0">
+        <div className="fixed inset-x-4 bottom-0 z-10 flex items-center justify-between rounded-b-lg bg-popover pb-1 pl-1 pr-2.5 pt-1.5 sm:inset-x-0">
           <div className="absolute inset-x-3 top-0 border-b border-chat-border"></div>
           <Button
             variant="ghost"

@@ -1,12 +1,10 @@
 import { createServerToolkit } from "@/toolkits/create-toolkit";
-import { baseExaToolkitConfig } from "./base";
-
+import { createExaToolkitConfig } from "./base";
 import { ExaTools } from "./tools";
 import { exaSearchToolConfigServer } from "./search/server";
 
-export const exaToolkitServer = createServerToolkit(
-  baseExaToolkitConfig,
-  `You have access to the Exa search tool for finding current, relevant information from the web.
+// System prompt for Exa toolkit
+const EXA_SYSTEM_PROMPT = `You have access to the Exa search tool for finding current, relevant information from the web.
 
 **Critical Guidelines:**
 1. **Always search when relevant** - The user enabled this toolkit because they expect web search functionality
@@ -35,10 +33,27 @@ Remember: The user enabled search because they want detailed, well-researched an
 - **Domain Filtering**: Include/exclude specific websites for targeted results
 - **Flexible Results**: Choose 1-10 results based on query complexity
 
-The user expects you to leverage current web information to provide accurate, up-to-date answers. Use the search tool confidently and respond in your natural, helpful manner.`,
-  async () => {
+The user expects you to leverage current web information to provide accurate, up-to-date answers. Use the search tool confidently and respond in your natural, helpful manner.`;
+
+/**
+ * Creates a model-aware Exa toolkit
+ * @param model - Optional model ID to determine schema compatibility
+ * @returns ServerToolkit configured for the specific model
+ */
+export function createExaToolkitServer(model?: string) {
+  const toolkitConfig = createExaToolkitConfig(model);
+
+  return createServerToolkit(toolkitConfig, EXA_SYSTEM_PROMPT, async () => {
+    // Return ALL tools in the Exa toolkit
+    // Currently just search, but can easily add more tools here
     return {
       [ExaTools.Search]: exaSearchToolConfigServer,
+      // Future tools can be added here:
+      // [ExaTools.ImageSearch]: exaImageSearchToolConfigServer,
+      // [ExaTools.NewsSearch]: exaNewsSearchToolConfigServer,
     };
-  }
-);
+  });
+}
+
+// Default export for backward compatibility (no model specified)
+export const exaToolkitServer = createExaToolkitServer();

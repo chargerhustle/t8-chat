@@ -243,7 +243,7 @@ export async function POST(req: Request) {
 
     const toolkitTools = await Promise.all(
       toolkits.map(async (toolkit: AnyToolkitConfig) => {
-        const serverToolkit = getServerToolkit(toolkit.id);
+        const serverToolkit = getServerToolkit(toolkit.id, requestData.model);
         const tools = await serverToolkit.tools(toolkit.parameters);
         return Object.keys(tools).reduce(
           (acc, toolName) => {
@@ -296,7 +296,7 @@ export async function POST(req: Request) {
     // Collect toolkit system prompts
     const toolkitSystemPrompts = await Promise.all(
       toolkits.map(async (toolkit: AnyToolkitConfig) => {
-        const serverToolkit = getServerToolkit(toolkit.id);
+        const serverToolkit = getServerToolkit(toolkit.id, requestData.model);
         return serverToolkit.systemPrompt;
       })
     );

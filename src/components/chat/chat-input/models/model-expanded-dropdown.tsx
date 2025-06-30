@@ -40,7 +40,7 @@ export function ModelExpandedDropdown({
 
   return (
     <div
-      className="max-h-full overflow-y-scroll px-1.5 sm:w-[640px] custom-scrollbar"
+      className="max-h-[calc(100vh-200px)] overflow-y-auto px-1.5 sm:w-[640px] custom-scrollbar scroll-shadow"
       data-shadow="true"
     >
       <div className="flex w-full flex-wrap justify-start gap-3.5 pb-4 pl-3 pr-2 pt-2.5">

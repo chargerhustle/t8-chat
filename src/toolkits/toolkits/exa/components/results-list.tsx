@@ -26,12 +26,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
   }
 
   return (
-    <Accordion
-      type="single"
-      collapsible
-      defaultValue="search-results"
-      className="not-prose"
-    >
+    <Accordion type="single" collapsible className="not-prose">
       <AccordionItem value="search-results">
         <AccordionTrigger className="py-0 hover:no-underline justify-start [&>svg:last-child]:hidden [&[data-state=open]_.chevron]:rotate-180">
           <div className="flex items-center gap-2">
