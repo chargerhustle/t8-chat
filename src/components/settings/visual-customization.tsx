@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { toast } from "sonner";
+import { CodeBlockCode } from "@/components/ui/code-block";
 
 /**
  * Renders the visual customization settings UI, allowing users to toggle personal information visibility, enable detailed message statistics, and preview font selections.
@@ -25,6 +26,11 @@ export function VisualCustomization() {
       toast.error(`Failed to update preference. Please try again.`);
     }
   };
+
+  const exampleCode = `function greet(name: string) {
+	console.log(\`Hello, \${name}!\`);
+	return true;
+}`;
 
   return (
     <div className="space-y-6">
@@ -142,27 +148,11 @@ export function VisualCustomization() {
                   <div className="mb-2 mt-4">
                     <div className="max-w-[80%]">Sure, here you go:</div>
                   </div>
-                  <div className="relative flex w-full flex-col pt-9">
-                    <div className="absolute inset-x-0 top-0 flex h-9 items-center rounded-t bg-secondary px-4 py-2 text-sm text-secondary-foreground">
-                      <span className="font-mono">typescript</span>
-                    </div>
-                    <div className="relative bg-chat-accent text-sm font-[450] text-secondary-foreground">
-                      <pre
-                        className="overflow-auto !bg-transparent px-[1em] py-[1em]"
-                        style={{
-                          backgroundColor: "rgb(29, 25, 33)",
-                          color: "rgb(210, 199, 225)",
-                        }}
-                      >
-                        <code>
-                          {`function greet(name: string) {
-	console.log(\`Hello, \${name}!\`);
-	return true;
-}`}
-                        </code>
-                      </pre>
-                    </div>
-                  </div>
+                  <CodeBlockCode
+                    code={exampleCode}
+                    language="typescript"
+                    showHeader={true}
+                  />
                 </div>
               </div>
             </div>

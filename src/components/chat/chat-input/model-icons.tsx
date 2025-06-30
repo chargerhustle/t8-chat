@@ -1,28 +1,7 @@
-import { Eye, Globe, FileText, Brain, Info, Gem } from "lucide-react";
+import { Info, Gem } from "lucide-react";
 import { ModelFeature } from "@/ai/models-config";
+import { FEATURE_CONFIG } from "./models";
 import React from "react";
-
-// Feature icon mapping
-export const featureIcons: Record<
-  ModelFeature,
-  React.ComponentType<{ className?: string; style?: React.CSSProperties }>
-> = {
-  vision: Eye,
-  search: Globe,
-  documents: FileText,
-  reasoning: Brain,
-};
-
-// Feature colors (HSL values) - updated to match reference
-export const featureColors: Record<
-  ModelFeature,
-  { light: string; dark: string }
-> = {
-  vision: { light: "hsl(168 54% 52%)", dark: "hsl(168 54% 74%)" },
-  search: { light: "hsl(208 56% 52%)", dark: "hsl(208 56% 74%)" },
-  documents: { light: "hsl(237 55% 57%)", dark: "hsl(237 75% 77%)" },
-  reasoning: { light: "hsl(263 58% 53%)", dark: "hsl(263 58% 75%)" },
-};
 
 // Feature Icon Component
 interface FeatureIconProps {
@@ -30,8 +9,9 @@ interface FeatureIconProps {
 }
 
 export const FeatureIcon: React.FC<FeatureIconProps> = ({ feature }) => {
-  const IconComponent = featureIcons[feature];
-  const colors = featureColors[feature];
+  const config = FEATURE_CONFIG[feature];
+  const IconComponent = config.icon;
+  const colors = config.colors;
 
   return (
     <div
@@ -61,11 +41,16 @@ export const FeatureIcon: React.FC<FeatureIconProps> = ({ feature }) => {
 // Model provider icons
 export const getModelIcon = (
   iconType: string,
-  context: "dropdown" | "settings" = "dropdown"
+  context: "dropdown" | "settings" | "grid" = "dropdown"
 ) => {
   const isSettings = context === "settings";
-  const sizeClass = isSettings ? "h-full w-full" : "size-4";
-  const colorClass = isSettings ? "" : "text-color-heading";
+  const isGrid = context === "grid";
+  const sizeClass = isSettings ? "h-full w-full" : isGrid ? "size-7" : "size-4";
+  const colorClass = isSettings
+    ? ""
+    : isGrid
+      ? "text-[hsl(var(--muted-foreground)/0.9)]"
+      : "text-color-heading";
 
   if (iconType === "google") {
     return (
@@ -97,7 +82,7 @@ export const getModelIcon = (
   // Default icon for other providers
   return (
     <div
-      className={`${isSettings ? "h-full w-full" : "size-4"} rounded bg-muted flex items-center justify-center text-xs font-medium`}
+      className={`${isSettings ? "h-full w-full" : isGrid ? "size-7" : "size-4"} rounded bg-muted flex items-center justify-center text-xs font-medium`}
     >
       {iconType.charAt(0).toUpperCase()}
     </div>

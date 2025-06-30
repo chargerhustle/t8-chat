@@ -164,7 +164,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
         </DialogHeader>
 
         {/* Dialog Content */}
-        <div className="pointer-events-auto flex h-fit w-full flex-col gap-1 rounded-xl bg-popover p-3.5 pt-2.5 text-secondary-foreground outline outline-1 outline-chat-border/20 max-sm:inset-x-4 max-sm:w-auto dark:outline-white/5">
+        <div className="pointer-events-auto flex h-fit w-full flex-col gap-1 rounded-xl bg-popover p-3.5 pt-2.5 text-secondary-foreground outline-1 outline-chat-border/20 max-sm:inset-x-4 max-sm:w-auto dark:outline-white/5">
           {/* Search Input Section */}
           <div className="relative">
             <div className="w-full rounded-t-lg bg-popover">

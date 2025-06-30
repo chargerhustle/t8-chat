@@ -1,5 +1,14 @@
 import React from "react";
-import { Eye, Globe, FileText, Brain } from "lucide-react";
+import {
+  Eye,
+  Globe,
+  FileText,
+  Brain,
+  Zap,
+  Settings2,
+  Wrench,
+  ImagePlus,
+} from "lucide-react";
 import { ModelFeature } from "@/ai/models-config";
 import { Badge } from "@/components/ui/badge";
 
@@ -12,6 +21,10 @@ const featureIcons: Record<
   search: Globe,
   documents: FileText,
   reasoning: Brain,
+  fast: Zap,
+  effort: Settings2,
+  tools: Wrench,
+  image: ImagePlus,
 };
 
 // Feature colors (HSL values) - exactly as in the reference
@@ -20,6 +33,10 @@ const featureColors: Record<ModelFeature, { light: string; dark: string }> = {
   search: { light: "hsl(208 56% 52%)", dark: "hsl(208 56% 74%)" },
   documents: { light: "hsl(237 55% 57%)", dark: "hsl(237 75% 77%)" },
   reasoning: { light: "hsl(263 58% 53%)", dark: "hsl(263 58% 75%)" },
+  fast: { light: "hsl(45 93% 47%)", dark: "hsl(45 93% 67%)" },
+  effort: { light: "hsl(314 60% 51%)", dark: "hsl(314 60% 71%)" },
+  tools: { light: "hsl(0 72% 51%)", dark: "hsl(0 72% 71%)" },
+  image: { light: "hsl(0 72% 51%)", dark: "hsl(0 72% 71%)" },
 };
 
 // Feature display names mapping
@@ -28,6 +45,10 @@ const featureDisplayNames: Record<ModelFeature, string> = {
   search: "Search",
   documents: "PDFs",
   reasoning: "Reasoning",
+  fast: "Fast",
+  effort: "Effort Control",
+  tools: "Tool Calling",
+  image: "Image Generation",
 };
 
 interface FeatureBadgeProps {

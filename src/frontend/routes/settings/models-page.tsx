@@ -8,6 +8,7 @@ import { getModelIcon } from "@/components/chat/chat-input/model-icons";
 import { FeatureBadges } from "@/components/settings";
 import { Button } from "@/components/ui/button";
 import { Sparkles, FlaskConical, Gem, Link } from "lucide-react";
+import { useUserModels } from "@/hooks/use-user-models";
 
 // Use the flags from the model config
 const isExperimental = (model: ModelConfig) => model.experimental;
@@ -17,12 +18,14 @@ const isNewModel = (model: ModelConfig) => model.new;
 interface ModelCardProps {
   model: ModelConfig;
   isEnabled: boolean;
+  isDisabled?: boolean;
   onToggle: (modelId: string) => void;
 }
 
 const ModelCard: React.FC<ModelCardProps> = ({
   model,
   isEnabled,
+  isDisabled,
   onToggle,
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -84,6 +87,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
               aria-checked={isEnabled}
               data-state={isEnabled ? "checked" : "unchecked"}
               value="on"
+              disabled={isDisabled}
               onClick={() => onToggle(model.id)}
               className="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary"
             >
@@ -130,22 +134,13 @@ const ModelCard: React.FC<ModelCardProps> = ({
 };
 
 export default function ModelsPage() {
-  const [enabledModels, setEnabledModels] = useState<Set<string>>(
-    new Set(MODEL_CONFIGS.slice(0, 3).map((m) => m.id)) // Enable first 3 models by default
-  );
+  const { userModels, toggleModelFavourite, updateFavouriteModels } =
+    useUserModels();
   const [showNewModelsNotification, setShowNewModelsNotification] =
     useState(true);
 
   const handleToggleModel = (modelId: string) => {
-    setEnabledModels((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(modelId)) {
-        newSet.delete(modelId);
-      } else {
-        newSet.add(modelId);
-      }
-      return newSet;
-    });
+    toggleModelFavourite(modelId);
   };
 
   const handleSelectRecommended = () => {
@@ -156,11 +151,14 @@ export default function ModelsPage() {
         m.id === "gemini-2.5-pro-exp-03-25" ||
         m.id === "o4-mini-2025-04-16"
     ).map((m) => m.id);
-    setEnabledModels(new Set(recommended));
+    updateFavouriteModels(recommended);
   };
 
   const handleUnselectAll = () => {
-    setEnabledModels(new Set());
+    // Keep at least one model selected (use the first default)
+    updateFavouriteModels([
+      userModels.favouriteModels[0] || "gemini-2.5-flash-normal",
+    ]);
   };
 
   const newModels = MODEL_CONFIGS.filter(isNewModel);
@@ -227,6 +225,7 @@ export default function ModelsPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleUnselectAll}
+                disabled={userModels.favouriteModels.length <= 1}
                 className="h-8 rounded-md px-3 text-xs sm:text-sm"
               >
                 Unselect All
@@ -240,7 +239,11 @@ export default function ModelsPage() {
                 <ModelCard
                   key={model.id}
                   model={model}
-                  isEnabled={enabledModels.has(model.id)}
+                  isEnabled={userModels.favouriteModels.includes(model.id)}
+                  isDisabled={
+                    userModels.favouriteModels.includes(model.id) &&
+                    userModels.favouriteModels.length === 1
+                  }
                   onToggle={handleToggleModel}
                 />
               ))}

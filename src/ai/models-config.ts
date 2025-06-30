@@ -1,7 +1,15 @@
 // import { OpenAIProviderOptions } from '@ai-sdk/openai';
 // import { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google'; // Uncomment if using Google
 
-export type ModelFeature = "vision" | "documents" | "reasoning" | "search";
+export type ModelFeature =
+  | "vision"
+  | "documents"
+  | "reasoning"
+  | "search"
+  | "fast"
+  | "effort"
+  | "tools"
+  | "image";
 export type AttachmentType = "image" | "pdf" | "docx";
 export type StreamingType = "word" | "line";
 
@@ -101,11 +109,35 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     streaming: "word",
   },
   {
+    id: "o3-mini-2025-01-31",
+    provider: "openai",
+    model: "o3-mini-2025-01-31",
+    displayName: "o3-mini",
+    features: ["vision", "documents", "reasoning", "search", "effort"],
+    allowedAttachmentTypes: ["image", "pdf", "docx"],
+    allowedMIMETypes: [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/webp",
+      "application/pdf",
+    ],
+    defaultProviderOptions: { openai: { reasoningEffort: "low" } },
+    description: "OpenAI's previous small reasoning model",
+    longDescription:
+      "A small, fast, super smart reasoning model. Good at science, math, and coding, even if it's not as good at CSS...",
+    experimental: false,
+    new: true,
+    premium: false,
+    icon: "openai",
+    streaming: "word",
+  },
+  {
     id: "o4-mini-2025-04-16",
     provider: "openai",
     model: "o4-mini-2025-04-16",
     displayName: "o4-mini",
-    features: ["vision", "documents", "reasoning", "search"],
+    features: ["vision", "documents", "reasoning", "search", "effort"],
     allowedAttachmentTypes: ["image", "pdf", "docx"],
     allowedMIMETypes: [
       "image/png",
@@ -119,7 +151,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     longDescription:
       "A small, fast, even smarter reasoning model. o3-mini was great, this is even better. Good at science, math, and coding, even if it's not as good at CSS.",
     experimental: false,
-    new: false,
+    new: true,
     premium: false,
     icon: "openai",
     streaming: "word",
@@ -145,8 +177,8 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     longDescription:
       "Google's most advanced model, excelling at complex reasoning and problem-solving. Particularly strong at tackling difficult code challenges, mathematical proofs, and STEM problems. With its massive context window, it can deeply analyze large codebases, datasets and technical documents to provide comprehensive solutions.",
     experimental: true,
-    new: false,
-    premium: false,
+    new: true,
+    premium: true,
     icon: "google",
     streaming: "line",
   },
@@ -180,7 +212,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     provider: "google",
     model: "gemini-2.0-flash-lite",
     displayName: "Gemini 2.0 Flash Lite",
-    features: ["vision", "documents", "search"],
+    features: ["vision", "documents", "search", "fast"],
     allowedAttachmentTypes: ["image", "pdf"],
     allowedMIMETypes: [
       "image/png",
@@ -221,8 +253,8 @@ export const MODEL_CONFIGS: ModelConfig[] = [
     description: "Gemini 2.5 Flash without thinking mode.",
     longDescription:
       "Google's state of the art fast model, known for speed and accuracy (and also web search!). Not quite as smart as Claude Sonnet, but WAY faster and cheaper. Also has an insanely large context window (it can handle a lot of data).",
-    experimental: false,
-    new: false,
+    experimental: true,
+    new: true,
     premium: false,
     icon: "google",
     streaming: "line",
@@ -254,7 +286,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       'Google\'s state of the art fast model, known for speed and accuracy, now with support for "thinking". These "thinking" capabilities enable it to provide responses with greater accuracy and nuanced context handling.',
     experimental: false,
     new: false,
-    premium: false,
+    premium: true,
     icon: "google",
     streaming: "line",
   },

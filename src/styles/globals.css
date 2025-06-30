@@ -1114,6 +1114,15 @@
   color: hsl(var(--color-heading));
 }
 
+/* Model card specific utilities */
+.text-model-primary {
+  color: var(--model-primary);
+}
+
+.text-model-muted {
+  color: var(--model-muted);
+}
+
 /* Shiny text animation class */
 .animate-shiny-text {
   animation: var(--animate-shiny-text);
