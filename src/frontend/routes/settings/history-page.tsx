@@ -240,9 +240,28 @@ export default function HistoryPage() {
                                   className="h-4 w-4 border-0 bg-transparent"
                                 />
                               </div>
-                              <span className="truncate">
-                                {thread.title || "Untitled Chat"}
-                              </span>
+                              <div className="flex items-center gap-1 min-w-0">
+                                {thread.branchParentThreadId && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-4 w-4 text-muted-foreground/50 shrink-0"
+                                  >
+                                    <path d="M6.02,5.78m0,15.31V4.55m0,0v-1.91m0,3.14v-1.23m0,1.23c0,1.61,1.21,3.11,3.2,3.94l4.58,1.92c1.98,.83,3.2,2.32,3.2,3.94v3.84"></path>
+                                    <path d="M20.53,17.59l-3.41,3.66-3.66-3.41"></path>
+                                  </svg>
+                                )}
+                                <span className="truncate">
+                                  {thread.title || "Untitled Chat"}
+                                </span>
+                              </div>
                               <span className="flex w-8 justify-center">
                                 {thread.pinned && (
                                   <div data-state="closed">
