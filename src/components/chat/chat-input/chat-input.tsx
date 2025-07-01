@@ -1,6 +1,7 @@
 "use client";
 
 import { ScrollToBottomButton } from "./scroll-to-bottom-button";
+import { ApiKeyWarning } from "./api-key-warning";
 import { ChatTextarea } from "./chat-textarea";
 import { ChatInputActions } from "./chat-input-actions";
 import { ChatInputForm } from "./chat-input-form";
@@ -107,45 +108,46 @@ export function ChatInput({
     onHeightChange,
     attachmentsLength: attachments.length,
     currentValue,
+    attachments,
   });
 
   return (
-    <div
-      ref={chatInputContainerRef}
-      className="pointer-events-none absolute bottom-0 z-10 w-full px-2"
-    >
+    <div className="pointer-events-none absolute bottom-0 z-10 w-full px-2">
       <div className="relative mx-auto flex w-full max-w-3xl flex-col text-center">
         <ScrollToBottomButton
           showScrollToBottom={showScrollToBottom}
           onScrollToBottom={onScrollToBottom}
         />
-        <ChatInputForm onSubmit={handleSubmit}>
-          <AttachmentsList
-            ref={attachmentsRef}
-            attachments={attachments}
-            onRemoveAttachment={handleRemoveAttachment}
-          />
-          <ChatTextarea
-            ref={textareaRef}
-            value={currentValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
-          <ChatInputActions
-            canSend={canSend}
-            models={MODEL_CONFIGS}
-            selectedModel={selectedModel}
-            onSelectModel={setSelectedModel}
-            modelSupportsReasoning={modelSupportsReasoning}
-            reasoningEffort={reasoningEffort}
-            onReasoningEffortChange={setReasoningEffort}
-            modelSupportsSearch={modelSupportsSearch}
-            includeSearch={includeSearch}
-            onToggleSearch={toggleSearch}
-            acceptMimes={acceptMimes}
-            onFilesSelected={addFiles}
-          />
-        </ChatInputForm>
+        <ApiKeyWarning />
+        <div ref={chatInputContainerRef}>
+          <ChatInputForm onSubmit={handleSubmit}>
+            <AttachmentsList
+              ref={attachmentsRef}
+              attachments={attachments}
+              onRemoveAttachment={handleRemoveAttachment}
+            />
+            <ChatTextarea
+              ref={textareaRef}
+              value={currentValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+            <ChatInputActions
+              canSend={canSend}
+              models={MODEL_CONFIGS}
+              selectedModel={selectedModel}
+              onSelectModel={setSelectedModel}
+              modelSupportsReasoning={modelSupportsReasoning}
+              reasoningEffort={reasoningEffort}
+              onReasoningEffortChange={setReasoningEffort}
+              modelSupportsSearch={modelSupportsSearch}
+              includeSearch={includeSearch}
+              onToggleSearch={toggleSearch}
+              acceptMimes={acceptMimes}
+              onFilesSelected={addFiles}
+            />
+          </ChatInputForm>
+        </div>
       </div>
     </div>
   );

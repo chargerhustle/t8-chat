@@ -102,7 +102,7 @@ export default function LaunchChat() {
           role="log"
           aria-label="Chat messages"
           aria-live="polite"
-          className="mx-auto flex w-full max-w-3xl flex-col space-y-12 px-4 pt-safe-offset-10 pb-16"
+          className="mx-auto flex w-full max-w-3xl flex-col space-y-12 px-4 pt-safe-offset-10 pb-6"
         >
           {!hasInputText && !isNavigating && (
             <ChatWelcome onSuggestionClick={handleSuggestionClick} />
