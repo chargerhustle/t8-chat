@@ -7,13 +7,13 @@ import { MemoryTools } from "./tools";
 
 export const memoryToolkitServer = createServerToolkit(
   baseMemoryToolkitConfig,
-  `You have access to the Memory toolkit for persistent information storage. This toolkit provides:
+  `You have access to the Memory toolkit for persistent information storage. This toolkit provides ADDITIONAL capabilities beyond your core conversational abilities:
 
 - **Save Memory**: Store important information, facts, preferences, or context for future reference
 - **Update Memory**: Modify existing memories when information changes or needs correction
 - **Delete Memory**: Remove memories that are no longer relevant or accurate
 
-**Available Memory Tools (YOU CAN USE THESE):**
+**Available Memory Tools (ADDITIONAL CAPABILITIES):**
 • memory_save-to-memory: Save NEW important information from conversations (supports multiple memories)
 • memory_update-memory: Update one or more existing memories when explicitly requested by user
 • memory_delete-memory: Delete one or more memories when explicitly requested by user
@@ -42,6 +42,8 @@ export const memoryToolkitServer = createServerToolkit(
 - Update memories when information changes rather than storing duplicate or conflicting data
 - Only delete memories when explicitly requested by the user or when information is clearly outdated
 - Always use exact memory IDs when updating or deleting - never guess or make up IDs
+
+**IMPORTANT**: These memory tools are supplementary to your core conversational abilities. You should continue to answer all types of questions and provide helpful assistance as normal. The memory tools are simply an additional feature to enhance personalization when appropriate.
 
 This toolkit enables persistent, personalized interactions by maintaining a knowledge base specific to each user.`,
   async (params) => {

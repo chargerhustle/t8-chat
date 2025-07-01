@@ -51,7 +51,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "application/pdf",
     ],
     defaultProviderOptions: {},
-    description: "Newest non-reasoning model",
+    description: "Newest non-reasoning model from OpenAI",
     longDescription:
       "GPT-4.1 is a flagship large language model optimized for advanced instruction following, real-world software engineering, and long-context reasoning. It outperforms GPT-4o and GPT-4.5 across coding (54.6% SWE-bench Verified), instruction compliance (87.4% IFEval), and multimodal understanding benchmarks.",
     experimental: false,
@@ -244,7 +244,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "image/heic",
       "application/pdf",
     ],
-    defaultProviderOptions: { useSearchGrounding: false },
+    defaultProviderOptions: { google: { useSearchGrounding: false } },
     description: "Google's best reasoning model",
     longDescription:
       "Google's most advanced model, excelling at complex reasoning and problem-solving. Particularly strong at tackling difficult code challenges, mathematical proofs, and STEM problems. With its massive context window, it can deeply analyze large codebases, datasets and technical documents to provide comprehensive solutions.",
@@ -269,7 +269,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "image/heic",
       "application/pdf",
     ],
-    defaultProviderOptions: { useSearchGrounding: false },
+    defaultProviderOptions: { google: { useSearchGrounding: false } },
     description: "Fast and stable model",
     longDescription:
       "Google's flagship model, known for speed and accuracy (and also web search!). Not quite as smart as Claude 3.5 Sonnet, but WAY faster and cheaper. Also has an insanely large context window (it can handle a lot of data).",
@@ -320,7 +320,13 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "application/pdf",
     ],
     defaultProviderOptions: {
-      useSearchGrounding: false,
+      google: {
+        useSearchGrounding: false,
+        thinkingConfig: {
+          includeThoughts: false,
+          thinkingBudget: 0,
+        },
+      },
     },
     description: "Gemini 2.5 Flash without thinking mode.",
     longDescription:
@@ -347,10 +353,12 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "application/pdf",
     ],
     defaultProviderOptions: {
-      useSearchGrounding: false,
-      thinkingConfig: {
-        includeThoughts: true,
-        thinkingBudget: 1024,
+      google: {
+        useSearchGrounding: false,
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingBudget: 1024,
+        },
       },
     },
     description: 'Gemini 2.5 Flash with "thinking" enabled.',
@@ -377,7 +385,15 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "image/heic",
       "application/pdf",
     ],
-    defaultProviderOptions: {},
+    defaultProviderOptions: {
+      google: {
+        useSearchGrounding: false,
+        thinkingConfig: {
+          includeThoughts: false,
+          thinkingBudget: 0,
+        },
+      },
+    },
     description: "Google's latest flash model.",
     longDescription:
       "Gemini 2.5 Flash-Lite is a member of the Gemini 2.5 series of models, a suite of highly-capable, natively multimodal models. Gemini 2.5 Flash-Lite is Google’s most cost-efficient model, striking a balance between efficiency and quality.",
@@ -403,10 +419,12 @@ export const MODEL_CONFIGS: ModelConfig[] = [
       "application/pdf",
     ],
     defaultProviderOptions: {
-      useSearchGrounding: false,
-      thinkingConfig: {
-        includeThoughts: true,
-        thinkingBudget: 1024,
+      google: {
+        useSearchGrounding: false,
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingBudget: 1024,
+        },
       },
     },
     description: "Gemini 2.5 Flash Lite with 'thinking' enabled.",

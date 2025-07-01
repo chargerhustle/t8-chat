@@ -59,6 +59,7 @@ export function buildProviderOptions(
       if (reasoningEffort && supportsReasoning) {
         providerOptions.openai = {
           reasoningEffort: reasoningEffort,
+          reasoningSummary: "detailed",
         };
       } else if (reasoningEffort && !supportsReasoning) {
         console.log(
@@ -75,6 +76,7 @@ export function buildProviderOptions(
       if (reasoningEffort && supportsReasoning) {
         googleOptions.thinkingConfig = {
           thinkingBudget: GOOGLE_THINKING_BUDGETS[reasoningEffort],
+          includeThoughts: true,
         };
       } else if (reasoningEffort && !supportsReasoning) {
         console.log(

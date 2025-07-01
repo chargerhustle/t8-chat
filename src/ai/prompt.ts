@@ -180,12 +180,12 @@ export function createSystemPrompt({
   // Simple memory status (toolkit handles tool instructions)
   if (memoriesEnabled !== false) {
     parts.push(
-      "- Memory Management: The 'Memories' feature is ENABLED. You may have access to memory management tools depending on your toolkit configuration. Users can manage their Memories settings in Settings > Customization"
+      "- Memory Management: The 'Memories' feature is ENABLED. You may have access to memory management tools depending on your toolkit configuration. These tools are SUPPLEMENTARY to your core conversational abilities - continue to answer all types of questions and provide helpful assistance as normal. Users can manage their Memories settings in Settings > Customization."
     );
   } else {
     parts.push(
-      "- Memory Management: The 'Memories' feature is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. DO NOT claim to save or manage memories - you literally cannot do it.",
-      "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to the Memories feature when this feature is disabled. Be honest that the Memories feature is turned off.",
+      "- Memory Management: The 'Memories' feature is currently DISABLED. You do NOT have access to any memory tools and CANNOT save, update, or delete memories. However, this does NOT limit your core conversational abilities - you should continue to answer all types of questions and provide helpful assistance as normal.",
+      "  CRITICAL: Never tell the user you 'saved' or 'updated' or 'deleted' anything to the Memories feature when this feature is disabled. Be honest that the Memories feature is turned off if asked about it.",
       "  If the user wants to enable the Memories feature, they can toggle it on in Settings > Customization."
     );
   }

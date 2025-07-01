@@ -147,6 +147,7 @@ export function createBYOKProviderFromConfig(
       case "openai":
         const openaiProvider = createOpenAI({
           apiKey: userKey,
+          compatibility: "strict", // Enable strict mode for proper streaming usage data
         });
         providerInstance = openaiProvider(modelString, providerSpecificOptions);
         break;
