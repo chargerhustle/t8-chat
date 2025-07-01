@@ -34,7 +34,7 @@ interface UseSidebarLogicReturn {
 
   // Handlers
   handleTogglePin: (threadId: string, isPinned: boolean) => Promise<void>;
-  handleSetThreadToDelete: (threadId: string) => void;
+  handleSetThreadToDelete: (threadId: string, immediate?: boolean) => void;
   handleDeleteThread: () => Promise<void>;
   handleCloseDeleteDialog: () => void;
 }
@@ -83,8 +83,34 @@ export function useSidebarLogic(): UseSidebarLogicReturn {
   const currentUser = useQuery(api.auth.getCurrentUser);
 
   // Convex mutations
-  const deleteThreadMutation = useMutation(api.threads.deleteThread);
-  const togglePinMutation = useMutation(api.threads.togglePin);
+  const deleteThreadMutation = useMutation(
+    api.threads.deleteThread
+  ).withOptimisticUpdate((localStore, args) => {
+    const threads = localStore.getQuery(api.threads.get, {});
+    if (!threads) return;
+    // Remove the deleted thread from the list
+    const filteredThreads = threads.filter(
+      (thread) => thread.threadId !== args.threadId
+    );
+    localStore.setQuery(api.threads.get, {}, filteredThreads);
+  });
+  const togglePinMutation = useMutation(
+    api.threads.togglePin
+  ).withOptimisticUpdate((localStore, args) => {
+    const threads = localStore.getQuery(api.threads.get, {});
+    if (!threads) return;
+    const now = Date.now();
+    const updatedThreads = threads.map((thread) =>
+      thread.threadId === args.threadId
+        ? { ...thread, pinned: args.pinned, updatedAt: now }
+        : thread
+    );
+    // Re-sort the threads to match server behavior (by updatedAt desc)
+    const sortedThreads = updatedThreads.sort(
+      (a, b) => b.updatedAt - a.updatedAt
+    );
+    localStore.setQuery(api.threads.get, {}, sortedThreads);
+  });
 
   // Memoize date boundaries to avoid recalculating on every render
   const dateBoundaries = useMemo(() => {
@@ -173,9 +199,22 @@ export function useSidebarLogic(): UseSidebarLogicReturn {
     [togglePinMutation]
   );
 
-  const handleSetThreadToDelete = useCallback((threadId: string) => {
-    setThreadToDelete(threadId);
-  }, []);
+  const handleSetThreadToDelete = useCallback(
+    (threadId: string, immediate?: boolean) => {
+      if (immediate) {
+        // Immediately delete the thread
+        deleteThreadMutation({ threadId });
+        // If the deleted thread was the active one, navigate to home
+        if (currentThreadId === threadId) {
+          navigate("/");
+        }
+        setThreadToDelete(null);
+      } else {
+        setThreadToDelete(threadId);
+      }
+    },
+    [currentThreadId, deleteThreadMutation, navigate]
+  );
 
   const handleCloseDeleteDialog = useCallback(() => {
     setThreadToDelete(null);

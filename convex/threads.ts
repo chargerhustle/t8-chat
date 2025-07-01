@@ -591,3 +591,133 @@ export const exportThreads = query({
     return exportData;
   },
 });
+
+/**
+ * Create a branch from an existing thread at a specific message
+ */
+export const createBranch = mutation({
+  args: {
+    originalThreadId: v.string(),
+    branchFromMessageId: v.string(),
+    newThreadId: v.string(),
+  },
+  returns: v.object({
+    newThreadId: v.string(),
+    success: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    // Get the original thread
+    const originalThread = await ctx.db
+      .query("threads")
+      .withIndex("by_threadId", (q) => q.eq("threadId", args.originalThreadId))
+      .first();
+
+    if (!originalThread) {
+      throw new Error("Original thread not found");
+    }
+
+    // Check if user owns this thread
+    if (originalThread.userId !== userId) {
+      throw new Error("Not authorized to branch this thread");
+    }
+
+    // Get the message we're branching from
+    const branchFromMessage = await ctx.db
+      .query("messages")
+      .withIndex("by_messageId_and_userId", (q) =>
+        q.eq("messageId", args.branchFromMessageId).eq("userId", userId)
+      )
+      .first();
+
+    if (!branchFromMessage) {
+      throw new Error("Branch message not found");
+    }
+
+    // Verify the message belongs to the original thread
+    if (branchFromMessage.threadId !== args.originalThreadId) {
+      throw new Error("Message does not belong to the specified thread");
+    }
+
+    // Use the client-provided thread ID
+    const newThreadId = args.newThreadId;
+    const now = Date.now();
+
+    // Create new thread with branch metadata - copy all thread data
+    const newThreadDbId = await ctx.db.insert("threads", {
+      threadId: newThreadId,
+      title: originalThread.title, // Copy original title
+      createdAt: now,
+      updatedAt: now,
+      lastMessageAt: now, // Set to current time so branch appears in "Today" group
+      generationStatus: "completed", // Branch starts as completed
+      visibility: originalThread.visibility, // Copy visibility
+      userSetTitle: originalThread.userSetTitle, // Copy title setting
+      userId: userId,
+      model: originalThread.model, // Copy model
+      pinned: originalThread.pinned,
+      branchParentThreadId: originalThread._id, // Reference to parent thread
+      branchParentPublicMessageId: args.branchFromMessageId, // Reference to branched message
+      backfill: originalThread.backfill, // Copy backfill status
+    });
+
+    // Get all messages up to and including the branched message
+    const messagesToCopy = await ctx.db
+      .query("messages")
+      .withIndex("by_threadId_and_created_at", (q) =>
+        q
+          .eq("threadId", args.originalThreadId)
+          .lte("created_at", branchFromMessage.created_at)
+      )
+      .order("asc")
+      .collect();
+
+    // Copy all messages to the new thread
+    for (const message of messagesToCopy) {
+      await ctx.db.insert("messages", {
+        messageId: crypto.randomUUID(), // Generate new message ID
+        threadId: newThreadId, // Assign to new thread
+        userId: message.userId,
+        reasoning: message.reasoning,
+        content: message.content,
+        status: message.status,
+        updated_at: message.updated_at,
+        branches: undefined, // Reset branches for copied messages
+        role: message.role,
+        created_at: message.created_at, // Keep original timestamps for proper ordering
+        serverError: message.serverError,
+        model: message.model,
+        attachmentIds: message.attachmentIds, // Keep attachment references
+        modelParams: message.modelParams,
+        providerMetadata: message.providerMetadata,
+        resumableStreamId: undefined, // Reset stream ID
+        backfill: message.backfill,
+        tools: message.tools,
+        parts: message.parts,
+      });
+    }
+
+    // Update the original branched message to track this new branch
+    const existingBranches = branchFromMessage.branches || [];
+    await ctx.db.patch(branchFromMessage._id, {
+      branches: [...existingBranches, newThreadDbId],
+    });
+
+    console.log("[THREADS] Created branch", {
+      originalThreadId: args.originalThreadId,
+      newThreadId: newThreadId,
+      branchFromMessageId: args.branchFromMessageId,
+      userId: userId,
+      copiedMessages: messagesToCopy.length,
+    });
+
+    return {
+      newThreadId: newThreadId,
+      success: true,
+    };
+  },
+});

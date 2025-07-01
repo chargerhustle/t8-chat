@@ -34,6 +34,8 @@ const applicationTables = {
     userId: v.id("users"), // Now references the auth users table
     model: v.string(),
     pinned: v.boolean(),
+    branchParentThreadId: v.optional(v.id("threads")),
+    branchParentPublicMessageId: v.optional(v.string()),
     backfill: v.optional(v.boolean()),
   })
     .index("by_user", ["userId"])
@@ -58,6 +60,7 @@ const applicationTables = {
     content: v.string(),
     status: MessageStatusValidator,
     updated_at: v.optional(v.number()),
+    branches: v.optional(v.array(v.id("threads"))),
     role: v.union(
       v.literal("user"),
       v.literal("assistant"),
@@ -133,7 +136,8 @@ const applicationTables = {
     .index("by_thread_and_userid", ["threadId", "userId"])
     .index("by_messageId_and_userId", ["messageId", "userId"])
     .index("by_user", ["userId"])
-    .index("by_userId_and_streamId", ["userId", "resumableStreamId"]),
+    .index("by_userId_and_streamId", ["userId", "resumableStreamId"])
+    .index("by_threadId_and_created_at", ["threadId", "created_at"]),
 
   attachments: defineTable({
     messageId: v.optional(v.string()), // Store the messageId string UUID

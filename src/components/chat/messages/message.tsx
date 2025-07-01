@@ -179,6 +179,8 @@ const MessageComponent = memo(({ message }: MessageProps) => {
               messageContent={message.content}
               isUser={false}
               model={modelDisplayName}
+              threadId={message.threadId}
+              messageId={message.messageId}
             />
           </div>
         </div>

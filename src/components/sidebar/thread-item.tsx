@@ -13,7 +13,7 @@ interface ThreadItemProps {
   thread: Thread;
   isActive: boolean;
   onTogglePin: (threadId: string, isPinned: boolean) => void;
-  onDelete: (threadId: string) => void;
+  onDelete: (threadId: string, immediate?: boolean) => void;
 }
 
 // Memoized ThreadItem component to prevent unnecessary re-renders
@@ -97,7 +97,27 @@ export const ThreadItem = memo(
                 className="w-full"
                 onDoubleClick={handleDoubleClick}
               >
-                <div className="relative w-full">
+                <div className="relative w-full flex items-center">
+                  {thread.branchParentThreadId && (
+                    <div className="inline-flex" data-state="closed">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide mr-1 h-4 w-4 text-muted-foreground/50 hover:text-muted-foreground"
+                      >
+                        <path d="M6.02,5.78m0,15.31V4.55m0,0v-1.91m0,3.14v-1.23m0,1.23c0,1.61,1.21,3.11,3.2,3.94l4.58,1.92c1.98,.83,3.2,2.32,3.2,3.94v3.84"></path>
+                        <path d="M20.53,17.59l-3.41,3.66-3.66-3.41"></path>
+                      </svg>
+                      <span className="sr-only">Go to parent thread</span>
+                    </div>
+                  )}
                   {isEditing ? (
                     <input
                       id={`thread-edit-${thread.threadId}`}
@@ -134,7 +154,6 @@ export const ThreadItem = memo(
               {!isEditing && (
                 <div className="pointer-events-auto absolute -right-1 bottom-0 top-0 z-50 flex translate-x-full items-center justify-end text-muted-foreground transition-transform group-hover/link:translate-x-0 group-hover/link:bg-sidebar-accent">
                   <div className="pointer-events-none absolute bottom-0 right-[100%] top-0 h-12 w-8 bg-gradient-to-l from-sidebar-accent to-transparent opacity-0 group-hover/link:opacity-100"></div>
-
                   {/* Pin/Unpin button */}
                   <button
                     className="rounded-md p-1.5 hover:bg-muted/40"
@@ -154,7 +173,6 @@ export const ThreadItem = memo(
                       <Pin className="size-4" />
                     )}
                   </button>
-
                   {/* Delete button */}
                   <button
                     className="rounded-md p-1.5 hover:bg-destructive/50 hover:text-destructive-foreground"
@@ -165,7 +183,11 @@ export const ThreadItem = memo(
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      onDelete(thread.threadId);
+                      if (e.shiftKey) {
+                        onDelete(thread.threadId, true);
+                      } else {
+                        onDelete(thread.threadId);
+                      }
                     }}
                   >
                     <X className="size-4" />
