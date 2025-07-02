@@ -6,7 +6,6 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useTemporaryMode } from "@/hooks/use-temporary-mode";
 
