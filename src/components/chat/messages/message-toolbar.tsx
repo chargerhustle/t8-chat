@@ -8,6 +8,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
+import { useTemporaryMode } from "@/hooks/use-temporary-mode";
 
 interface MessageToolbarProps {
   messageContent: string;
@@ -24,6 +25,8 @@ export function MessageToolbar({
   threadId,
   messageId,
 }: MessageToolbarProps) {
+  const isTemporary = useTemporaryMode();
+
   const buttonClasses = cn(
     "h-8 w-8 text-xs rounded-lg p-0",
     "hover:bg-muted/40 hover:text-foreground",
@@ -60,6 +63,16 @@ export function MessageToolbar({
   });
 
   const handleBranch = async () => {
+    // Check if in temporary mode and show error toast
+    if (isTemporary) {
+      toast.error("Cannot branch temporary chat", {
+        description:
+          "Temporary chats aren't saved and can't be branched. Start a regular chat to use branching.",
+        duration: 3000,
+      });
+      return;
+    }
+
     if (!threadId || !messageId) return;
     const newThreadId = crypto.randomUUID();
     try {
@@ -146,7 +159,7 @@ export function MessageToolbar({
             </svg>
             <span className="sr-only">Branch message</span>
           </Button>
-          {/* Refresh button (UI only, not wired up) */}
+          {/* Refresh button (UI only, not wired up)
           <Button
             variant="ghost"
             size="sm"
@@ -156,6 +169,8 @@ export function MessageToolbar({
             <RefreshCcw className="h-4 w-4" />
             <span className="sr-only">Retry</span>
           </Button>
+          */}
+
           {/* Model display for mobile - only show if model is provided */}
           {model && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground sm:hidden">
