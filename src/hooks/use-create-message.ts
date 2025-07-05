@@ -30,6 +30,7 @@ export function useCreateMessage() {
         userId: "temp-user" as Id<"users">, // Will be replaced with real user ID
         model: args.model,
         pinned: false,
+        agentId: args.agentId,
       };
 
       // Handle both null (first time user) and existing threads

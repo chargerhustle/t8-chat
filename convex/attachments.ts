@@ -243,13 +243,13 @@ export const getAttachmentsByUser = query({
       .query("attachments")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.neq(q.field("status"), "deleted"))
+      .filter((q) => q.eq(q.field("agentId"), undefined))
       .order("desc");
 
     const attachments = args.limit
       ? await query.take(args.limit)
       : await query.collect();
 
-    // Return attachment data directly from database fields
     return attachments.map((attachment) => ({
       _id: attachment._id,
       threadId: attachment.threadId,

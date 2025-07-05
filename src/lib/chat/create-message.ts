@@ -174,6 +174,7 @@ export async function createMessage(
       status: "uploading" | "uploaded";
     }>;
     temporary?: boolean;
+    agentId?: string;
   },
   hooks: CreateMessageHooks
 ) {
@@ -190,6 +191,7 @@ export async function createMessage(
         threadId: input.threadId,
         title: "New Thread", // You can make this dynamic later
         model: input.model,
+        agentId: input.agentId,
       });
     } catch (error) {
       console.error("Failed to create thread:", error);

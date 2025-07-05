@@ -16,6 +16,19 @@ export const MessageStatusValidator = v.union(
   v.literal("deleted")
 );
 
+export const AgentCategoryValidator = v.union(
+  v.literal("writing"),
+  v.literal("research"),
+  v.literal("productivity"),
+  v.literal("education"),
+  v.literal("business"),
+  v.literal("entertainment"),
+  v.literal("lifestyle"),
+  v.literal("health"),
+  v.literal("coding"),
+  v.literal("other")
+);
+
 const applicationTables = {
   threads: defineTable({
     threadId: v.string(),
@@ -37,6 +50,7 @@ const applicationTables = {
     branchParentThreadId: v.optional(v.id("threads")),
     branchParentPublicMessageId: v.optional(v.string()),
     backfill: v.optional(v.boolean()),
+    agentId: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_threadId", ["threadId"])
@@ -47,6 +61,7 @@ const applicationTables = {
       "updatedAt",
     ])
     .index("by_user_visibility_pinned", ["userId", "visibility", "pinned"])
+    .index("by_agentId", ["agentId"])
     .searchIndex("search_title", {
       searchField: "title",
       filterFields: ["userId"],
@@ -152,12 +167,14 @@ const applicationTables = {
     fileKey: v.string(),
     backfill: v.optional(v.boolean()),
     status: v.optional(v.union(v.literal("deleted"), v.literal("uploaded"))),
+    agentId: v.optional(v.string()),
   })
     .index("by_fileKey", ["fileKey"])
     .index("by_userId", ["userId"])
     .index("by_userId_and_fileKey", ["userId", "fileKey"])
     .index("by_threadId", ["threadId"])
-    .index("by_messageId", ["messageId"]), // New index for efficient message-based queries (string UUID)
+    .index("by_messageId", ["messageId"])
+    .index("by_agentId", ["agentId"]),
 
   userConfiguration: defineTable({
     userId: v.id("users"), // Now references the auth users table
@@ -187,6 +204,33 @@ const applicationTables = {
       })
     ),
   }).index("by_userId", ["userId"]),
+
+  agents: defineTable({
+    agentId: v.string(),
+    name: v.string(),
+    description: v.string(),
+    systemPrompt: v.string(),
+    avatarUrl: v.optional(v.string()),
+    avatarFileKey: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    userId: v.id("users"),
+    isPublic: v.boolean(),
+    fileIds: v.array(v.id("attachments")),
+    tags: v.optional(v.array(v.string())),
+    category: AgentCategoryValidator,
+    usageCount: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_agentId", ["agentId"])
+    .index("by_public", ["isPublic"])
+    .index("by_userId_and_agentId", ["userId", "agentId"])
+    .index("by_category", ["category"])
+    .index("by_public_and_category", ["isPublic", "category"])
+    .searchIndex("search_name_description", {
+      searchField: "name",
+      filterFields: ["isPublic", "category"],
+    }),
 };
 
 export default defineSchema({

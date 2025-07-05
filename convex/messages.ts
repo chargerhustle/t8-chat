@@ -53,6 +53,7 @@ export const getByThreadId = query({
     const attachments = await ctx.db
       .query("attachments")
       .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+      .filter((q) => q.eq(q.field("agentId"), undefined))
       .collect();
 
     // Create fast lookup map (O(1) access)

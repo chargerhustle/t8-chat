@@ -42,6 +42,7 @@ export const createThread = mutation({
     threadId: v.string(),
     title: v.optional(v.string()),
     model: v.string(),
+    agentId: v.optional(v.string()),
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -75,11 +76,27 @@ export const createThread = mutation({
       userId: userId,
       model: args.model,
       pinned: false,
+      agentId: args.agentId,
     });
+
+    // Increment agent usage count if this is an agent-based thread
+    if (args.agentId) {
+      const agent = await ctx.db
+        .query("agents")
+        .withIndex("by_agentId", (q) => q.eq("agentId", args.agentId!))
+        .first();
+
+      if (agent) {
+        await ctx.db.patch(agent._id, {
+          usageCount: agent.usageCount + 1,
+        });
+      }
+    }
 
     console.log("[THREADS] Created new thread", {
       threadId: args.threadId,
       userId: userId,
+      agentId: args.agentId,
     });
 
     return { threadId: args.threadId, existed: false };
@@ -532,6 +549,7 @@ export const exportThreads = query({
       const attachments = await ctx.db
         .query("attachments")
         .withIndex("by_threadId", (q) => q.eq("threadId", threadId))
+        .filter((q) => q.eq(q.field("agentId"), undefined))
         .collect();
 
       // Create attachment lookup map with formatted data
@@ -660,6 +678,7 @@ export const createBranch = mutation({
       userId: userId,
       model: originalThread.model, // Copy model
       pinned: originalThread.pinned,
+      agentId: originalThread.agentId, // Copy agent association
       branchParentThreadId: originalThread._id, // Reference to parent thread
       branchParentPublicMessageId: args.branchFromMessageId, // Reference to branched message
       backfill: originalThread.backfill, // Copy backfill status
