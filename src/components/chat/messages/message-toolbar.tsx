@@ -7,7 +7,10 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useTemporaryMode } from "@/hooks/use-temporary-mode";
+import {
+  useTemporaryMode,
+  useBranchingDisabled,
+} from "@/hooks/use-temporary-mode";
 
 interface MessageToolbarProps {
   messageContent: string;
@@ -25,6 +28,7 @@ export function MessageToolbar({
   messageId,
 }: MessageToolbarProps) {
   const isTemporary = useTemporaryMode();
+  const isBranchingDisabled = useBranchingDisabled();
 
   const buttonClasses = cn(
     "h-8 w-8 text-xs rounded-lg p-0",
@@ -62,13 +66,21 @@ export function MessageToolbar({
   });
 
   const handleBranch = async () => {
-    // Check if in temporary mode and show error toast
-    if (isTemporary) {
-      toast.error("Cannot branch temporary chat", {
-        description:
-          "Temporary chats aren't saved and can't be branched. Start a regular chat to use branching.",
-        duration: 3000,
-      });
+    // Check if branching should be disabled and show appropriate error toast
+    if (isBranchingDisabled) {
+      if (isTemporary) {
+        toast.error("Cannot branch temporary chat", {
+          description:
+            "Temporary chats aren't saved and can't be branched. Start a regular chat to use branching.",
+          duration: 3000,
+        });
+      } else {
+        toast.error("Cannot branch preview chat", {
+          description:
+            "Preview chats can't be branched. Create the agent first to use branching.",
+          duration: 3000,
+        });
+      }
       return;
     }
 

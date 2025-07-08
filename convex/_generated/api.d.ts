@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as agents from "../agents.js";
 import type * as attachments from "../attachments.js";
 import type * as auth from "../auth.js";
 import type * as helpers from "../helpers.js";
@@ -34,6 +35,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  agents: typeof agents;
   attachments: typeof attachments;
   auth: typeof auth;
   helpers: typeof helpers;
